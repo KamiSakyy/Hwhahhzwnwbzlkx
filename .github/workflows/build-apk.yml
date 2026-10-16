@@ -41,7 +41,7 @@ jobs:
           gradle-version: "8.13"
 
       - name: Install Android SDK 36
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install SDK packages
         run: sdkmanager "platform-tools" "platforms;android-${ANDROID_API}" "build-tools;36.0.0" "ndk;27.2.12479018"
