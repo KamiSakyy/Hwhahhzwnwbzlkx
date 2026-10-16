@@ -31,7 +31,7 @@ jobs:
       - name: Build and lint signed release
         run: |
           set -o pipefail
-          gradle --no-daemon :app:testReleaseUnitTest :app:assembleRelease :app:lintRelease 2>&1 | tee build.log || { grep -A 10 -B 3 -E 'error:|What went wrong|Error:|FAILED|Exception' build.log | tail -70 | while IFS= read -r line; do echo "::error::$line"; done; exit 1; }
+          gradle --no-daemon :app:testReleaseUnitTest :app:assembleRelease :app:lintRelease 2>&1 | tee build.log || { { grep -A 10 -B 3 -E 'error:|What went wrong|Error:|FAILED|Exception' build.log; cat app/build/reports/lint-results-release.txt 2>/dev/null || true; } | tail -160 | while IFS= read -r line; do echo "::error::$line"; done; exit 1; }
       - name: Verify signature, size and ABI
         shell: bash
         run: |
