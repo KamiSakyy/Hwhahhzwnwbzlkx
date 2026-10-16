@@ -58,7 +58,6 @@ jobs:
               repo: context.repo.repo,
               title: '🔴 APK build failed — log tail',
               body: '```\n' + tail + '\n```',
-              labels: ['build-log'],
             });
 
       - name: Collect APK + size report
