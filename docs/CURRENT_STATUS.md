@@ -154,3 +154,19 @@ UI-only. Автозапуск editor-apk удалён и job выключен. �
 Измеренный состав и план границы UI-only: docs/audits/REJECTED_FULL_MODULE.md,
 машинный отчёт docs/audits/rejected-full-module-apk.json. Выделение UI-only модуля
 ещё не выполнено; просто включить R8 и объявить проблему решённой нельзя.
+
+## Начато фактическое выделение UI-only, не очередная упаковка клиента
+`integration/ui-only` — отдельные settings и Android library без :TMessagesProj
+и вообще без внешних runtime-зависимостей. Первый выделенный компонент:
+`MessageDrawable.generatePath`, перенесённый побайтно из pinned upstream в
+`UpstreamBubblePath`; геометрия хвоста/дуг/сгруппированных углов не заменялась.
+Адаптер принимает density и layout state явно, вместо запуска AndroidUtilities /
+SharedConfig / приложения Telegram. Исходный TYPE_PREVIEW dp factor 3 сохранён.
+Происхождение/хеш метода и GPL license приложены.
+
+`extract_bubble_geometry.py --check` подтверждает воспроизводимость и идентичность
+самого метода; `check_ui_only_boundary.py` проверяет Android-graphics-only imports,
+отсутствие клиентских зависимостей/native libs/permissions. Обе проверки PASS.
+Это только компонент геометрии, НЕ готовый экран: текстовая компоновка, ActionBar,
+список, composer, тени/градиенты и интеграция редактора ещё не выделены. Android
+компиляции/сборки нового APK/эмулятора в этом продолжении не было.

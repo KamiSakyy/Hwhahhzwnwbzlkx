@@ -1,0 +1,19 @@
+{
+  "upstream_commit": "f32ffeec763f0bdbf4bec25b52d654f77bff733d",
+  "source": "vendor/telegram/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java",
+  "target": "integration/ui-only/rendering/src/main/java/dev/themestudio/rendering/UpstreamBubblePath.java",
+  "routine": "generatePath",
+  "routine_sha256": "999e8eb634909d22f10b1c5ccbc904867893c3b5f99503be59a88569ddee56fb",
+  "unchanged": "generatePath body and signature",
+  "adapter_changes": [
+    "Explicit density instead of AndroidUtilities global",
+    "Explicit state instead of Theme/SharedConfig/client initialization"
+  ],
+  "not_included": [
+    "ChatMessageCell layout/text",
+    "bubble shadows/gradients/crossfades",
+    "screen UI",
+    "network/protocol",
+    "JNI"
+  ]
+}
