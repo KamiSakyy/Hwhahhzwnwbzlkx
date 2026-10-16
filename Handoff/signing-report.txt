@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: O=Open Source, CN=Theme Studio PUBLIC Development
+Signer #1 certificate SHA-256 digest: aa14155d10d054d3c2e4157edc208b863512e86ee18a470c8e504b6ce9cd5736
+Signer #1 certificate SHA-1 digest: e16bfd8be8fc09109297b7e5a6541fe3f7a3e265
+Signer #1 certificate MD5 digest: 64067f83da240f4c51f7b11936a713b7
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: a76e1da1e0eff15fcdd6b41bce6b0cd16f80b154ca09357646c40755bd74b4d7
+Signer #1 public key SHA-1 digest: c92f08783302b3d7a34b906bd97290ffb0a66ddc
+Signer #1 public key MD5 digest: e6822350e720d0686a0ae0cb312638b4
