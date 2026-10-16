@@ -1,12 +1,6 @@
 name: Build actual editor APK
 on:
   workflow_dispatch:
-  push:
-    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
-    paths:
-      - '.github/workflows/editor-apk.yml'
-      - 'integration/**'
-      - 'gradle/no-artifact-policy.gradle'
 permissions:
   contents: write
 concurrency:
@@ -14,6 +8,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   editor:
+    # Rejected: this host packages the whole TMessagesProj dependency graph.
+    # Do not rebuild until a UI-only, protocol-free module replaces it.
+    if: ${{ false }}
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     env:

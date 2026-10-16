@@ -1,0 +1,146 @@
+{
+  "apk": "Handoff/original-editor/ThemeStudio-original-editor-arm64.apk",
+  "sha256": "e8af96389f578f610277b00c54762d5dd081b47a03f9e706fa9a73dbdb6f15ce",
+  "file_bytes": 86914199,
+  "limit_bytes": 10000000,
+  "meets_size_limit": false,
+  "groups": {
+    "other": {
+      "compressed_bytes": 36235,
+      "expanded_bytes": 132638,
+      "entries": 128
+    },
+    "assets": {
+      "compressed_bytes": 6369786,
+      "expanded_bytes": 9331445,
+      "entries": 146
+    },
+    "dex": {
+      "compressed_bytes": 22786185,
+      "expanded_bytes": 56381792,
+      "entries": 7
+    },
+    "lib": {
+      "compressed_bytes": 23158360,
+      "expanded_bytes": 23158360,
+      "entries": 2
+    },
+    "res": {
+      "compressed_bytes": 6904232,
+      "expanded_bytes": 24110192,
+      "entries": 7458
+    },
+    "resources.arsc": {
+      "compressed_bytes": 26838960,
+      "expanded_bytes": 26838960,
+      "entries": 1
+    }
+  },
+  "zip_headers_alignment_and_signing_bytes": 820441,
+  "largest_entries": [
+    {
+      "path": "resources.arsc",
+      "compressed_bytes": 26838960,
+      "expanded_bytes": 26838960
+    },
+    {
+      "path": "lib/arm64-v8a/libtmessages.49.so",
+      "compressed_bytes": 22138808,
+      "expanded_bytes": 22138808
+    },
+    {
+      "path": "classes5.dex",
+      "compressed_bytes": 4314887,
+      "expanded_bytes": 10711684
+    },
+    {
+      "path": "classes7.dex",
+      "compressed_bytes": 4190689,
+      "expanded_bytes": 9487632
+    },
+    {
+      "path": "classes6.dex",
+      "compressed_bytes": 3973280,
+      "expanded_bytes": 9249832
+    },
+    {
+      "path": "classes4.dex",
+      "compressed_bytes": 3853769,
+      "expanded_bytes": 9919972
+    },
+    {
+      "path": "classes.dex",
+      "compressed_bytes": 3554759,
+      "expanded_bytes": 9071872
+    },
+    {
+      "path": "assets/emoji.pack",
+      "compressed_bytes": 3417859,
+      "expanded_bytes": 3492338
+    },
+    {
+      "path": "classes3.dex",
+      "compressed_bytes": 2897325,
+      "expanded_bytes": 7936540
+    },
+    {
+      "path": "lib/arm64-v8a/liblanguage_id_l2c_jni.so",
+      "compressed_bytes": 1019552,
+      "expanded_bytes": 1019552
+    },
+    {
+      "path": "assets/tflite_langid.tflite.jpg",
+      "compressed_bytes": 315520,
+      "expanded_bytes": 315520
+    },
+    {
+      "path": "assets/grammars.dat",
+      "compressed_bytes": 198520,
+      "expanded_bytes": 632432
+    },
+    {
+      "path": "assets/localization_en.bin",
+      "compressed_bytes": 191647,
+      "expanded_bytes": 418624
+    },
+    {
+      "path": "assets/fonts/rmediumitalic.ttf",
+      "compressed_bytes": 191074,
+      "expanded_bytes": 297244
+    },
+    {
+      "path": "assets/fonts/ritalic.ttf",
+      "compressed_bytes": 188726,
+      "expanded_bytes": 295296
+    },
+    {
+      "path": "res/VSz.svg",
+      "compressed_bytes": 180649,
+      "expanded_bytes": 507258
+    },
+    {
+      "path": "assets/fonts/rmedium.ttf",
+      "compressed_bytes": 165465,
+      "expanded_bytes": 274864
+    },
+    {
+      "path": "assets/models/star.binobj",
+      "compressed_bytes": 154929,
+      "expanded_bytes": 361248
+    },
+    {
+      "path": "assets/models/diamond_ios/frames.bin",
+      "compressed_bytes": 151974,
+      "expanded_bytes": 242088
+    },
+    {
+      "path": "res/dho.webp",
+      "compressed_bytes": 139612,
+      "expanded_bytes": 139612
+    }
+  ],
+  "limitations": [
+    "Byte inventory only, not a runtime/visual test.",
+    "libtmessages combines UI/media/network functionality; its entire size is not attributed solely to protocol."
+  ]
+}

@@ -1,2 +1,3 @@
 Experimental source-stage editor. Pixel identity/runtime not validated. Public development signing key.
 WARNING: 10 MB requirement NOT met.
+REJECTED by user: full TMessagesProj dependency graph is not an acceptable UI-only editor. Do not treat this APK as the requested deliverable.
