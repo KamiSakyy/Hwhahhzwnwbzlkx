@@ -11,6 +11,8 @@ permissions:
   contents: read
 jobs:
   compile-sources:
+    # Stopped at user request. No Telegram compilation or packaging is authorized.
+    if: ${{ false }}
     runs-on: ubuntu-22.04
     timeout-minutes: 50
     env:
@@ -26,6 +28,8 @@ jobs:
           gradle-version: '8.13'
       - name: Complete pinned original checkout, including all native/media submodules
         run: bash scripts/bootstrap_telegram.sh
+      - name: Verify all original files and all pinned submodule SHAs
+        run: python scripts/verify_full_telegram.py
       - name: Install compile toolchain only
         shell: bash
         run: |
