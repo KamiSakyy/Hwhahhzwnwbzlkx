@@ -24,27 +24,96 @@ public final class ColorEditorController implements AutoCloseable {
     private final Context context;
     private final EditorThemePreviewActivity preview;
     private BottomSheet dialog;
+    private Runnable rollbackCurrent;
 
     public ColorEditorController(Context context, EditorThemePreviewActivity preview) {
         this.context = context;
         this.preview = preview;
-        preview.setElementSelectionListener(hit -> open(hit.key));
+        preview.setElementSelectionListener(this::openElement);
     }
 
     public void setSelectionEnabled(boolean enabled) {
-        preview.setElementSelectionListener(enabled ? hit -> open(hit.key) : null);
-        if (!enabled && dialog != null) dialog.dismiss();
+        preview.setElementSelectionListener(enabled ? this::openElement : null);
+        if (!enabled) dismissCurrent();
+    }
+
+    private void openElement(MessageElementResolver.Hit hit) {
+        if (preview.isEditorDestroyed()) return;
+        if (hit.candidateKeys.size() == 1) {
+            open(hit.key);
+            return;
+        }
+        dismissCurrent();
+        CharSequence[] items = new CharSequence[hit.candidateKeys.size()];
+        for (int i = 0; i < items.length; i++) {
+            String key = hit.candidateKeys.get(i);
+            int value = preview.getResourceProvider().getColor(ThemeColors.stringKeyToInt(key));
+            items[i] = describeKey(key) + " · " + ColorSession.formatArgb(value) + "\n" + key;
+        }
+        BottomSheet chooser = new BottomSheet.Builder(context)
+                .setTitle(hit.region == MessageElementResolver.Region.REPLY
+                        ? "Ответ: выберите свойство" : "Сообщение: свойство или состояние")
+                .setItems(items, (d, which) -> {
+                    if (dialog == d && !preview.isEditorDestroyed()
+                            && which >= 0 && which < hit.candidateKeys.size()) open(hit.candidateKeys.get(which));
+                }).create();
+        chooser.setOnDismissListener(d -> { if (dialog == chooser) dialog = null; });
+        dialog = chooser;
+        chooser.show();
+    }
+
+    private static String describeKey(String key) {
+        if (key.endsWith("BubbleSelected")) return "Фон при выделении";
+        if (key.endsWith("BubbleShadow")) return "Тень сообщения";
+        if (key.endsWith("Bubble")) return "Фон сообщения";
+        if (key.contains("MediaMessageSelectedText")) return "Подпись ответа при выделении";
+        if (key.contains("MediaMessageText")) return "Подпись вложения в ответе";
+        if (key.contains("ReplyNameText")) return "Имя в ответе";
+        if (key.contains("ReplyMessageText")) return "Текст ответа";
+        if (key.endsWith("ReplyLine2")) return "Вторая линия ответа";
+        if (key.endsWith("ReplyLine")) return "Линия ответа";
+        if (key.endsWith("TimeSelectedText")) return "Время при выделении";
+        if (key.endsWith("TimeText")) return "Время сообщения";
+        if (key.contains("messageLink")) return "Ссылки";
+        if (key.contains("messageText")) return "Текст сообщения";
+        return key;
+    }
+
+    private void dismissCurrent() {
+        BottomSheet previous = dialog;
+        Runnable rollback = rollbackCurrent;
+        dialog = null;
+        rollbackCurrent = null;
+        // Dismiss animations are asynchronous. Finish the old transaction BEFORE
+        // opening another one, not in a delayed callback that could cancel new edits.
+        if (rollback != null) rollback.run();
+        if (previous != null) previous.dismiss();
     }
 
     public void open(String keyName) {
-        if (dialog != null) dialog.dismiss();
+        dismissCurrent();
         int key = ThemeColors.stringKeyToInt(keyName);
         if (key < 0) throw new IllegalArgumentException("Unknown Telegram theme key: " + keyName);
+        try {
+            showColorEditor(keyName, key);
+        } catch (RuntimeException failure) {
+            dismissCurrent();
+            throw failure;
+        }
+    }
+
+    private void showColorEditor(String keyName, int key) {
         ColorSession session = preview.getEditorSession();
         preview.beginColorEdit(keyName);
         int[] color = {preview.getResourceProvider().getColor(key)};
         boolean[] synchronizing = {false};
         boolean[] committed = {false};
+        Runnable rollback = () -> {
+            if (committed[0]) return;
+            committed[0] = true;
+            if (session.isEditing()) session.cancel();
+        };
+        rollbackCurrent = rollback;
 
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
@@ -75,7 +144,7 @@ public final class ColorEditorController implements AutoCloseable {
             }
         };
         picker[0] = new ColorPicker(context, false, (rgb, num, applyNow) -> {
-            if (synchronizing[0]) return;
+            if (synchronizing[0] || committed[0]) return;
             color[0] = (color[0] & 0xff000000) | (rgb & 0x00ffffff);
             session.preview(color[0]);
             syncControls.run();
@@ -86,7 +155,7 @@ public final class ColorEditorController implements AutoCloseable {
         content.addView(alpha, new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(44)));
         content.addView(hex, new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(48)));
         alpha.setDelegate((stop, progress) -> {
-            if (synchronizing[0]) return;
+            if (synchronizing[0] || committed[0]) return;
             int a = Math.max(0, Math.min(255, Math.round(progress * 255)));
             color[0] = (color[0] & 0x00ffffff) | (a << 24);
             session.preview(color[0]);
@@ -95,7 +164,7 @@ public final class ColorEditorController implements AutoCloseable {
         hex.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (synchronizing[0]) return;
+                if (synchronizing[0] || committed[0]) return;
                 try {
                     color[0] = ColorSession.parseArgb(s.toString());
                     hex.setError(null);
@@ -144,6 +213,7 @@ public final class ColorEditorController implements AutoCloseable {
         ButtonWithCounterView apply = new ButtonWithCounterView(context, null);
         apply.setText("Применить", false);
         apply.setOnClickListener(v -> {
+            if (committed[0] || preview.isEditorDestroyed()) return;
             try {
                 session.preview(ColorSession.parseArgb(hex.getText().toString()));
             } catch (IllegalArgumentException e) {
@@ -156,6 +226,7 @@ public final class ColorEditorController implements AutoCloseable {
         reset.setText("Сброс", false);
         reset.setContentDescription("Вернуть стандартный цвет Telegram");
         reset.setOnClickListener(v -> {
+            if (committed[0] || preview.isEditorDestroyed()) return;
             session.previewDefault(); session.commit(); committed[0] = true; current.dismiss();
         });
         ButtonWithCounterView cancel = new ButtonWithCounterView(context, false, null);
@@ -168,8 +239,11 @@ public final class ColorEditorController implements AutoCloseable {
             actions.addView(button, params);
         }
         current.setOnDismissListener(d -> {
-            if (!committed[0] && session.isEditing()) session.cancel();
-            if (dialog == current) dialog = null;
+            rollback.run();
+            if (dialog == current) {
+                dialog = null;
+                rollbackCurrent = null;
+            }
         });
         dialog = current;
         current.show();
@@ -178,6 +252,6 @@ public final class ColorEditorController implements AutoCloseable {
     @Override
     public void close() {
         preview.setElementSelectionListener(null);
-        if (dialog != null) dialog.dismiss();
+        dismissCurrent();
     }
 }

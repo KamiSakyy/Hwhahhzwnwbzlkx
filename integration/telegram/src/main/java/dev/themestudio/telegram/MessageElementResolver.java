@@ -9,13 +9,23 @@ import org.telegram.ui.Cells.ChatMessageCell;
 
 /** Uses measured Telegram layout, not guessed dp rectangles. Coordinates are cell-local. */
 public final class MessageElementResolver {
-    public enum Region { TEXT, CAPTION, LINK, BUBBLE }
+    public enum Region { TEXT, CAPTION, LINK, REPLY, BUBBLE }
     public static final class Hit {
         public final ChatMessageCell cell;
+        public final MessageObject message;
         public final String key;
         public final Region region;
-        private Hit(ChatMessageCell cell, String key, Region region) {
-            this.cell = cell; this.key = key; this.region = region;
+        /** First key is the direct target; remaining keys are explicitly related properties/states. */
+        public final java.util.List<String> candidateKeys;
+        private Hit(ChatMessageCell cell, String key, Region region, String... related) {
+            this.cell = cell; this.message = cell.getMessageObject();
+            this.key = key; this.region = region;
+            java.util.LinkedHashSet<String> keys = new java.util.LinkedHashSet<>();
+            keys.add(key);
+            for (String candidate : related) {
+                if (org.telegram.ui.ActionBar.ThemeColors.stringKeyToInt(candidate) >= 0) keys.add(candidate);
+            }
+            candidateKeys = java.util.Collections.unmodifiableList(new java.util.ArrayList<>(keys));
         }
     }
 
@@ -27,6 +37,20 @@ public final class MessageElementResolver {
         // During bubble transitions Telegram interpolates several private drawing offsets.
         // Don't guess a selectable region while those measurements are in motion.
         if (cell.getTransitionParams().animateBackgroundBoundsInner) return null;
+        // This RectF is calculated by the original reply renderer; no guessed dp boxes.
+        // Reply name/text/line colors can be peer-derived, so offer explicit choices, not
+        // a false claim that one guessed key is the exact pixel under the finger.
+        if ((cell.replyNameLayout != null || cell.replyTextLayout != null)
+                && !cell.replySelectorRect.isEmpty() && cell.replySelectorRect.contains(localX, y)) {
+            if (message.shouldDrawWithoutBackground()) {
+                return new Hit(cell, "chat_stickerReplyNameText", Region.REPLY,
+                        "chat_stickerReplyMessageText", "chat_stickerReplyLine");
+            }
+            String prefix = out ? "chat_outReply" : "chat_inReply";
+            return new Hit(cell, prefix + "NameText", Region.REPLY,
+                    prefix + "MessageText", prefix + "MediaMessageText", prefix + "Line",
+                    prefix + "MediaMessageSelectedText", prefix + "Line2");
+        }
         Hit text = resolveText(cell, message, message.textLayoutBlocks, message.messageText,
                 localX - cell.getTextX(), y - cell.getTextY(), message.textXOffset, Region.TEXT);
         if (text != null) return text;
@@ -38,7 +62,13 @@ public final class MessageElementResolver {
         }
         if (localX >= cell.getBackgroundDrawableLeft() && localX <= cell.getBackgroundDrawableRight()
                 && y >= cell.getBackgroundDrawableTop() && y <= cell.getBackgroundDrawableBottom()) {
-            return new Hit(cell, out ? "chat_outBubble" : "chat_inBubble", Region.BUBBLE);
+            String bubble = out ? "chat_outBubble" : "chat_inBubble";
+            String prefix = out ? "chat_out" : "chat_in";
+            return new Hit(cell, cell.isDrawSelectionBackground() ? bubble + "Selected" : bubble,
+                    Region.BUBBLE, bubble, bubble + "Selected", bubble + "Shadow",
+                    out ? "chat_messageTextOut" : "chat_messageTextIn",
+                    out ? "chat_messageLinkOut" : "chat_messageLinkIn",
+                    prefix + "TimeText", prefix + "TimeSelectedText");
         }
         return null;
     }

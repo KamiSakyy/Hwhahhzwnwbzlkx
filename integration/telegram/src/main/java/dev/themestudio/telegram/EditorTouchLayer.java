@@ -25,7 +25,11 @@ final class EditorTouchLayer extends FrameLayout {
         addView(officialView, new FrameLayout.LayoutParams(-1, -1));
     }
 
-    void setSelectionListener(Listener listener) { this.listener = listener; }
+    void setSelectionListener(Listener listener) {
+        this.listener = listener;
+        downHit = null;
+        moved = true;
+    }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
@@ -42,7 +46,7 @@ final class EditorTouchLayer extends FrameLayout {
         } else if (action == MotionEvent.ACTION_UP) {
             MessageElementResolver.Hit hit = moved || event.getEventTime() - event.getDownTime() >= ViewConfiguration.getLongPressTimeout()
                     ? null : find(this, event.getX(), event.getY());
-            if (downHit != null && hit != null && downHit.cell == hit.cell && downHit.key.equals(hit.key)) {
+            if (downHit != null && hit != null && downHit.cell == hit.cell && downHit.message == hit.message && downHit.key.equals(hit.key)) {
                 MotionEvent cancel = MotionEvent.obtain(event);
                 cancel.setAction(MotionEvent.ACTION_CANCEL);
                 super.dispatchTouchEvent(cancel);
@@ -64,9 +68,14 @@ final class EditorTouchLayer extends FrameLayout {
         if (view instanceof ChatMessageCell) return MessageElementResolver.resolve((ChatMessageCell) view, x, y);
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
-            // Telegram preview's RecyclerView draws normal message children in child order.
-            for (int i = group.getChildCount() - 1; i >= 0; i--) {
-                View child = group.getChildAt(i);
+            // Respect Android elevation as well as child order. The stable sort preserves
+            // the original order for equal Z values; transient custom drawing orders still
+            // require runtime validation and are not claimed to be fully covered.
+            java.util.ArrayList<View> children = new java.util.ArrayList<>();
+            for (int i = 0; i < group.getChildCount(); i++) children.add(group.getChildAt(i));
+            children.sort((left, right) -> Float.compare(left.getZ(), right.getZ()));
+            for (int i = children.size() - 1; i >= 0; i--) {
+                View child = children.get(i);
                 float[] point = {x + group.getScrollX() - child.getLeft(), y + group.getScrollY() - child.getTop()};
                 Matrix inverse = new Matrix();
                 if (!child.getMatrix().invert(inverse)) continue;
