@@ -24,7 +24,9 @@ jobs:
           java -cp /tmp/theme-core-classes dev.themestudio.core.ColorSessionTest | tee /tmp/core-test-report.txt
           echo "::notice::$(cat /tmp/core-test-report.txt)"
       - name: Parse integration Java syntax only (no Android compiler or packaging)
+        shell: bash
         run: |
+          set -euo pipefail
           javac -Xlint:all -Werror -d /tmp/theme-core-classes tools/JavaSyntaxCheck.java
           java -cp /tmp/theme-core-classes JavaSyntaxCheck integration/telegram/src/main/java | tee /tmp/syntax-report.txt
           echo "::notice::$(cat /tmp/syntax-report.txt)"
