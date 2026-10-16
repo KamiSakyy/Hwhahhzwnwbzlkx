@@ -1,6 +1,9 @@
 name: Deliver APK to Handoff
 on:
   workflow_dispatch:
+  push:
+    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
+    paths: ['.github/workflows/handoff.yml']
 permissions:
   contents: write
   actions: read
