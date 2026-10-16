@@ -1,5 +1,5 @@
-// User policy: no APK/AAB production and no emulator/device execution until
-// explicit approval after the editor is complete. There is no -P bypass.
+// User explicitly requested an editor APK on 2026-10-17. Permit only the
+// genuine-component host; legacy mock/full messenger apps and devices stay blocked.
 gradle.taskGraph.whenReady { graph ->
     def forbidden = graph.allTasks.findAll { task ->
         def name = task.name.toLowerCase(java.util.Locale.ROOT)
@@ -11,7 +11,10 @@ gradle.taskGraph.whenReady { graph ->
         )
         def launchesDevice = name.startsWith('connected') || name.contains('emulator') ||
             name.contains('manageddevice') || name.endsWith('androidtest')
-        packagesApplication || launchesDevice
+        def authorizedEditorApk = task.project.path == ':ThemeStudioHost' &&
+            task.project.projectDir.canonicalFile == new File(System.getenv('THEME_STUDIO_ROOT') ?: '.', 'integration/android-host').canonicalFile &&
+            !name.startsWith('bundle') && !name.contains('aab') && !name.startsWith('install')
+        (packagesApplication && !authorizedEditorApk) || launchesDevice
     }
     if (!forbidden.isEmpty()) {
         throw new GradleException('BLOCKED by user policy: APK/AAB production and device/emulator tasks are forbidden. Tasks: ' + forbidden*.path.join(', '))

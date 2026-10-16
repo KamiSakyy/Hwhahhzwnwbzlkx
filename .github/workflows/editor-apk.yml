@@ -1,0 +1,87 @@
+name: Build actual editor APK
+on:
+  workflow_dispatch:
+  push:
+    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
+    paths:
+      - '.github/workflows/editor-apk.yml'
+      - 'integration/**'
+      - 'gradle/no-artifact-policy.gradle'
+permissions:
+  contents: write
+concurrency:
+  group: actual-editor-apk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  editor:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    env:
+      THEME_STUDIO_ROOT: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: '8.13'
+      - name: Restore genuine pinned component sources
+        run: bash scripts/bootstrap_telegram.sh
+      - name: Install Android toolchain (no emulator)
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.2.12479018' 'cmake;3.22.1'
+      - name: Build only editor host, never messenger application
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle -p vendor/telegram -I "$THEME_STUDIO_ROOT/integration/telegram/editor-sources.init.gradle" --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx5g :ThemeStudioHost:assembleRelease 2>&1 | tee editor-build.log
+      - name: Verify and prepare APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=integration/android-host/build/outputs/apk/release/android-host-release.apk
+          test -f "$APK" || APK=$(find integration/android-host/build/outputs/apk/release -name '*.apk' -type f | head -1)
+          test -n "$APK"
+          mkdir -p delivery
+          cp "$APK" delivery/ThemeStudio-original-editor-arm64.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK" > delivery/signature.txt
+          unzip -Z1 "$APK" | grep '^lib/' > delivery/native-libs.txt
+          test -s delivery/native-libs.txt
+          ! grep -v '^lib/arm64-v8a/' delivery/native-libs.txt
+          SIZE=$(stat -c%s "$APK")
+          echo "APK bytes: $SIZE" > delivery/size.txt
+          echo 'Experimental source-stage editor. Pixel identity/runtime not validated. Public development signing key.' > delivery/STATUS.txt
+          if test "$SIZE" -gt 10000000; then
+            echo 'WARNING: 10 MB requirement NOT met.' | tee -a delivery/STATUS.txt
+            echo '::warning::APK exceeds requested 10 MB; not a completed release.'
+          fi
+          (cd delivery && sha256sum ThemeStudio-original-editor-arm64.apk > SHA256SUMS)
+          cat delivery/size.txt delivery/STATUS.txt >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: actual-editor-apk
+          path: delivery/
+          if-no-files-found: error
+      - name: Deliver raw APK to this branch Handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(stat -c%s delivery/ThemeStudio-original-editor-arm64.apk)" -lt 99000000
+          git pull --ff-only origin arena/2e1290a9-hwhahhzwnwbzlkx
+          mkdir -p Handoff/original-editor
+          cp delivery/* Handoff/original-editor/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f Handoff/original-editor/*
+          if ! git diff --cached --quiet; then
+            git commit -m 'Deliver experimental genuine-component editor APK (see STATUS.txt)'
+            git push origin HEAD:arena/2e1290a9-hwhahhzwnwbzlkx
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: actual-editor-build-log
+          path: editor-build.log
+          if-no-files-found: ignore
