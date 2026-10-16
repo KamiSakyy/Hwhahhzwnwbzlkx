@@ -131,11 +131,13 @@ public final class ColorEditorController implements AutoCloseable {
         hex.setHint("#AARRGGBB");
         hex.setContentDescription("Цвет в формате AARRGGBB");
 
+        RgbaFields rgba = new RgbaFields(context);
         ColorPicker[] picker = new ColorPicker[1];
         Runnable syncControls = () -> {
             synchronizing[0] = true;
             try {
                 picker[0].setColor(color[0], 0);
+                rgba.setColor(color[0]);
                 alpha.setProgress(Color.alpha(color[0]) / 255f);
                 alphaLabel.setText("Непрозрачность: " + Color.alpha(color[0]) + " / 255");
                 hex.setText(ColorSession.formatArgb(color[0]));
@@ -154,6 +156,13 @@ public final class ColorEditorController implements AutoCloseable {
         content.addView(alphaLabel, new LinearLayout.LayoutParams(-1, -2));
         content.addView(alpha, new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(44)));
         content.addView(hex, new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(48)));
+        content.addView(rgba, new LinearLayout.LayoutParams(-1, -2));
+        rgba.setListener(value -> {
+            if (synchronizing[0] || committed[0]) return;
+            color[0] = value;
+            session.preview(value);
+            syncControls.run();
+        });
         alpha.setDelegate((stop, progress) -> {
             if (synchronizing[0] || committed[0]) return;
             int a = Math.max(0, Math.min(255, Math.round(progress * 255)));
@@ -172,6 +181,7 @@ public final class ColorEditorController implements AutoCloseable {
                     // Do not rewrite the focused EditText/cursor during typing.
                     synchronizing[0] = true;
                     picker[0].setColor(color[0], 0);
+                    rgba.setColor(color[0]);
                     alpha.setProgress(Color.alpha(color[0]) / 255f);
                     alphaLabel.setText("Непрозрачность: " + Color.alpha(color[0]) + " / 255");
                 } catch (IllegalArgumentException ignored) {
@@ -214,6 +224,7 @@ public final class ColorEditorController implements AutoCloseable {
         apply.setText("Применить", false);
         apply.setOnClickListener(v -> {
             if (committed[0] || preview.isEditorDestroyed()) return;
+            if (!rgba.validateForApply()) return;
             try {
                 session.preview(ColorSession.parseArgb(hex.getText().toString()));
             } catch (IllegalArgumentException e) {
