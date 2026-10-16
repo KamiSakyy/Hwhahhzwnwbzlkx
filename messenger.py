@@ -281,66 +281,60 @@ def _t(ts: int) -> str:
     return time.strftime("%H:%M", time.localtime(ts))
 
 
+DIV = "─ ─ ─ ─ ─ ─ ─ ─ ─ ─"
+
+
 def scr_auth(notice: str = "") -> str:
     return (
-        "✉️ <b>МЕССЕНДЖЕР «АРИ»</b>\n"
-        "━━━━━━━━━━━━━━━\n"
-        "Всё живёт в этом одном сообщении.\n"
-        "Просто пиши команды текстом 👇\n\n"
-        "〔 1 〕 <b>регистрация</b> — новый аккаунт\n"
-        "〔 2 〕 <b>войти</b> — у меня уже есть аккаунт\n"
-        + (f"\n⚠️ {notice}" if notice else "")
+        "✉️ <b>А Р И</b>  ·  мессенджер\n"
+        f"{DIV}\n\n"
+        "Привет! 👋 Это мессенджер, который живёт\n"
+        "в одном-единственном сообщении.\n\n"
+        "👇 <b>Нажми кнопку ниже</b> — текст не нужен."
+        + (f"\n\n⚠️ {notice}" if notice else "")
     )
 
 
 def scr_form(title: str, lines: list[str], hint: str, notice: str = "") -> str:
     body = "\n".join(lines)
     return (
-        f"✉️ <b>{title}</b>\n━━━━━━━━━━━━━━━\n{body}\n\n👉 {hint}\n"
-        "〔 назад 〕— отмена"
+        f"<b>{title}</b>\n{DIV}\n{body}\n\n"
+        f"✍️ {hint}"
         + (f"\n\n⚠️ {notice}" if notice else "")
     )
 
 
 def scr_registered(user: dict) -> str:
     return (
-        "✅ <b>РЕГИСТРАЦИЯ ГОТОВА</b>\n"
-        "━━━━━━━━━━━━━━━\n"
-        f"📧 Почта: <code>{user['email']}</code>\n"
-        "🔑 Пароль: •••••••• <i>(скрыт и зашифрован)</i>\n"
-        f"👤 Юзер: <b>@{user['username']}</b>\n\n"
-        "👉 Напиши: <b>войти</b> — и попадёшь в свои сообщения"
+        "🎉 <b>Аккаунт создан!</b>\n"
+        f"{DIV}\n"
+        f"👤 <b>@{user['username']}</b>\n"
+        f"📧 {user['email']}\n"
+        "🔑 Пароль: ••••••••\n\n"
+        "Жми <b>«🚀 Войти»</b> ниже 👇"
     )
 
 
 def scr_main(user: dict, notice: str = "", path: str | None = None) -> str:
     chats = chat_list(user["id"], path)
     total_unread = unread_total(user["id"], path)
-    lines = [
-        "✉️ <b>СООБЩЕНИЯ</b>" + (f"  🔴 {total_unread} новых" if total_unread else ""),
-        "━━━━━━━━━━━━━━━",
-        f"👤 @{user['username']}  ·  📧 {user['email']}",
-        "",
-    ]
+    head = "💬 <b>Чаты</b>" + (f"   🔴 {total_unread}" if total_unread else "")
+    lines = [head, DIV, f"👤 @{user['username']}", ""]
     if not chats:
-        lines.append("📭 Диалогов пока нет.")
+        lines += ["📭 <i>Пока пусто.</i>",
+                  "Нажми «🔍 Поиск» и напиши другу 👇"]
     else:
         for ch in chats:
             p, last, un = ch["partner"], ch["last"], ch["unread"]
-            who = "ты: " if last["sender_id"] == user["id"] else ""
-            preview = last["text"].replace("\n", " ")
-            if len(preview) > 34:
-                preview = preview[:34] + "…"
-            badge = f" 🔴{un}" if un else ""
-            lines.append(f"💬 <b>@{p['username']}</b>{badge}  <i>{_t(last['created_at'])}</i>")
-            lines.append(f"    {who}{preview}")
-    lines += [
-        "",
-        "⌨️ <b>Команды:</b>",
-        "〔 поиск 〕— найти по @юзернейму",
-        "〔 @username 〕— открыть диалог",
-        "〔 профиль 〕·  〔 выйти 〕",
-    ]
+            who = "Вы: " if last["sender_id"] == user["id"] else ""
+            preview = last["text"].replace("\n", " ").replace("<", "‹")
+            if len(preview) > 36:
+                preview = preview[:36] + "…"
+            dot = "🔵" if un else "▫️"
+            badge = f"  <b>{un} новых</b>" if un else ""
+            lines.append(f"{dot} <b>@{p['username']}</b>{badge}  <i>{_t(last['created_at'])}</i>")
+            lines.append(f"      <i>{who}{preview}</i>")
+        lines.append("\n👇 Нажми на чат, чтобы открыть")
     if notice:
         lines.append(f"\n⚠️ {notice}")
     return "\n".join(lines)[:4000]
@@ -348,21 +342,17 @@ def scr_main(user: dict, notice: str = "", path: str | None = None) -> str:
 
 def scr_search(user: dict, results: list[dict] | None = None, query: str = "",
                notice: str = "") -> str:
-    lines = [
-        "🔍 <b>ПОИСК ПО @ЮЗЕРНЕЙМУ</b>",
-        "━━━━━━━━━━━━━━━",
-    ]
+    lines = ["🔍 <b>Поиск</b>", DIV]
     if results is None:
-        lines.append("Напиши юзернейм, например: <code>ivan</code> или <code>@ivan</code>")
+        lines.append("✍️ Напиши юзернейм друга — например <code>ivan</code>")
     elif not results:
-        lines.append(f"По запросу «{query}» никого не нашлось 😕")
-        lines.append("Напиши другой юзернейм или 〔 назад 〕")
+        lines.append(f"😕 По запросу «{query}» никого нет.")
+        lines.append("✍️ Попробуй написать иначе")
     else:
-        lines.append("Нашлось:")
+        lines.append(f"Нашлось: <b>{len(results)}</b>\n")
         for u in results:
             lines.append(f"👤 <b>@{u['username']}</b>")
-        lines.append("\n👉 Напиши <b>@юзернейм</b> из списка — откроется диалог")
-    lines.append("〔 назад 〕— к сообщениям")
+        lines.append("\n👇 Нажми на человека, чтобы открыть чат")
     if notice:
         lines.append(f"\n⚠️ {notice}")
     return "\n".join(lines)[:4000]
@@ -370,26 +360,19 @@ def scr_search(user: dict, results: list[dict] | None = None, query: str = "",
 
 def scr_chat(user: dict, other: dict, notice: str = "", path: str | None = None) -> str:
     msgs = conversation(user["id"], other["id"], path=path)
-    lines = [
-        f"💬 <b>@{other['username']}</b>",
-        "━━━━━━━━━━━━━━━",
-    ]
+    lines = [f"💬 <b>@{other['username']}</b>", DIV]
     if not msgs:
-        lines.append("📭 Сообщений пока нет. Напиши первое! 👇")
+        lines.append("👋 <i>Это начало переписки.</i>")
     for m in msgs:
         txt = m["text"].replace("<", "‹")
         if len(txt) > 220:
             txt = txt[:220] + "…"
         if m["sender_id"] == user["id"]:
-            ticks = " ✓✓" if m["read_at"] else " ✓"
-            lines.append(f"        🟦 <b>ты:</b> {txt} <i>{_t(m['created_at'])}{ticks}</i>")
+            ticks = "✓✓" if m["read_at"] else "✓"
+            lines.append(f"          {txt}  <i>{_t(m['created_at'])} {ticks}</i>  🔵")
         else:
-            lines.append(f"🟩 <b>@{other['username']}:</b> {txt} <i>{_t(m['created_at'])}</i>")
-    lines += [
-        "━━━━━━━━━━━━━━━",
-        "✍️ Просто напиши текст — он уйдёт собеседнику",
-        "〔 назад 〕— к списку диалогов",
-    ]
+            lines.append(f"⚪️  {txt}  <i>{_t(m['created_at'])}</i>")
+    lines += [DIV, "✍️ <i>Пиши сообщение — кнопки только для навигации</i>"]
     if notice:
         lines.append(f"\n⚠️ {notice}")
     return "\n".join(lines)[:4000]
@@ -397,11 +380,10 @@ def scr_chat(user: dict, other: dict, notice: str = "", path: str | None = None)
 
 def scr_profile(user: dict) -> str:
     return (
-        "👤 <b>ПРОФИЛЬ</b>\n"
-        "━━━━━━━━━━━━━━━\n"
-        f"📧 Почта: <code>{user['email']}</code>\n"
-        "🔑 Пароль: •••••••• <i>(зашифрован)</i>\n"
-        f"👤 Юзер: <b>@{user['username']}</b>\n"
-        f"🗓 С нами с: {time.strftime('%d.%m.%Y', time.localtime(user['created_at']))}\n\n"
-        "〔 назад 〕— к сообщениям · 〔 выйти 〕— выйти из аккаунта"
+        "👤 <b>Профиль</b>\n"
+        f"{DIV}\n"
+        f"🪪 <b>@{user['username']}</b>\n"
+        f"📧 {user['email']}\n"
+        "🔑 Пароль: ••••••••\n"
+        f"🗓 В АРИ с {time.strftime('%d.%m.%Y', time.localtime(user['created_at']))}"
     )

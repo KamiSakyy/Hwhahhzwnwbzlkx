@@ -78,6 +78,28 @@ def test_bot_vocabulary():
     assert bot.BOT_TOKEN.count(":") == 1 and len(bot.BOT_TOKEN) > 30  # token embedded
 
 
+def test_permanent_buttons():
+    import bot
+    ms.DB_PATH = P  # bot keyboard builder reads the same test DB
+    ivan = ms.find_by_username("ivan", P)
+
+    def callbacks(tg):
+        kb = bot.build_keyboard(tg)
+        return [b.callback_data for row in kb.inline_keyboard for b in row]
+
+    # logged out: Registration / Login, no typing needed
+    ms.set_session(777001, P, user_id=None, state="auth", temp={})
+    assert callbacks(777001) == ["reg", "login"]
+    # logged in, main screen: chat buttons + Search/Profile
+    ms.set_session(777002, P, user_id=ivan["id"], state="main", temp={})
+    cbs = callbacks(777002)
+    assert "search" in cbs and "profile" in cbs and any(c.startswith("open:") for c in cbs)
+    # inside a chat: back/search/refresh only — text is for the message itself
+    maria = ms.find_by_username("maria", P)
+    ms.set_session(777002, P, state="chat", current_chat=maria["id"])
+    assert callbacks(777002) == ["main", "search", "refresh"]
+
+
 if __name__ == "__main__":
     for n, f in sorted(dict(globals()).items()):
         if n.startswith("test_"):
