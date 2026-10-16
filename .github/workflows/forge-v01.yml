@@ -19,7 +19,8 @@ jobs:
         with:
           gradle-version: '8.13'
       - name: Install SDK
-        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;27.0.12077973'
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;27.0.12077973'
       - name: Build runtime
         working-directory: forge-v0.1
         run: gradle :runtime:assembleRelease --no-daemon > build.log 2>&1 || { tail -80 build.log | sed 's/^/::error::/'; exit 1; }
