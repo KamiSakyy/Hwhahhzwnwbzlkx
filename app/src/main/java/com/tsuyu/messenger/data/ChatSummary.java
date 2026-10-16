@@ -9,6 +9,7 @@ public final class ChatSummary {
     public long lastAt;
     public String encryptedPreview;
     public boolean typing;
+    public boolean muted;
     public boolean online;
     public ChatMessage lastMessage;
 

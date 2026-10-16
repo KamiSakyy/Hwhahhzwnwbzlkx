@@ -450,6 +450,25 @@ public final class MainActivity extends AppCompatActivity {
         } else {
             presenceManager.start(presenceUid);
         }
+        // Настройки аккаунта (приватность, «невидимка») — с нашего сервера.
+        com.tsuyu.messenger.net.TsuyuServerClient.fetchSettings(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
+            @Override public void onSuccess(org.json.JSONObject settings) {
+                try {
+                    java.util.Iterator<String> keys = settings.keys();
+                    while (keys.hasNext()) {
+                        String k = keys.next();
+                        if (k.startsWith("privacy_")) {
+                            com.tsuyu.messenger.util.Settings.putString(k, settings.optString(k));
+                        }
+                    }
+                    String ghost = settings.optString("ghost", "");
+                    if (!ghost.isEmpty() && presenceManager != null) {
+                        presenceManager.setGhostMode(accountUid, "true".equals(ghost));
+                    }
+                } catch (Throwable ignored) { }
+            }
+            @Override public void onError(String e) { }
+        });
         startBackgroundSync();
         dataQueue.execute(this::replayOutbox);
         // Один раз на версию: убираем из базы старые «тяжёлые» строки, чтобы кеш читался мгновенно.
@@ -838,8 +857,25 @@ public final class MainActivity extends AppCompatActivity {
                 last == null ? null : last.cipher);
         summary.lastMessage = last;
         summary.unread = d.optInt("unread", 0);
+        JSONObject prefs = d.optJSONObject("prefs");
+        if (prefs != null) {
+            summary.pinned = prefs.optBoolean("pinned", previous != null && previous.pinned);
+            summary.muted = prefs.optBoolean("muted", false);
+            summary.peerReadAt = d.optLong("peer_read_at", previous == null ? 0L : previous.peerReadAt);
+            // Архив с сервера синхронизируем в локальное хранилище папок.
+            if (store != null) {
+                boolean wantArchived = prefs.optBoolean("archived", false);
+                boolean hasArchived = store.chatFolderIds(chatId).contains(ARCHIVE_FOLDER_ID);
+                if (wantArchived != hasArchived) {
+                    List<String> folders = new ArrayList<>(store.chatFolderIds(chatId));
+                    if (wantArchived) folders.add(ARCHIVE_FOLDER_ID); else folders.remove(ARCHIVE_FOLDER_ID);
+                    store.setChatFolders(chatId, folders);
+                    loadFolders();
+                }
+            }
+        }
         if (previous != null) {
-            summary.pinned = previous.pinned;
+            if (prefs == null) summary.pinned = previous.pinned;
             summary.online = previous.online;
             summary.typing = previous.typing;
             summary.lastSeen = previous.lastSeen;
@@ -1401,9 +1437,15 @@ public final class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+        String savedDraft = com.tsuyu.messenger.util.Settings.getString("draft_" + chatId, "");
+        if (!savedDraft.isEmpty()) composer.setText(savedDraft);
         composer.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (activeChatId != null) {
+                    com.tsuyu.messenger.util.Settings.putString("draft_" + activeChatId,
+                            s == null ? "" : s.toString());
+                }
                 boolean hasText = s != null && s.toString().trim().length() > 0;
                 sendButton.setEnabled(hasText);
                 sendButton.setVisibility(hasText ? View.VISIBLE : View.GONE);
@@ -2018,20 +2060,66 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void confirmDelete(ChatMessage message) {
-        new MaterialAlertDialogBuilder(this).setTitle("Удалить сообщение?")
-                .setMessage("Сообщение будет удалено у обоих участников.")
+        boolean own = message.senderUid != null && message.senderUid.equals(uid);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
+                .setTitle("Удалить сообщение?")
+                .setMessage(own ? "Удалить у всех или только у себя?" : "Сообщение будет удалено только у вас.")
                 .setNegativeButton("Отмена", null)
-                .setPositiveButton("Удалить", (dialog, which) -> chatRepository.deleteMessage(activeChatId, message.id, new ChatRepository.Result<Void>() {
-                    @Override public void success(Void value) { toast("Сообщение удалено."); }
-                    @Override public void error(String error) { toast(error); }
-                })).show();
+                .setNeutralButton("Удалить у меня", (dialog, which) -> deleteWithScope(message, "me"));
+        if (own) {
+            builder.setPositiveButton("Удалить у всех", (dialog, which) -> deleteWithScope(message, "everyone"));
+        } else {
+            builder.setPositiveButton("Удалить у меня", (dialog, which) -> deleteWithScope(message, "me"));
+        }
+        builder.show();
+    }
+
+    private void deleteWithScope(ChatMessage message, String scope) {
+        chatRepository.deleteMessage(activeChatId, message.id, scope, new ChatRepository.Result<Void>() {
+            @Override public void success(Void value) {
+                removeMessageLocally(message.id);
+                toast("me".equals(scope) ? "Удалено только у вас." : "Сообщение удалено у обоих.");
+                pollActiveChatOnce();
+            }
+            @Override public void error(String error) { toast(error); }
+        });
+    }
+
+    /** Убирает сообщение с экрана сразу, не дожидаясь следующего поллинга. */
+    private void removeMessageLocally(String messageId) {
+        if (messageId == null) return;
+        conversationModel.lastRemoteMessages.removeIf(m -> messageId.equals(m.id));
+        conversationModel.cachedMessages.removeIf(m -> messageId.equals(m.id));
+        optimisticMessages.values().removeIf(m -> messageId.equals(m.id));
+        if ("chat".equals(page) && activePeerUid != null) {
+            renderMessages(new ArrayList<>(conversationModel.lastRemoteMessages), activePeerUid);
+        }
     }
 
     private void forwardMessage(String payload) {
         if (payload == null) { toast("Сообщение загружается. Попробуйте ещё раз чуть позже."); return; }
-        String text = textFromPayload(payload);
-        ((ClipboardManager) getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("Tsuyu", text));
-        toast("Текст скопирован. Выберите диалог и вставьте его.");
+        List<ChatSummary> targets = new ArrayList<>();
+        for (ChatSummary s : summaries.values()) if (s.peerUid != null) targets.add(s);
+        targets.sort((a, b) -> Long.compare(b.lastAt, a.lastAt));
+        if (targets.isEmpty()) { toast("Нет чатов для пересылки."); return; }
+        List<String> names = new ArrayList<>();
+        for (ChatSummary s : targets) names.add(s.peer == null ? "Собеседник" : s.peer.displayNameOrUsername());
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Переслать в…")
+                .setItems(names.toArray(new String[0]), (dialog, which) -> {
+                    ChatSummary target = targets.get(which);
+                    try {
+                        JSONObject forwarded = new JSONObject(payload);
+                        forwarded.put("forwarded", true);
+                        if (peerProfile != null && peerProfile.displayNameOrUsername() != null) {
+                            forwarded.put("forwardedFrom", peerProfile.displayNameOrUsername());
+                        }
+                        enqueueOptimisticMessage(target.chatId, target.peerUid, uid, forwarded.toString());
+                        toast("Переслано.");
+                    } catch (Throwable e) {
+                        toast("Не удалось переслать сообщение.");
+                    }
+                }).show();
     }
 
     private void sendCurrentText() {
@@ -2291,6 +2379,19 @@ public final class MainActivity extends AppCompatActivity {
             sheet.dismiss();
             toggleChatArchive(chatId);
         });
+        ChatSummary muteKnown = summaries.get(chatId);
+        final boolean currentlyMuted = muteKnown != null && muteKnown.muted;
+        TextView muteTitle = content.findViewById(R.id.chat_menu_mute_title);
+        TextView muteSubtitle = content.findViewById(R.id.chat_menu_mute_subtitle);
+        if (muteTitle != null) muteTitle.setText(currentlyMuted ? R.string.chat_menu_unmute_title : R.string.chat_menu_mute_title);
+        if (muteSubtitle != null) muteSubtitle.setText(currentlyMuted ? R.string.chat_menu_unmute_subtitle : R.string.chat_menu_mute_subtitle);
+        content.findViewById(R.id.chat_menu_mute).setOnClickListener(v -> {
+            sheet.dismiss();
+            ChatSummary s = summaries.get(chatId);
+            if (s != null) { s.muted = !currentlyMuted; renderChatList(); }
+            com.tsuyu.messenger.net.TsuyuServerClient.setChatPrefs(chatId, null, !currentlyMuted, null, null);
+            toast(currentlyMuted ? "Уведомления включены" : "Чат без звука");
+        });
         content.findViewById(R.id.chat_menu_select).setOnClickListener(v -> {
             sheet.dismiss();
             if (!"chat".equals(page) || !chatId.equals(activeChatId)) showChat(chatId, targetPeerUid);
@@ -2349,6 +2450,7 @@ public final class MainActivity extends AppCompatActivity {
             renderChatList();
         }
         if (store != null) store.setPinned(chatId, pinned);
+        com.tsuyu.messenger.net.TsuyuServerClient.setChatPrefs(chatId, pinned, null, null, null);
         toast(getString(pinned ? R.string.chat_pinned_toast : R.string.chat_unpinned_toast));
     }
 
@@ -2359,6 +2461,8 @@ public final class MainActivity extends AppCompatActivity {
             renderChatList();
         }
         if (store != null) store.setUnread(chatId, 0);
+        if (uid != null) chatRepository.markRead(chatId, uid);
+        com.tsuyu.messenger.net.TsuyuServerClient.setChatPrefs(chatId, null, null, null, false);
     }
 
     private void markChatUnread(String chatId) {
@@ -2368,30 +2472,41 @@ public final class MainActivity extends AppCompatActivity {
             renderChatList();
         }
         if (store != null) store.setUnread(chatId, 1);
+        com.tsuyu.messenger.net.TsuyuServerClient.setChatPrefs(chatId, null, null, null, true);
     }
 
     private void confirmClearHistory(final String chatId) {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.chat_clear_title)
-                .setMessage(R.string.chat_clear_message)
+                .setMessage("Очистить историю только у себя или у обоих участников?")
                 .setNegativeButton("Отмена", null)
-                .setPositiveButton(R.string.chat_clear_confirm, (dialog, which) -> {
-                    if (store != null) store.clearMessages(chatId);
-                    ChatSummary summary = summaries.get(chatId);
-                    if (summary != null) {
-                        summary.lastMessage = null;
-                        summary.lastPreview = null;
-                        summary.unread = 0;
-                        renderChatList();
+                .setNeutralButton("У обоих", (dialog, which) -> clearHistoryOnServer(chatId, "everyone"))
+                .setPositiveButton("Только у меня", (dialog, which) -> clearHistoryOnServer(chatId, "me"))
+                .show();
+    }
+
+    private void clearHistoryOnServer(final String chatId, String scope) {
+        com.tsuyu.messenger.net.TsuyuServerClient.clearChat(chatId, scope,
+                new com.tsuyu.messenger.net.TsuyuServerClient.Callback<Void>() {
+                    @Override public void onSuccess(Void v) {
+                        if (store != null) store.clearMessages(chatId);
+                        ChatSummary summary = summaries.get(chatId);
+                        if (summary != null) {
+                            summary.lastMessage = null;
+                            summary.lastPreview = null;
+                            summary.unread = 0;
+                            renderChatList();
+                        }
+                        if (chatId.equals(activeChatId)) {
+                            conversationModel.cachedMessages = new ArrayList<>();
+                            conversationModel.lastRemoteMessages = new ArrayList<>();
+                            optimisticMessages.clear();
+                            renderMessages(conversationModel.lastRemoteMessages, activePeerUid);
+                        }
+                        toast(getString(R.string.chat_clear_done));
                     }
-                    if (chatId.equals(activeChatId)) {
-                        conversationModel.cachedMessages = new ArrayList<>();
-                        conversationModel.lastRemoteMessages = new ArrayList<>();
-                        optimisticMessages.clear();
-                        renderMessages(conversationModel.lastRemoteMessages, activePeerUid);
-                    }
-                    toast(getString(R.string.chat_clear_done));
-                }).show();
+                    @Override public void onError(String e) { toast("Не удалось очистить историю."); }
+                });
     }
 
     private void showPeerProfile() {
@@ -2443,20 +2558,58 @@ public final class MainActivity extends AppCompatActivity {
         final boolean[] isContact = {false};
         final boolean[] isAllowed = {false};
         isContact[0] = com.tsuyu.messenger.util.Settings.getBoolean("contact_" + profilePeerUid, false);
+        com.tsuyu.messenger.net.TsuyuServerClient.contacts(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONArray>() {
+            @Override public void onSuccess(org.json.JSONArray contacts) {
+                boolean found = false;
+                for (int i = 0; i < contacts.length(); i++) {
+                    org.json.JSONObject c = contacts.optJSONObject(i);
+                    if (c != null && profilePeerUid.equals(c.optString("uid", c.optString("id")))) { found = true; break; }
+                }
+                isContact[0] = found;
+                com.tsuyu.messenger.util.Settings.putBoolean("contact_" + profilePeerUid, found);
+                contactButton.setText(found ? "Удалить из контактов" : "Добавить в контакты");
+            }
+            @Override public void onError(String e) { }
+        });
         isAllowed[0] = com.tsuyu.messenger.util.Settings.getBoolean("allow_" + profilePeerUid, false);
         contactButton.setText(isContact[0] ? "Удалить из контактов" : "Добавить в контакты");
         accessButton.setText(isAllowed[0] ? "Отозвать доступ по списку" : "Разрешить доступ по списку");
         contactButton.setOnClickListener(v -> {
             isContact[0] = !isContact[0];
             com.tsuyu.messenger.util.Settings.putBoolean("contact_" + profilePeerUid, isContact[0]);
+            com.tsuyu.messenger.net.TsuyuServerClient.setContact(profilePeerUid, isContact[0]);
             contactButton.setText(isContact[0] ? "Удалить из контактов" : "Добавить в контакты");
+            toast(isContact[0] ? "Добавлено в контакты" : "Удалено из контактов");
         });
         accessButton.setOnClickListener(v -> {
             isAllowed[0] = !isAllowed[0];
             com.tsuyu.messenger.util.Settings.putBoolean("allow_" + profilePeerUid, isAllowed[0]);
             accessButton.setText(isAllowed[0] ? "Отозвать доступ по списку" : "Разрешить доступ по списку");
         });
-        new MaterialAlertDialogBuilder(this).setView(content).setPositiveButton("Закрыть", null).show();
+        MaterialAlertDialogBuilder profileDialog = new MaterialAlertDialogBuilder(this)
+                .setView(content).setPositiveButton("Закрыть", null);
+        final boolean[] isBlocked = {false};
+        profileDialog.setNeutralButton("Заблокировать", (dialog, which) -> {
+            com.tsuyu.messenger.net.TsuyuServerClient.setBlock(profilePeerUid, !isBlocked[0],
+                    new com.tsuyu.messenger.net.TsuyuServerClient.Callback<Void>() {
+                        @Override public void onSuccess(Void v) {
+                            isBlocked[0] = !isBlocked[0];
+                            toast(isBlocked[0] ? "Пользователь заблокирован. Он больше не сможет вам писать."
+                                    : "Пользователь разблокирован.");
+                        }
+                        @Override public void onError(String e) { toast("Не удалось выполнить действие."); }
+                    });
+        });
+        com.tsuyu.messenger.net.TsuyuServerClient.blocks(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONArray>() {
+            @Override public void onSuccess(org.json.JSONArray blocked) {
+                for (int i = 0; i < blocked.length(); i++) {
+                    org.json.JSONObject b = blocked.optJSONObject(i);
+                    if (b != null && profilePeerUid.equals(b.optString("uid", b.optString("id")))) { isBlocked[0] = true; break; }
+                }
+            }
+            @Override public void onError(String e) { }
+        });
+        profileDialog.show();
     }
 
 
@@ -2729,7 +2882,19 @@ public final class MainActivity extends AppCompatActivity {
         String[] keys = {"messages", "lastSeen", "photo", "about", "displayName"};
         Map<String, String> initial = new HashMap<>();
         for (String key : keys) initial.put(key, com.tsuyu.messenger.util.Settings.getString("privacy_" + key, "Все"));
-        showPrivacySettingsLoaded(initial);
+        com.tsuyu.messenger.net.TsuyuServerClient.fetchSettings(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
+            @Override public void onSuccess(org.json.JSONObject settings) {
+                for (String key : keys) {
+                    String v = settings.optString("privacy_" + key, "");
+                    if (!v.isEmpty()) {
+                        initial.put(key, v);
+                        com.tsuyu.messenger.util.Settings.putString("privacy_" + key, v);
+                    }
+                }
+                showPrivacySettingsLoaded(initial);
+            }
+            @Override public void onError(String e) { showPrivacySettingsLoaded(initial); }
+        });
     }
 
     private void showPrivacySettingsLoaded(Map<String, String> initial) {
@@ -2770,6 +2935,14 @@ public final class MainActivity extends AppCompatActivity {
                         else publicSettings.put("privacy/" + entry.getKey(), entry.getValue());
                     }
                     com.tsuyu.messenger.util.Settings.putBoolean("ghost_" + uid, ghost.isChecked());
+                    try {
+                        org.json.JSONObject serverSettings = new org.json.JSONObject();
+                        for (Map.Entry<String, Object> entry : privacy.entrySet()) {
+                            serverSettings.put("privacy_" + entry.getKey(), String.valueOf(entry.getValue()));
+                        }
+                        serverSettings.put("ghost", ghost.isChecked() ? "true" : "false");
+                        com.tsuyu.messenger.net.TsuyuServerClient.saveSettings(serverSettings);
+                    } catch (Throwable ignored) { }
                     presenceManager.setGhostMode(uid, ghost.isChecked());
                     if (activeChatId != null && !ghost.isChecked()) chatRepository.markRead(activeChatId, uid);
                     toast("Настройки приватности сохранены.");
@@ -3878,6 +4051,7 @@ public final class MainActivity extends AppCompatActivity {
         boolean archived = current.contains(ARCHIVE_FOLDER_ID);
         if (archived) current.remove(ARCHIVE_FOLDER_ID); else current.add(ARCHIVE_FOLDER_ID);
         store.setChatFolders(chatId, current);
+        com.tsuyu.messenger.net.TsuyuServerClient.setChatPrefs(chatId, null, null, !archived, null);
         loadFolders();
         rebuildFilterChips();
         renderChatList();
@@ -3976,19 +4150,21 @@ public final class MainActivity extends AppCompatActivity {
         }
         exitSelectionMode();
         if (ids.isEmpty()) { toast("Можно удалить только отправленные сообщения."); return; }
-        new MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder deleteBuilder = new MaterialAlertDialogBuilder(this)
                 .setTitle("Удалить сообщений: " + ids.size() + "?")
-                .setMessage("Сообщения будут удалены у обоих участников.")
+                .setMessage("Удалить у всех или только у себя?")
                 .setNegativeButton("Отмена", null)
-                .setPositiveButton("Удалить", (dialog, which) -> {
-                    for (String id : ids) {
-                        chatRepository.deleteMessage(chatId, id, new ChatRepository.Result<Void>() {
-                            @Override public void success(Void value) { }
-                            @Override public void error(String error) { toast(error); }
-                        });
-                    }
+                .setNeutralButton("У меня", (dialog, which) -> {
+                    for (String id : ids) chatRepository.deleteMessage(chatId, id, "me", NOOP_RESULT);
+                    for (String id : ids) removeMessageLocally(id);
+                    toast("Удалено у вас сообщений: " + ids.size());
+                })
+                .setPositiveButton("У всех", (dialog, which) -> {
+                    for (String id : ids) chatRepository.deleteMessage(chatId, id, "everyone", NOOP_RESULT);
+                    for (String id : ids) removeMessageLocally(id);
                     toast("Удалено сообщений: " + ids.size());
-                }).show();
+                });
+        deleteBuilder.show();
     }
 
     // ------------------------------------------------------------------ drawer
@@ -4404,6 +4580,30 @@ public final class MainActivity extends AppCompatActivity {
     /** Поделиться контактом: визитка уезжает как обычное сообщение. */
     private void showContactPicker() {
         if (uid == null) return;
+        com.tsuyu.messenger.net.TsuyuServerClient.contacts(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONArray>() {
+            @Override public void onSuccess(org.json.JSONArray contacts) {
+                List<String> names = new ArrayList<>();
+                List<Profile> profiles = new ArrayList<>();
+                for (int i = 0; i < contacts.length(); i++) {
+                    org.json.JSONObject c = contacts.optJSONObject(i);
+                    if (c == null) continue;
+                    Profile profile = ProfileRepository.fromJson(c, c.optString("uid", c.optString("id")));
+                    if (profile.uid == null) continue;
+                    profiles.add(profile);
+                    names.add(profile.displayNameOrUsername());
+                }
+                if (profiles.isEmpty()) { showContactPickerLocal(); return; }
+                new MaterialAlertDialogBuilder(MainActivity.this)
+                        .setTitle(R.string.contact_title)
+                        .setItems(names.toArray(new String[0]),
+                                (dialog, which) -> sendContact(profiles.get(which)))
+                        .show();
+            }
+            @Override public void onError(String e) { showContactPickerLocal(); }
+        });
+    }
+
+    private void showContactPickerLocal() {
         List<String> ids = new ArrayList<>();
         for (ChatSummary summary : summaries.values()) {
             if (summary.peerUid != null

@@ -182,7 +182,12 @@ public final class ChatRepository {
     }
 
     public void deleteMessage(String chatId, String messageId, Result<Void> result) {
-        TsuyuServerClient.deleteMessage(messageId, new TsuyuServerClient.Callback<Void>() {
+        deleteMessage(chatId, messageId, "everyone", result);
+    }
+
+    /** scope: "me" — delete only for me; "everyone" — delete for both participants. */
+    public void deleteMessage(String chatId, String messageId, String scope, Result<Void> result) {
+        TsuyuServerClient.deleteMessageScoped(messageId, scope, new TsuyuServerClient.Callback<Void>() {
             @Override public void onSuccess(Void v) { result.success(null); }
             @Override public void onError(String msg) { result.success(null); }
         });

@@ -41,6 +41,11 @@ public final class PresenceManager {
         uid = accountUid;
         com.tsuyu.messenger.util.Settings.ensure(context);
         com.tsuyu.messenger.util.Settings.putBoolean("ghost_" + accountUid, enabled);
+        try {
+            org.json.JSONObject s = new org.json.JSONObject();
+            s.put("ghost", enabled ? "true" : "false");
+            com.tsuyu.messenger.net.TsuyuServerClient.saveSettings(s);
+        } catch (Throwable ignored) { }
         if (enabled) {
             stopBeating();
             // Server-side: simply stop heartbeating; peer sees us offline after TTL.

@@ -90,6 +90,8 @@ public final class TsuyuSyncService extends Service {
         JSONArray dialogs = resp.optJSONArray("dialogs");
         if (dialogs == null) { baselineDone = true; return; }
         String active = com.tsuyu.messenger.util.Settings.getString("active_chat", "");
+        JSONObject allPrefs;
+        try { allPrefs = TsuyuServerClient.chatPrefsSync(); } catch (Exception e) { allPrefs = new JSONObject(); }
         for (int i = 0; i < dialogs.length(); i++) {
             JSONObject d = dialogs.optJSONObject(i);
             if (d == null) continue;
@@ -102,6 +104,8 @@ public final class TsuyuSyncService extends Service {
             if (!baselineDone || messageId.equals(previous)) continue;
             if (uid.equals(last.optString("senderUid"))) continue;
             if (chatId.equals(active)) continue;
+            JSONObject pref = allPrefs.optJSONObject(chatId);
+            if (pref != null && (pref.optBoolean("muted", false) || pref.optBoolean("archived", false))) continue;
             ChatMessage message = new ChatMessage();
             message.id = messageId;
             message.senderUid = last.optString("senderUid");

@@ -305,6 +305,130 @@ public final class TsuyuServerClient {
         });
     }
 
+    /** Delete a message: scope "me" (only for me) or "everyone" (for both). */
+    public static void deleteMessageScoped(String id, String scope, Callback<Void> callback) {
+        executor.execute(() -> {
+            try {
+                JSONObject b = new JSONObject();
+                b.put("id", id);
+                b.put("scope", scope == null ? "everyone" : scope);
+                postJson("/api/messages/delete", b);
+                mainHandler.post(() -> callback.onSuccess(null));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    /** Clear a whole chat history: scope "me" or "everyone". */
+    public static void clearChat(String chatId, String scope, Callback<Void> callback) {
+        executor.execute(() -> {
+            try {
+                JSONObject b = new JSONObject();
+                b.put("chat_id", chatId);
+                b.put("scope", scope == null ? "me" : scope);
+                postJson("/api/chats/clear", b);
+                mainHandler.post(() -> callback.onSuccess(null));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    // ---- contacts / settings / blocks / chat prefs (all on OUR server) ------
+    public static void contacts(Callback<JSONArray> callback) {
+        executor.execute(() -> {
+            try {
+                JSONObject resp = getJson("/api/contacts");
+                JSONArray arr = resp.optJSONArray("contacts");
+                mainHandler.post(() -> callback.onSuccess(arr == null ? new JSONArray() : arr));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    public static void setContact(String uid, boolean enabled) {
+        executor.execute(() -> {
+            try {
+                JSONObject b = new JSONObject();
+                b.put("uid", uid);
+                b.put("enabled", enabled);
+                postJson("/api/contacts", b);
+            } catch (Exception ignored) { }
+        });
+    }
+
+    public static void saveSettings(JSONObject settings) {
+        executor.execute(() -> {
+            try {
+                JSONObject b = new JSONObject();
+                b.put("settings", settings);
+                postJson("/api/settings", b);
+            } catch (Exception ignored) { }
+        });
+    }
+
+    public static void fetchSettings(Callback<JSONObject> callback) {
+        executor.execute(() -> {
+            try {
+                JSONObject resp = getJson("/api/settings");
+                JSONObject s = resp.optJSONObject("settings");
+                mainHandler.post(() -> callback.onSuccess(s == null ? new JSONObject() : s));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    public static void setBlock(String uid, boolean blocked, Callback<Void> callback) {
+        executor.execute(() -> {
+            try {
+                JSONObject b = new JSONObject();
+                b.put("uid", uid);
+                b.put("blocked", blocked);
+                postJson("/api/block", b);
+                mainHandler.post(() -> callback.onSuccess(null));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    public static void blocks(Callback<JSONArray> callback) {
+        executor.execute(() -> {
+            try {
+                JSONObject resp = getJson("/api/blocks");
+                JSONArray arr = resp.optJSONArray("blocked");
+                mainHandler.post(() -> callback.onSuccess(arr == null ? new JSONArray() : arr));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    /** Pin / mute / archive / keep-unread for one chat — synced across devices. */
+    public static void setChatPrefs(String chatId, Boolean pinned, Boolean muted,
+                                    Boolean archived, Boolean keepUnread) {
+        executor.execute(() -> {
+            try {
+                JSONObject b = new JSONObject();
+                b.put("chat_id", chatId);
+                if (pinned != null) b.put("pinned", pinned.booleanValue());
+                if (muted != null) b.put("muted", muted.booleanValue());
+                if (archived != null) b.put("archived", archived.booleanValue());
+                if (keepUnread != null) b.put("keep_unread", keepUnread.booleanValue());
+                postJson("/api/chats/prefs", b);
+            } catch (Exception ignored) { }
+        });
+    }
+
+    public static JSONObject chatPrefsSync() throws Exception {
+        JSONObject resp = getJson("/api/chats/prefs");
+        JSONObject prefs = resp.optJSONObject("prefs");
+        return prefs == null ? new JSONObject() : prefs;
+    }
+
     // ---- calls signaling (store-and-forward via our server) ---------------
     public static void sendCallSignal(String toUid, String chatId, String kind, JSONObject payload,
                                       Callback<String> callback) {

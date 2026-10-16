@@ -131,6 +131,10 @@
     <string name="home_menu">Меню</string>
     <string name="home_encryption">Шифрование</string>
     <string name="chat_menu_archive_title">В архив</string>
+    <string name="chat_menu_mute_title">Без звука</string>
+    <string name="chat_menu_mute_subtitle">Не присылать уведомления об этом чате</string>
+    <string name="chat_menu_unmute_title">Включить звук</string>
+    <string name="chat_menu_unmute_subtitle">Уведомления об этом чате включены</string>
     <string name="chat_menu_archive_subtitle">Скрыть из общего списка</string>
     <string name="chat_menu_unarchive_title">Из архива</string>
     <string name="chat_menu_unarchive_subtitle">Вернуть в общий список</string>
