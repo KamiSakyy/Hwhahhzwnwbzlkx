@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Tuman</string>
+    <string name="tagline">СВОБОДНЫЙ ИНТЕРНЕТ БЕЗ ROOT</string>
+
+    <!-- tabs -->
+    <string name="tab_home">ГЛАВНАЯ</string>
+    <string name="tab_strategies">РЕЖИМЫ</string>
+    <string name="tab_apps">ПРИЛОЖЕНИЯ</string>
+    <string name="tab_logs">ЖУРНАЛ</string>
+
+    <!-- states -->
+    <string name="st_stopped">ТУННЕЛЬ ВЫКЛЮЧЕН</string>
+    <string name="st_stopped_sub">Нажмите на кнопку, чтобы поднять обход</string>
+    <string name="st_starting">ПОДНИМАЕМ ТУННЕЛЬ</string>
+    <string name="st_starting_sub">Запуск tpws и VPN-интерфейса…</string>
+    <string name="st_running">ТРАФИК В ТУМАНЕ</string>
+    <string name="st_running_sub">Режим: %1$s</string>
+    <string name="st_stopping">ОТКЛЮЧЕНИЕ</string>
+    <string name="st_stopping_sub">Закрываем соединения…</string>
+    <string name="st_error">СБОЙ</string>
+    <string name="st_error_sub">Смотрите журнал</string>
+
+    <string name="pill_on">ON</string>
+    <string name="pill_off">OFF</string>
+    <string name="chip_strategy">РЕЖИМ · %1$s</string>
+
+    <!-- stats -->
+    <string name="stat_uptime">АПТАЙМ</string>
+    <string name="stat_sessions">СОЕДИНЕНИЙ</string>
+    <string name="stat_traffic">ТРАФИК</string>
+
+    <!-- home -->
+    <string name="section_control">УПРАВЛЕНИЕ</string>
+    <string name="btn_autodetect">Автоподбор</string>
+    <string name="btn_test">Проверить</string>
+    <string name="btn_cancel">Отменить</string>
+    <string name="detect_start">Подбираем рабочий режим…</string>
+    <string name="detect_progress">Проверка %1$d из %2$d: %3$s</string>
+    <string name="detect_done">Лучший режим: %1$s — %2$d/%3$d</string>
+    <string name="detect_none">Ни один режим не пробился. Проверьте, что интернет вообще есть.</string>
+    <string name="detect_cancelled">Подбор отменён</string>
+    <string name="check_running">Проверяем доступность…</string>
+    <string name="check_failed">Не удалось запустить tpws для проверки</string>
+    <string name="check_score">Итог: %1$d/%2$d</string>
+
+    <string name="section_params">ПАРАМЕТРЫ ТУННЕЛЯ</string>
+    <string name="sw_udp">Блокировать QUIC и UDP</string>
+    <string name="sw_udp_sub">Приложения откатятся на TCP, который мы и чиним</string>
+    <string name="sw_ipv6">Не пускать IPv6 мимо</string>
+    <string name="sw_ipv6_sub">Заворачивает IPv6 в туннель и гасит, чтобы не было утечек</string>
+    <string name="sw_watchdog">Watchdog</string>
+    <string name="sw_watchdog_sub">Перезапускать tpws, если он упадёт</string>
+    <string name="sw_verbose">Подробный лог tpws</string>
+    <string name="sw_verbose_sub">Печатать отладку демона в журнал</string>
+    <string name="sw_autostart">Запуск при включении</string>
+    <string name="sw_autostart_sub">Android 12+ может запретить автозапуск из фона</string>
+
+    <string name="section_dns">DNS</string>
+    <string name="dns_hint">1.1.1.1,8.8.8.8</string>
+    <string name="btn_dns_apply">ОК</string>
+    <string name="home_footer">Как это работает: приложение поднимает локальный VPN, забирает весь трафик и отдаёт TCP-соединения демону tpws из zapret. Тот режет TLS ClientHello и путает порядок сегментов, из-за чего ТСПУ не может определить заблокированный домен. Root не нужен.</string>
+
+    <!-- strategies -->
+    <string name="strategies_title">РЕЖИМЫ ОБХОДА</string>
+    <string name="strategies_desc">Все наборы — это готовые аргументы tpws из zapret. Начните с «Авто», а если не зайдёт — жмите «Автоподбор»: приложение само переберёт варианты и проверит YouTube, Discord и Google.</string>
+    <string name="custom_title">СВОИ АРГУМЕНТЫ TPWS</string>
+    <string name="custom_hint">--filter-tcp=443 --split-pos=1,midsld --disorder</string>
+    <string name="custom_hint_note">Строка передаётся tpws как есть, после обязательных --socks --port --bind-addr. Разделяйте параметры пробелом, несколько профилей — через --new.</string>
+    <string name="btn_save_custom">Сохранить и применить</string>
+    <string name="custom_empty_warn">Пустая строка: будет использован набор по умолчанию</string>
+
+    <!-- apps -->
+    <string name="apps_title">Приложения</string>
+    <string name="apps_page_title">РАЗДЕЛЬНЫЙ ТУННЕЛЬ</string>
+    <string name="apps_page_desc">Решите, какой трафик пойдёт через обход. Само приложение Tuman всегда остаётся снаружи туннеля — иначе tpws не сможет выйти в сеть.</string>
+    <string name="mode_all_title">Все приложения</string>
+    <string name="mode_all_sub">Весь трафик устройства через обход</string>
+    <string name="mode_include_title">Только выбранные</string>
+    <string name="mode_include_sub">Через туннель пойдёт лишь отмеченный список</string>
+    <string name="mode_exclude_title">Кроме выбранных</string>
+    <string name="mode_exclude_sub">Отмеченные приложения идут напрямую</string>
+    <string name="btn_pick_apps">Выбрать приложения</string>
+    <string name="apps_mode_all">Туннель применяется ко всем приложениям</string>
+    <string name="apps_include_empty">Список пуст — через туннель не пойдёт ничего</string>
+    <string name="apps_exclude_empty">Список пуст — через туннель идёт всё</string>
+    <string name="apps_loading">Читаем список приложений…</string>
+    <string name="apps_search_hint">Поиск по названию или пакету</string>
+    <string name="apps_back">Назад</string>
+    <string name="apps_done">Сохранить</string>
+    <string name="btn_select_all">Все</string>
+    <string name="btn_select_none">Ни одного</string>
+    <string name="btn_invert">Инвертировать</string>
+
+    <plurals name="apps_selected">
+        <item quantity="one">Выбрано %d приложение</item>
+        <item quantity="few">Выбрано %d приложения</item>
+        <item quantity="many">Выбрано %d приложений</item>
+        <item quantity="other">Выбрано %d приложений</item>
+    </plurals>
+    <plurals name="apps_excluded">
+        <item quantity="one">Исключено %d приложение</item>
+        <item quantity="few">Исключено %d приложения</item>
+        <item quantity="many">Исключено %d приложений</item>
+        <item quantity="other">Исключено %d приложений</item>
+    </plurals>
+    <plurals name="apps_total">
+        <item quantity="one">%d приложение в системе</item>
+        <item quantity="few">%d приложения в системе</item>
+        <item quantity="many">%d приложений в системе</item>
+        <item quantity="other">%d приложений в системе</item>
+    </plurals>
+
+    <!-- logs -->
+    <string name="logs_title">ЖУРНАЛ</string>
+    <string name="btn_clear_log">ОЧИСТИТЬ</string>
+
+    <!-- notification / tile -->
+    <string name="notif_channel">Состояние туннеля</string>
+    <string name="notif_starting">Поднимаем туннель…</string>
+    <string name="notif_running">Работает · %1$s</string>
+    <string name="notif_stop">Стоп</string>
+    <string name="tile_label">Tuman</string>
+
+</resources>

@@ -1,0 +1,165 @@
+name: Build APK
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MAX_APK_MB: 10
+
+jobs:
+  build:
+    name: assembleRelease (R8 + resource shrink)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Prepare Android SDK
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/android-sdk}}"
+          SM=""
+          if [ -x "$SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SM="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          elif command -v sdkmanager >/dev/null 2>&1; then
+            SM="sdkmanager"
+          fi
+          if [ -n "$SM" ]; then
+            yes | "$SM" --licenses >/dev/null 2>&1 || true
+            "$SM" "platform-tools" "platforms;android-35" "build-tools;35.0.0" >/dev/null 2>&1 || true
+            echo "sdkmanager ready"
+          else
+            echo "::warning::sdkmanager not found, relying on AGP auto-download"
+          fi
+
+      - name: Generate release signing key
+        run: |
+          KEYSTORE="$RUNNER_TEMP/tuman-release.jks"
+          keytool -genkeypair -v \
+            -keystore "$KEYSTORE" \
+            -alias tuman \
+            -keyalg RSA -keysize 2048 \
+            -validity 10950 \
+            -storepass tum4nstore \
+            -keypass tum4nkey \
+            -dname "CN=Tuman, OU=Mobile, O=Tuman, L=Amsterdam, ST=NH, C=NL"
+          {
+            echo "TUMAN_KEYSTORE=$KEYSTORE"
+            echo "TUMAN_STORE_PASSWORD=tum4nstore"
+            echo "TUMAN_KEY_ALIAS=tuman"
+            echo "TUMAN_KEY_PASSWORD=tum4nkey"
+          } >> "$GITHUB_ENV"
+
+      - name: Build release APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace assembleRelease
+
+      - name: Inspect and size-check the APK
+        id: apk
+        run: |
+          set -e
+          DIR="app/build/outputs/apk/release"
+          ls -l "$DIR"
+          APK="$(find "$DIR" -maxdepth 1 -name '*.apk' | head -1)"
+          if [ -z "$APK" ]; then echo "::error::no APK produced"; exit 1; fi
+
+          SIZE=$(stat -c %s "$APK")
+          MB=$(awk "BEGIN { printf \"%.2f\", $SIZE / 1048576 }")
+          echo "apk=$APK" >> "$GITHUB_OUTPUT"
+          echo "size_mb=$MB" >> "$GITHUB_OUTPUT"
+          echo "APK size: ${MB} MB (${SIZE} bytes)"
+
+          LIMIT=$((MAX_APK_MB * 1048576))
+          if [ "$SIZE" -gt "$LIMIT" ]; then
+            echo "::error::APK is ${MB} MB which is over the ${MAX_APK_MB} MB budget"
+            exit 1
+          fi
+
+          echo "--- payload ---"
+          unzip -l "$APK" | grep -E 'lib/|classes.dex|resources.arsc' || true
+
+          cp "$APK" Tuman.apk
+          cp app/build/outputs/mapping/release/mapping.txt mapping.txt 2>/dev/null || true
+
+      - name: Verify signature
+        run: |
+          BT=$(ls -d "${ANDROID_HOME:-/usr/lib/android/sdk}"/build-tools/* 2>/dev/null | sort -V | tail -1)
+          if [ -n "$BT" ] && [ -x "$BT/apksigner" ]; then
+            "$BT/apksigner" verify --print-certs Tuman.apk | head -20 || true
+          else
+            echo "apksigner not available"
+          fi
+
+      - name: Upload workflow artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tuman-apk
+          path: |
+            Tuman.apk
+            mapping.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          VERSION=$(grep -m1 'versionName' app/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')
+          SIZE_MB="${{ steps.apk.outputs.size_mb }}"
+
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            TITLE="Tuman ${TAG}"
+          else
+            TAG="latest"
+            TITLE="Tuman ${VERSION} - последняя сборка"
+            gh release delete "$TAG" --yes --cleanup-tag >/dev/null 2>&1 || true
+          fi
+
+          NOTES="$RUNNER_TEMP/notes.md"
+          {
+            echo "**Tuman ${VERSION}** - обход ТСПУ/DPI на Android без root, работает в любых приложениях."
+            echo ""
+            echo "Ядро: \`tpws\` из zapret в режиме \`--socks\` + собственный userspace TUN-мост"
+            echo "(TCP -> SOCKS5, DNS-релей, блокировка QUIC и IPv6-утечек)."
+            echo ""
+            echo "- Размер APK: **${SIZE_MB} MB**"
+            echo "- R8: \`minifyEnabled\` + \`shrinkResources\`, \`mapping.txt\` в артефактах сборки"
+            echo "- Подпись: v1 + v2"
+            echo "- ABI: arm64-v8a, armeabi-v7a, x86, x86_64 (universal)"
+            echo "- minSdk 24 (Android 7.0), targetSdk 34, без единой сторонней зависимости"
+            echo ""
+            echo "Установка: скачать \`Tuman.apk\`, разрешить установку из неизвестных источников,"
+            echo "запустить, включить туннель и подтвердить запрос VPN."
+            echo ""
+            echo "Сборка: \`${GITHUB_SHA}\`"
+          } > "$NOTES"
+
+          gh release create "$TAG" Tuman.apk \
+            --target "$GITHUB_SHA" \
+            --title "$TITLE" \
+            --notes-file "$NOTES" \
+            --latest || gh release upload "$TAG" Tuman.apk --clobber
+
+          echo "::notice::APK -> https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/Tuman.apk"

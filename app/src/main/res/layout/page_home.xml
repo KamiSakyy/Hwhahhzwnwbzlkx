@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:overScrollMode="never"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <LinearLayout
+            style="@style/TCard"
+            android:gravity="center_horizontal"
+            android:padding="24dp">
+
+            <com.tuman.free.ui.PowerButton
+                android:id="@+id/power"
+                android:layout_width="164dp"
+                android:layout_height="164dp" />
+
+            <TextView
+                android:id="@+id/status_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:letterSpacing="0.07"
+                android:text="@string/st_stopped"
+                android:textColor="@color/text_low"
+                android:textSize="16.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/status_sub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="@string/st_stopped_sub"
+                android:textColor="@color/text_mid"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chip_strategy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_chip_accent"
+                android:letterSpacing="0.06"
+                android:paddingBottom="7dp"
+                android:paddingLeft="13dp"
+                android:paddingRight="13dp"
+                android:paddingTop="7dp"
+                android:textColor="@color/accent"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                style="@style/TCard"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:padding="13dp">
+
+                <TextView
+                    style="@style/TStatLabel"
+                    android:text="@string/stat_uptime" />
+
+                <TextView
+                    android:id="@+id/stat_uptime"
+                    style="@style/TStatValue"
+                    android:text="&#8212;" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/TCard"
+                android:layout_width="0dp"
+                android:layout_marginLeft="9dp"
+                android:layout_weight="1"
+                android:padding="13dp">
+
+                <TextView
+                    style="@style/TStatLabel"
+                    android:text="@string/stat_sessions" />
+
+                <TextView
+                    android:id="@+id/stat_sessions"
+                    style="@style/TStatValue"
+                    android:text="0" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/TCard"
+                android:layout_width="0dp"
+                android:layout_marginLeft="9dp"
+                android:layout_weight="1"
+                android:padding="13dp">
+
+                <TextView
+                    style="@style/TStatLabel"
+                    android:text="@string/stat_traffic" />
+
+                <TextView
+                    android:id="@+id/stat_traffic"
+                    style="@style/TStatValue"
+                    android:text="0 Б" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            style="@style/TSection"
+            android:layout_marginTop="22dp"
+            android:text="@string/section_control" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_detect"
+                style="@style/TBtnPrimary"
+                android:text="@string/btn_autodetect" />
+
+            <TextView
+                android:id="@+id/btn_test"
+                style="@style/TBtnGhost"
+                android:layout_marginLeft="10dp"
+                android:text="@string/btn_test" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/detect_info"
+            style="@style/TMono"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_input"
+            android:padding="12dp"
+            android:textColor="@color/text_mid"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        <TextView
+            style="@style/TSection"
+            android:layout_marginTop="24dp"
+            android:text="@string/section_params" />
+
+        <LinearLayout
+            style="@style/TCard"
+            android:layout_marginTop="9dp">
+
+            <include
+                android:id="@+id/row_udp"
+                layout="@layout/row_switch" />
+
+            <View style="@style/TDivider" />
+
+            <include
+                android:id="@+id/row_ipv6"
+                layout="@layout/row_switch" />
+
+            <View style="@style/TDivider" />
+
+            <include
+                android:id="@+id/row_watchdog"
+                layout="@layout/row_switch" />
+
+            <View style="@style/TDivider" />
+
+            <include
+                android:id="@+id/row_verbose"
+                layout="@layout/row_switch" />
+
+            <View style="@style/TDivider" />
+
+            <include
+                android:id="@+id/row_autostart"
+                layout="@layout/row_switch" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/TSection"
+            android:layout_marginTop="22dp"
+            android:text="@string/section_dns" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/dns_input"
+                style="@style/TInput"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:hint="@string/dns_hint"
+                android:importantForAutofill="no"
+                android:inputType="textNoSuggestions"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/btn_dns_apply"
+                style="@style/TMiniBtn"
+                android:layout_marginLeft="8dp"
+                android:text="@string/btn_dns_apply" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/TBody"
+            android:layout_marginBottom="6dp"
+            android:layout_marginTop="22dp"
+            android:text="@string/home_footer"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+</ScrollView>

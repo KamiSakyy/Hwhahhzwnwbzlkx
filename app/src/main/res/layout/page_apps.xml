@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:overScrollMode="never"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <TextView
+            style="@style/TSection"
+            android:text="@string/apps_page_title" />
+
+        <TextView
+            style="@style/TBody"
+            android:layout_marginTop="9dp"
+            android:text="@string/apps_page_desc" />
+
+        <LinearLayout
+            android:id="@+id/mode_all"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_active"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="15dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mode_all_title"
+                    android:textColor="@color/text_hi"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/mode_all_sub"
+                    android:textColor="@color/text_mid"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/mode_mark"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:background="@drawable/radio_on" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mode_include"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:background="@drawable/bg_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="15dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mode_include_title"
+                    android:textColor="@color/text_hi"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/mode_include_sub"
+                    android:textColor="@color/text_mid"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/mode_mark"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:background="@drawable/radio_off" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mode_exclude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:background="@drawable/bg_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="15dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mode_exclude_title"
+                    android:textColor="@color/text_hi"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/mode_exclude_sub"
+                    android:textColor="@color/text_mid"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/mode_mark"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:background="@drawable/radio_off" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_pick_apps"
+            style="@style/TBtnFull"
+            android:layout_marginTop="16dp"
+            android:text="@string/btn_pick_apps" />
+
+        <TextView
+            android:id="@+id/apps_summary"
+            style="@style/TBody"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/text_low"
+            android:textSize="11.5sp" />
+
+    </LinearLayout>
+</ScrollView>

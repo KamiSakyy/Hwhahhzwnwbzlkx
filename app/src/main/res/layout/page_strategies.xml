@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:overScrollMode="never"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <TextView
+            style="@style/TSection"
+            android:text="@string/strategies_title" />
+
+        <TextView
+            style="@style/TBody"
+            android:layout_marginTop="9dp"
+            android:text="@string/strategies_desc" />
+
+        <LinearLayout
+            android:id="@+id/strategy_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:orientation="vertical" />
+
+        <TextView
+            style="@style/TSection"
+            android:layout_marginTop="18dp"
+            android:text="@string/custom_title" />
+
+        <EditText
+            android:id="@+id/custom_args"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:background="@drawable/bg_input"
+            android:fontFamily="monospace"
+            android:gravity="top|start"
+            android:hint="@string/custom_hint"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:minLines="3"
+            android:padding="13dp"
+            android:textColor="@color/text_hi"
+            android:textColorHint="@color/text_low"
+            android:textSize="11.5sp" />
+
+        <TextView
+            style="@style/TBody"
+            android:layout_marginTop="9dp"
+            android:text="@string/custom_hint_note"
+            android:textSize="10.5sp" />
+
+        <TextView
+            android:id="@+id/btn_save_custom"
+            style="@style/TBtnFull"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="14dp"
+            android:text="@string/btn_save_custom" />
+
+    </LinearLayout>
+</ScrollView>
