@@ -24,10 +24,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -71,7 +71,31 @@ jobs:
       - name: Build release APK
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon --stacktrace assembleRelease
+          set -o pipefail
+          ./gradlew --no-daemon --stacktrace assembleRelease 2>&1 | tee build.log
+
+      # Logs of a workflow run cannot always be fetched from outside GitHub,
+      # so on failure the tail of the Gradle output is posted as a commit comment.
+      - name: Publish build log on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "### Gradle build failed (run ${GITHUB_RUN_ID})"
+            echo
+            echo '```'
+            if [ -f build.log ]; then
+              grep -nE "^e: |error:|FAILURE|Caused by|What went wrong|\* Try|\* Exception|Execution failed|A problem occurred|> Task .* FAILED|Deprecated Gradle|warning:" build.log | tail -n 120
+              echo "--- tail ---"
+              tail -n 120 build.log
+            else
+              echo "no build.log - the failure happened before Gradle ran"
+            fi
+            echo '```'
+          } > failure.md
+          head -c 60000 failure.md > failure-trim.md
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" -F body=@failure-trim.md >/dev/null
 
       - name: Inspect and size-check the APK
         id: apk
