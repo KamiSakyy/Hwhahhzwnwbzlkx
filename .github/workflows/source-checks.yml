@@ -2,7 +2,7 @@ name: Source checks (NO APK)
 on:
   push:
     branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
-    paths: ['integration/**', 'scripts/**', '.github/workflows/**']
+    paths: ['integration/**', 'scripts/**', 'tools/**', '.github/workflows/**']
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,6 +23,11 @@ jobs:
           javac -Xlint:all -Werror -d /tmp/theme-core-classes integration/core/src/main/java/dev/themestudio/core/ColorSession.java integration/core/src/test/java/dev/themestudio/core/ColorSessionTest.java
           java -cp /tmp/theme-core-classes dev.themestudio.core.ColorSessionTest | tee /tmp/core-test-report.txt
           echo "::notice::$(cat /tmp/core-test-report.txt)"
+      - name: Parse integration Java syntax only (no Android compiler or packaging)
+        run: |
+          javac -Xlint:all -Werror -d /tmp/theme-core-classes tools/JavaSyntaxCheck.java
+          java -cp /tmp/theme-core-classes JavaSyntaxCheck integration/telegram/src/main/java | tee /tmp/syntax-report.txt
+          echo "::notice::$(cat /tmp/syntax-report.txt)"
       - name: Ensure APK workflows remain blocked
         run: |
           python - <<'PY'

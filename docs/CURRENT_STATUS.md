@@ -34,3 +34,15 @@
 Файлы `integration/telegram` нельзя считать работающим готовым приложением
 только потому, что исходники написаны. JVM-проверки не проверяют Android UI.
 Исторический APK Handoff относится исключительно к отклонённому прототипу.
+
+## Аудит upstream build graph
+`python scripts/audit_telegram_preview.py` выполняет только чтение исходников.
+Отчёт: `docs/UPSTREAM_DEPENDENCIES.json`. Зафиксированная upstream-версия 13.0.2,
+AGP 8.13.2, compileSdk/targetSdk 36. Root старого прототипа не является новой
+upstream-конфигурацией. В явном import-графе достижим 1411 source-файл; это нижняя
+граница без same-package/reflection/native/resource зависимостей и НЕ оценка APK.
+`R`, `BuildConfig` и `LocalizationUtils` генерируются официальной сборкой.
+
+В source-only CI добавлен JDK-парсер синтаксиса integration Java с source=8.
+Он не разрешает Android-символы и не заменяет компиляцию/проверку поведения.
+Эмулятор, APK, AAB, Android runtime не запускаются.
