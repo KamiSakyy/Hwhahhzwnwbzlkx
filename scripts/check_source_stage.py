@@ -16,11 +16,16 @@ bridge = (root / 'integration/telegram/src/main/java/dev/themestudio/telegram/Ed
 assert 'extends ThemePreviewActivity' in bridge
 assert 'View officialView = super.createView(context);' in bridge
 assert 'drawText(' not in bridge and 'drawRoundRect(' not in bridge
-print('Source guards OK: official checkout pinned; APK jobs blocked; adapter delegates rendering to upstream.')
+apk_workflow = (root / '.github/workflows/editor-apk.yml').read_text()
+assert ':ThemeStudioHost:assembleRelease' in apk_workflow
+assert ':app:assemble' not in apk_workflow and ':TMessagesProj_App:assemble' not in apk_workflow
+print('Source guards OK: official checkout pinned; legacy/mock APK jobs blocked; only original-component editor host authorized.')
 print('This is NOT a compile, runtime, visual or completion test.')
 
 policy = (root / 'gradle/no-artifact-policy.gradle').read_text()
 assert "application &&" in policy and "name.contains('emulator')" in policy
+assert "task.project.path == ':ThemeStudioHost'" in policy
+assert "!name.startsWith('install')" in policy
 assert "gradle/no-artifact-policy.gradle" in (root / 'build.gradle').read_text()
 assert "gradle/no-artifact-policy.gradle" in (root / 'integration/telegram/editor-sources.init.gradle').read_text()
 print('Packaging/device task policy is connected to both build entry points.')
