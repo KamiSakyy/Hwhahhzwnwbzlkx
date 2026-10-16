@@ -58,7 +58,8 @@ def init_db(path: str | None = None):
         );
         CREATE TABLE IF NOT EXISTS screens(
             tg_id INTEGER PRIMARY KEY,
-            message_id INTEGER NOT NULL
+            message_id INTEGER NOT NULL,
+            kb INTEGER NOT NULL DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS sessions(
             tg_id INTEGER PRIMARY KEY,
@@ -68,6 +69,10 @@ def init_db(path: str | None = None):
             temp TEXT NOT NULL DEFAULT '{}'
         );
         """)
+        # migration for DBs created before the permanent keyboard existed
+        cols = [r[1] for r in c.execute("PRAGMA table_info(screens)").fetchall()]
+        if "kb" not in cols:
+            c.execute("ALTER TABLE screens ADD COLUMN kb INTEGER NOT NULL DEFAULT 0")
 
 
 # --------------------------------------------------------------------------
@@ -272,6 +277,18 @@ def set_screen(tg_id: int, message_id: int, path: str | None = None):
 def drop_screen(tg_id: int, path: str | None = None):
     with db(path) as c:
         c.execute("DELETE FROM screens WHERE tg_id=?", (tg_id,))
+
+
+def kb_sent(tg_id: int, path: str | None = None) -> bool:
+    """Was the permanent Telegram reply-keyboard already delivered?"""
+    with db(path) as c:
+        r = c.execute("SELECT kb FROM screens WHERE tg_id=?", (tg_id,)).fetchone()
+    return bool(r and r["kb"])
+
+
+def set_kb_sent(tg_id: int, path: str | None = None):
+    with db(path) as c:
+        c.execute("UPDATE screens SET kb=1 WHERE tg_id=?", (tg_id,))
 
 
 # --------------------------------------------------------------------------

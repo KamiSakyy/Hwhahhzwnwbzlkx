@@ -78,6 +78,24 @@ def test_bot_vocabulary():
     assert bot.BOT_TOKEN.count(":") == 1 and len(bot.BOT_TOKEN) > 30  # token embedded
 
 
+def test_telegram_panel_buttons():
+    import bot
+    # the permanent bottom panel exists and its labels map to commands
+    labels = [b.text for row in bot.REPLY_KB.keyboard for b in row]
+    assert labels == ["🔑 Войти", "📝 Регистрация", "🔍 Поиск",
+                      "👤 Профиль", "💬 Чаты", "🚪 Выйти"]
+    assert bot.REPLY_KB.is_persistent
+    assert bot.clean_cmd(bot.norm("🔍 Поиск")) == "поиск"
+    assert bot.clean_cmd(bot.norm("👤 Профиль")) == "профиль"
+    assert bot.clean_cmd(bot.norm("🔑 Войти")) == "войти"
+    assert bot.clean_cmd(bot.norm("💬 Чаты")) == "чаты"
+    # kb-delivered flag (one-time migration for old screens)
+    ms.set_screen(777009, 111, P)
+    assert ms.kb_sent(777009, P) is False
+    ms.set_kb_sent(777009, P)
+    assert ms.kb_sent(777009, P) is True
+
+
 def test_permanent_buttons():
     import bot
     ms.DB_PATH = P  # bot keyboard builder reads the same test DB

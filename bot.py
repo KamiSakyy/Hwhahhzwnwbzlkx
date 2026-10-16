@@ -20,7 +20,8 @@ import os
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
+                      ReplyKeyboardMarkup, Update)
 from telegram.error import BadRequest, Forbidden, TelegramError
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
                           ContextTypes, MessageHandler, filters)
@@ -38,9 +39,32 @@ BOT_TOKEN = TOKEN.strip()
 
 BACK_WORDS = {"назад", "back", "меню", "чаты"}
 
+# ==========================================================================
+# ⭐ ПОСТОЯННЫЕ КНОПКИ TELEGRAM — панель внизу у поля ввода.
+# Висит всегда, на любом экране: Войти / Поиск / Профиль — всё кнопками.
+# (Telegram умеет ставить такую панель только при отправке сообщения,
+# поэтому она приходит вместе с единственным сообщением-экраном и дальше
+# просто остаётся в чате, пока экран живёт и редактируется.)
+# ==========================================================================
+REPLY_KB = ReplyKeyboardMarkup(
+    [
+        [KeyboardButton("🔑 Войти"), KeyboardButton("📝 Регистрация")],
+        [KeyboardButton("🔍 Поиск"), KeyboardButton("👤 Профиль")],
+        [KeyboardButton("💬 Чаты"), KeyboardButton("🚪 Выйти")],
+    ],
+    resize_keyboard=True,
+    is_persistent=True,
+)
+
 
 def norm(text: str) -> str:
     return " ".join(text.strip().lower().replace("ё", "е").split())
+
+
+def clean_cmd(text: str) -> str:
+    """'🔍 Поиск' -> 'поиск' — нажатия панельных кнопок приходят как текст."""
+    cleaned = "".join(ch if (ch.isalnum() or ch in "@_ ") else " " for ch in text)
+    return " ".join(cleaned.split())
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +121,16 @@ async def show(bot, tg_id: int, html_text: str):
     """Render `html_text` (+ permanent buttons) into the single screen."""
     markup = build_keyboard(tg_id)
     mid = ms.get_screen(tg_id)
+    # One-time migration: screens created before the permanent Telegram
+    # keyboard existed are replaced ONCE (delete old + send fresh below),
+    # so the bottom button panel appears. Still exactly one screen message.
+    if mid is not None and not ms.kb_sent(tg_id):
+        try:
+            await bot.delete_message(chat_id=tg_id, message_id=mid)
+        except (BadRequest, Forbidden, TelegramError):
+            pass
+        ms.drop_screen(tg_id)
+        mid = None
     if mid is not None:
         try:
             await bot.edit_message_text(
@@ -115,11 +149,21 @@ async def show(bot, tg_id: int, html_text: str):
         except (Forbidden, TelegramError) as e:
             log.warning("edit failed tg=%s: %s", tg_id, e)
             return
-    # First contact ever (or the screen was deleted): create THE one message.
+    # First contact ever (or the screen was deleted / migrated): create
+    # THE one message — with the permanent Telegram bottom keyboard,
+    # then hang the inline buttons onto that same message via an edit.
     try:
         msg = await bot.send_message(chat_id=tg_id, text=html_text,
-                                     parse_mode="HTML", reply_markup=markup)
+                                     parse_mode="HTML", reply_markup=REPLY_KB)
         ms.set_screen(tg_id, msg.message_id)
+        ms.set_kb_sent(tg_id)
+        try:
+            await bot.edit_message_text(
+                chat_id=tg_id, message_id=msg.message_id, text=html_text,
+                parse_mode="HTML", reply_markup=markup,
+            )
+        except TelegramError:
+            pass
     except TelegramError as e:
         log.warning("send screen failed tg=%s: %s", tg_id, e)
 
@@ -166,7 +210,7 @@ def render_current(tg_id: int, s: dict, notice: str = "") -> str:
 async def route(update: Update, context: ContextTypes.DEFAULT_TYPE, raw_text: str):
     bot = context.bot
     tg_id = update.effective_user.id
-    text = norm(raw_text)
+    text = clean_cmd(norm(raw_text))  # '🔍 поиск' (кнопка) == 'поиск' (команда)
     s = ms.get_session(tg_id)
     user = ms.get_user(s["user_id"]) if s.get("user_id") else None
     state = s.get("state", "auth")
@@ -183,6 +227,20 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE, raw_text: st
         return
 
     # ---- logged in ---------------------------------------------------------
+    # ⭐ панельные кнопки Telegram работают С ЛЮБОГО экрана
+    if text in ("поиск", "search"):
+        ms.set_session(tg_id, state="search", current_chat=None, temp={})
+        await show(bot, tg_id, ms.scr_search(user))
+        return
+    if text == "профиль":
+        ms.set_session(tg_id, state="profile", current_chat=None)
+        await show(bot, tg_id, ms.scr_profile(user))
+        return
+    if text in ("чаты", "меню"):
+        ms.set_session(tg_id, state="main", current_chat=None, temp={})
+        await show(bot, tg_id, ms.scr_main(user))
+        return
+
     if state == "search":
         if text in BACK_WORDS:
             ms.set_session(tg_id, state="main", temp={})
