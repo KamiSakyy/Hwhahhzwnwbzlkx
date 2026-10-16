@@ -1,0 +1,2 @@
+Experimental source-stage editor. Pixel identity/runtime not validated. Public development signing key.
+WARNING: 10 MB requirement NOT met.
