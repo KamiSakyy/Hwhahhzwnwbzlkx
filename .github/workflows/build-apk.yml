@@ -1,10 +1,11 @@
-name: Build ARI APK
+name: Build Tsuyu APK
 
 on:
   push:
     branches: ["**"]
     paths:
       - "app/**"
+      - "signing/**"
       - "build.gradle"
       - "settings.gradle"
       - "gradle.properties"
@@ -15,25 +16,45 @@ permissions:
   contents: write
   issues: write
 
+env:
+  JAVA_VERSION: '21'
+  ANDROID_API: '36'
+  TSUYU_VERSION_CODE: '151'
+
 jobs:
   build:
+    name: Build Tsuyu (FastAPI-only, no Firebase)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Set up Gradle 8.7 (Android SDK is preinstalled on the runner)
+      - name: Set up Gradle 8.13
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.7"
+          gradle-version: "8.13"
 
-      - name: Build release APK (minified, target < 8 MB)
+      - name: Install Android SDK 36
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages
+        run: sdkmanager "platform-tools" "platforms;android-${ANDROID_API}" "build-tools;36.0.0" "ndk;27.2.12479018"
+
+      - name: Guard — zero Firebase in the app
+        run: |
+          if grep -ri "firebase" app/src/main/java app/src/main/AndroidManifest.xml app/build.gradle; then
+            echo "::error::Firebase references found — Firebase is strictly forbidden in Tsuyu"
+            exit 1
+          fi
+          echo "Firebase-free ✓"
+
+      - name: Build release APK (minified + ProGuard, target ≤ 10 MB)
         run: |
           set -o pipefail
           gradle :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee build-log.txt
@@ -57,38 +78,39 @@ jobs:
             const lines = log.split('\n');
             let start = lines.findIndex(l => l.includes('What went wrong') || l.includes('FAILURE:'));
             if (start < 0) start = Math.max(0, lines.length - 120);
-            const tail = lines.slice(Math.max(0, start - 5), start + 120).join('\n').slice(-60000);
+            const tail = lines.slice(Math.max(0, start - 5), start + 160).join('\n').slice(-60000);
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: '🔴 APK build failed — log tail',
+              title: '🔴 Tsuyu APK build failed — log tail',
               body: '```\n' + tail + '\n```',
             });
 
       - name: Collect APK + size report
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/app-release.apk out/ARI.apk
-          ls -lh out/ARI.apk
-          SIZE=$(stat -c%s out/ARI.apk)
+          cp app/build/outputs/apk/release/app-release.apk out/Tsuyu.apk
+          ls -lh out/Tsuyu.apk
+          SIZE=$(stat -c%s out/Tsuyu.apk)
           echo "APK size: $SIZE bytes"
-          if [ "$SIZE" -gt 8388608 ]; then echo "::warning::APK is over 8 MB ($SIZE)"; fi
+          if [ "$SIZE" -gt 10485760 ]; then echo "::warning::APK is over 10 MB ($SIZE)"; fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ARI-apk
-          path: out/ARI.apk
+          name: Tsuyu-apk
+          path: out/Tsuyu.apk
           retention-days: 30
 
       - name: Publish APK to a rolling GitHub Release (direct download link)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-latest
-          name: "ARI Android (latest)"
+          name: "Tsuyu Android (latest)"
           body: |
-            📱 **ARI — self-hosted messenger (Android)**
-            Скачай **ARI.apk** ниже и установи на телефон.
-            При первом запуске введи адрес СВОЕГО сервера на Railway.
-          files: out/ARI.apk
+            📱 **Tsuyu — мессенджер на СВОЁМ сервере (FastAPI)**
+            Скачай **Tsuyu.apk** ниже и установи на телефон.
+            При первом запуске введи адрес СВОЕГО сервера (Railway/VPS) — аккаунт, профиль,
+            ключи Signal, сообщения и звонки идут только через него. Firebase нет вообще.
+          files: out/Tsuyu.apk
           make_latest: true

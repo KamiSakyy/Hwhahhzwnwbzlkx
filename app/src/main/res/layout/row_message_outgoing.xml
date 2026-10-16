@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/message_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/message_bubble"
+        style="@style/Widget.Tsuyu.Bubble.Outgoing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginStart="48dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="72dp"
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="6dp">
+
+            <ProgressBar
+                android:id="@+id/message_loading"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:indeterminateTint="@color/tsuyu_secondary"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/message_body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:lineSpacingMultiplier="1.2"
+                android:maxWidth="280dp"
+                android:textAppearance="@style/TextAppearance.Tsuyu.Body" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/message_image"
+                android:layout_width="@dimen/media_width"
+                android:layout_height="@dimen/media_height_image"
+                android:layout_marginTop="4dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/TsuyuMediaShape" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/message_gallery"
+                android:layout_width="@dimen/media_width"
+                android:layout_height="@dimen/media_height_gallery"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/message_circle_card"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="100dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <FrameLayout
+                    android:id="@+id/message_circle"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextureView
+                        android:id="@+id/message_circle_video"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <ImageView
+                        android:id="@+id/message_circle_play"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_header_btn_strong"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_play"
+                        app:tint="@color/tsuyu_white" />
+
+                    <ProgressBar
+                        android:id="@+id/message_circle_progress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:layout_gravity="bottom"
+                        android:progressTint="@color/tsuyu_blue"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/message_circle_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/bg_circle_time"
+                        android:paddingStart="6dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="2dp"
+                        android:textColor="@color/tsuyu_white"
+                        android:textSize="10sp" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <FrameLayout
+                android:id="@+id/message_video"
+                android:layout_width="@dimen/media_width"
+                android:layout_height="@dimen/media_height_video"
+                android:layout_marginTop="4dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/message_video_thumb"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_header_btn_strong"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_play"
+                    app:tint="@color/tsuyu_white" />
+
+                <TextView
+                    android:id="@+id/message_video_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|start"
+                    android:layout_margin="6dp"
+                    android:background="@drawable/bg_circle_time"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/tsuyu_white"
+                    android:textSize="10sp" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/message_audio"
+                android:layout_width="220dp"
+                android:layout_height="42dp"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/message_audio_play"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:background="@drawable/bg_scroll_fab"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_play"
+                    app:tint="@color/tsuyu_white" />
+
+                <TextView
+                    android:id="@+id/message_audio_label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:textColor="@color/tsuyu_white"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="2dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/message_reaction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/message_edited"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:fontFamily="sans-serif"
+                    android:text="изм."
+                    android:textColor="@color/tsuyu_time"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/message_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:textColor="@color/tsuyu_time"
+                    android:textSize="11sp" />
+
+                <ImageView
+                    android:id="@+id/message_status"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginStart="4dp"
+                    android:contentDescription=""
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/message_retry"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="4dp"
+                    android:contentDescription="Повторить"
+                    android:src="@drawable/ic_refresh"
+                    android:visibility="gone"
+                    app:tint="@color/tsuyu_red" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <ImageView
+        android:id="@+id/message_swipe_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical|end"
+        android:src="@drawable/ic_reply"
+        android:visibility="gone"
+        app:tint="@color/tsuyu_blue" />
+</FrameLayout>
