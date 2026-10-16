@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           javac -Xlint:all -Werror -d /tmp/theme-core-classes tools/JavaSyntaxCheck.java
-          java -cp /tmp/theme-core-classes JavaSyntaxCheck integration/telegram/src/main/java | tee /tmp/syntax-report.txt
+          java -cp /tmp/theme-core-classes JavaSyntaxCheck integration | tee /tmp/syntax-report.txt
           echo "::notice::$(cat /tmp/syntax-report.txt)"
       - name: Ensure APK workflows remain blocked
         run: |

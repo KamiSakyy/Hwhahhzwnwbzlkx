@@ -1,0 +1,86 @@
+{
+  "upstream_commit": "f32ffeec763f0bdbf4bec25b52d654f77bff733d",
+  "sparse_checkout": false,
+  "source_checkout_complete": true,
+  "full_git_history": false,
+  "note": "Shallow repositories contain complete worktrees at pinned commits, not full commit history. Submodules preserve original source; libyuv uses a GitHub mirror at the identical SHA.",
+  "submodule_count": 19,
+  "submodules": [
+    {
+      "path": "TMessagesProj/jni/td",
+      "sha": "022d60202e446ad1287b9fb68e687c8a0760788b"
+    },
+    {
+      "path": "TMessagesProj/jni/tgcalls",
+      "sha": "ccbb57965020768c94f5b205ea08547a7e0fe49d"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/absl",
+      "sha": "54fac219c4ef0bc379dfffb0b8098725d77ac81b"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/boost-regex",
+      "sha": "4cbcd3078e6ae10d05124379623a1bf03fcb9350"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/boringssl",
+      "sha": "2b44a3701a4788e1ef866ddc7f143060a3d196c9"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/dav1d",
+      "sha": "54706fc6bc0cdecab7e9593974a4039cc038fca7"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/ffmpeg",
+      "sha": "45f1910444f34b02621f9f0426ea1a538a613c41"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/libprisma",
+      "sha": "31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/libvpx",
+      "sha": "1024874c5919305883187e2953de8fcb4c3d7fa6"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/libyuv",
+      "sha": "28ce69c2744a6aafdb58564e7b884aec3f66be5f"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/openh264",
+      "sha": "652bdb7719f30b52b08e506645a7322ff1b2cc6f"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/wamr",
+      "sha": "25bd7eb63e828e4bd242cc9b38d260b4b31c6605"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/xiph/ogg",
+      "sha": "be05b13e98b048f0b5a0f5fa8ce514d56db5f822"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/xiph/opus",
+      "sha": "22244de5a79bd1d6d623c32e72bf1954b56235be"
+    },
+    {
+      "path": "TMessagesProj/jni/third_party/xiph/opusfile",
+      "sha": "a55c164e9891a9326188b7d4d216ec9a88373739"
+    },
+    {
+      "path": "TMessagesProj/jni/tlottie",
+      "sha": "31f1b542f88e7b4be9a01e749920d857535fc715"
+    },
+    {
+      "path": "TMessagesProj/jni/wallet-engine",
+      "sha": "5c65e47cb8d68727c20d89382d0bc51292486b9a"
+    },
+    {
+      "path": "TMessagesProj/lib/jlatexmath",
+      "sha": "919e50b2f6f64b04b712cdb13d558ff9ecf9c8ed"
+    },
+    {
+      "path": "TMessagesProj_Modules/media",
+      "sha": "c430d207677071b1873f9f18266d55ec45722180"
+    }
+  ]
+}

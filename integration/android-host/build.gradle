@@ -1,0 +1,34 @@
+// Experimental host for the REAL Telegram library. APK tasks remain prohibited.
+apply plugin: 'com.android.application'
+apply plugin: 'org.telegram.build-app-plugin'
+
+android {
+    namespace 'dev.themestudio.host'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+    ndkVersion '27.2.12479018'
+    defaultConfig {
+        applicationId 'dev.themestudio.editor'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.2.0-source'
+        multiDexEnabled true
+        ndk { abiFilters 'arm64-v8a' }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
+    }
+    buildTypes {
+        debug { matchingFallbacks = ['debug'] }
+        release { matchingFallbacks = ['release'] }
+    }
+}
+
+dependencies {
+    implementation project(':TMessagesProj')
+    implementation 'androidx.core:core:1.16.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+}

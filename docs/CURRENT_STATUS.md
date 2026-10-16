@@ -21,7 +21,8 @@
 - Заблокированы APK workflows и packaging/device задачи Gradle.
 
 ## НЕ выполнено / НЕ подтверждено
-- Новый host НЕ подключён к launcher старого `app/`.
+- Старый `app/` НЕ является новым entry point. Добавлен отдельный upstream
+  `:ThemeStudioHost` с EditorActivity и XML-контейнером; компиляция ещё не подтверждена.
 - Standalone offline bootstrap без аккаунта и побочных сетевых действий.
 - Компиляция Android-интеграции с полной upstream dependency graph.
 - Выбор каждого элемента: timestamp, reply/quote/code, реакции, media-controls,
@@ -46,3 +47,14 @@ upstream-конфигурацией. В явном import-графе дости�
 В source-only CI добавлен JDK-парсер синтаксиса integration Java с source=8.
 Он не разрешает Android-символы и не заменяет компиляцию/проверку поведения.
 Эмулятор, APK, AAB, Android runtime не запускаются.
+
+## Полное развёртывание исходников
+Sparse checkout снят. Развёрнуты все 19 вложенных подмодулей на SHA из upstream;
+`docs/TELEGRAM_CHECKOUT.json` содержит их перечень. Оригинальный worktree и
+зависимости занимают около 2.2 ГБ в этой среде; это НЕ размер APK. Bootstrap
+воспроизводится скриптом без сборки. Git-подмодуль хранит ссылку на весь upstream,
+а не копирует гигабайты исходников в diff нашего приложения.
+
+Экспериментальный Android-host теперь включается в upstream settings init-скриптом.
+Отдельный compile-only workflow проверяет настоящий Java build graph и merged
+manifest; никакого эмулятора, assemble, bundle, install или публикации APK.

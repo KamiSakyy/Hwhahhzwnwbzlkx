@@ -42,7 +42,12 @@ public final class TelegramPreviewHost implements AutoCloseable {
         editorMenu = new EditorMenuController(activity, preview, colorEditor);
         preview.addEditorCleanup(editorMenu::close);
         preview.addEditorCleanup(colorEditor::close);
+        navigation.setFragmentStackChangedListener(() -> {
+            if (!closed && navigation.getFragmentStack().isEmpty()) activity.finish();
+        });
     }
+
+    public boolean isOpen() { requireMainThread(); return !closed && !preview.isEditorDestroyed(); }
 
     public EditorThemePreviewActivity getPreview() { requireOpen(); return preview; }
     public void onResume() { requireOpen(); navigation.onResume(); }
@@ -53,6 +58,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
     public void close() {
         requireMainThread();
         if (closed) return;
+        closed = true;
         editorMenu.close();
         colorEditor.close();
         navigation.onPause();

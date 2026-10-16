@@ -7,19 +7,20 @@
 ## Официальный репозиторий
 DrKLO/Telegram подключён как Git submodule в `vendor/telegram`, закреплён SHA
 `f32ffeec763f0bdbf4bec25b52d654f77bff733d` (13 октября 2026).
-Это оригинальный репозиторий, а не имитация компонентов. В рабочей среде sparse
-checkout содержит Java, Android resources, Gradle и buildSrc; native/медиа и
-остальные каталоги доступны в Git, но не материализованы в этом checkout.
-Для полного checkout после `git submodule update --init vendor/telegram`:
-`git -C vendor/telegram sparse-checkout disable` (потребуется много места).
+Это оригинальный репозиторий. Sparse checkout снят: полный worktree, все
+19 вложенных native/media-подмодулей развёрнуты на upstream SHA. История Git
+shallow, но файлы закреплённых версий полные. Повторить развёртывание:
+`bash scripts/bootstrap_telegram.sh`. Точные SHA: [манифест checkout](docs/TELEGRAM_CHECKOUT.json).
+В условиях доступа среды libyuv берётся из GitHub-зеркала на идентичном SHA.
 
 ## Текущее состояние
 - Оба APK workflow переведены в ручной режим и безусловно заблокированы
   `if: ${{ false }}`. Никакой сборки при push.
 - Официальные ThemePreviewActivity, ChatMessageCell, DialogCell,
   ThemeEditorView, Theme/ThemeDescription доступны в подмодуле.
-- Начат адаптер настоящего preview: [integration/telegram](integration/telegram).
-  Он ещё НЕ подключён к приложению и НЕ проверен на устройстве.
+- Реализованы исходники адаптера настоящего preview: [integration/telegram](integration/telegram).
+  Подключён экспериментальный upstream-модуль `:ThemeStudioHost`, пока без
+  подтверждённой Android-компиляции и без проверки на устройстве.
 - `app/` остаётся старым прототипом; его наличие не означает готовую интеграцию.
 - Нельзя заявлять 100% готовности по успешной компиляции или созданию APK.
 
@@ -36,3 +37,8 @@ arm64 release <=10 МБ, только GitHub Actions, без Secrets. Разме
 [Подробный статус: реализованные исходники и оставшиеся работы](docs/CURRENT_STATUS.md).
 Новые инструменты используют штатные ActionBar, ColorPicker, RecyclerListView и
 TextColorCell. Введён запрет packaging/device-задач Gradle; эмуляторы запрещены.
+
+## Экспериментальный Android entry point
+[integration/android-host](integration/android-host/README.md) зависит от
+оригинального `:TMessagesProj`, а не старого прототипа. Отдельный workflow
+проверяет Java compile и merged manifest, НЕ создавая APK и НЕ запуская эмулятор.

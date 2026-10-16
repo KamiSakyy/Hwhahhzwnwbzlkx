@@ -1,0 +1,69 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+    <!-- Remove client permissions/components. This is an offline editor host,
+         not a second messaging client. Must be verified in the MERGED manifest. -->
+    <uses-permission tools:node="removeAll" />
+    <application android:name="org.telegram.messenger.ApplicationLoader"
+                 android:label="Theme Studio"
+                 android:theme="@style/ThemeStudioHost"
+                 android:allowBackup="false"
+                 android:supportsRtl="true"
+                 tools:replace="android:label,android:theme,android:allowBackup,android:supportsRtl"
+                 tools:remove="android:backupAgent,android:manageSpaceActivity,android:restoreAnyVersion">
+        <activity-alias tools:node="removeAll" />
+        <service tools:node="removeAll" />
+        <receiver tools:node="removeAll" />
+        <provider tools:node="removeAll" />
+        <activity tools:node="removeAll" />
+        <activity android:name=".EditorActivity" android:exported="true"
+                  android:windowSoftInputMode="adjustResize" />
+        <activity-alias android:name="org.telegram.messenger.DefaultIcon"
+                        android:targetActivity=".EditorActivity"
+                        android:enabled="true" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="org.telegram.messenger.VintageIcon"
+                        android:targetActivity=".EditorActivity"
+                        android:enabled="false" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="org.telegram.messenger.AquaIcon"
+                        android:targetActivity=".EditorActivity"
+                        android:enabled="false" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="org.telegram.messenger.PremiumIcon"
+                        android:targetActivity=".EditorActivity"
+                        android:enabled="false" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="org.telegram.messenger.TurboIcon"
+                        android:targetActivity=".EditorActivity"
+                        android:enabled="false" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name="org.telegram.messenger.NoxIcon"
+                        android:targetActivity=".EditorActivity"
+                        android:enabled="false" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+</manifest>

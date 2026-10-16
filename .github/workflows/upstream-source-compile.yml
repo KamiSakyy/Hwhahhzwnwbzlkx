@@ -1,0 +1,64 @@
+name: Compile original Telegram sources (NO APK, NO emulator)
+on:
+  workflow_dispatch:
+  push:
+    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
+    paths: ['.github/workflows/upstream-source-compile.yml']
+permissions:
+  contents: read
+jobs:
+  compile-sources:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 50
+    env:
+      THEME_STUDIO_ROOT: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: '8.13'
+      - name: Complete pinned original checkout, including all native/media submodules
+        run: bash scripts/bootstrap_telegram.sh
+      - name: Install compile toolchain only
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.2.12479018' 'cmake;3.22.1'
+      - name: Compile Java and process manifest ONLY; packaging remains forbidden by Gradle policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle -p vendor/telegram -I "$THEME_STUDIO_ROOT/integration/telegram/editor-sources.init.gradle" --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx5g :TMessagesProj:compileDebugJavaWithJavac :ThemeStudioHost:processDebugMainManifest :ThemeStudioHost:compileDebugJavaWithJavac 2>&1 | tee upstream-compile.log || {
+            grep -A 6 -B 2 -E 'error:|What went wrong|Error:|FAILED|Exception' upstream-compile.log | head -65 | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          }
+      - name: Verify merged host manifest and absence of APK/AAB outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET
+          root=pathlib.Path('integration/android-host/build/intermediates')
+          candidates=list(root.glob('merged_manifests/debug/**/AndroidManifest.xml'))+list(root.glob('merged_manifest/debug/**/AndroidManifest.xml'))
+          assert candidates, 'Merged manifest not found'
+          ns='{http://schemas.android.com/apk/res/android}'
+          doc=ET.parse(candidates[0]).getroot()
+          assert not any(p.get(ns+'name')=='android.permission.INTERNET' for p in doc.findall('uses-permission')), 'INTERNET remained in merged manifest'
+          app=doc.find('application')
+          assert app is not None
+          assert all(a.get(ns+'name')=='dev.themestudio.host.EditorActivity' for a in app.findall('activity')), 'Unexpected messenger Activity remains'
+          assert not app.findall('service') and not app.findall('receiver') and not app.findall('provider'), 'Client background components remained'
+          outputs=list(pathlib.Path('integration/android-host/build').rglob('*.apk'))+list(pathlib.Path('integration/android-host/build').rglob('*.aab'))
+          assert not outputs, outputs
+          print('Merged manifest checked. No APK/AAB. No emulator or device execution.')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: upstream-source-compile-log-NOT-APK
+          path: upstream-compile.log
+          if-no-files-found: ignore

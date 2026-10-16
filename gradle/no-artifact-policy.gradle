@@ -6,7 +6,7 @@ gradle.taskGraph.whenReady { graph ->
         def application = task.project.plugins.hasPlugin('com.android.application')
         def packagesApplication = application && (
             name.startsWith('assemble') || name.startsWith('bundle') ||
-            name.startsWith('package') || name.startsWith('install') ||
+            (name.startsWith('package') && !name.endsWith('resources')) || name.startsWith('install') ||
             name.contains('apk') || name.contains('aab')
         )
         def launchesDevice = name.startsWith('connected') || name.contains('emulator') ||
