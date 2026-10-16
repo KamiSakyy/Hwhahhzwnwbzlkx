@@ -1,0 +1,19 @@
+// Source integration only. This script does not execute or authorize an APK task.
+// Use with a COMPLETE official checkout and its original build environment.
+// THEME_STUDIO_ROOT must point to this repository, not the Telegram checkout.
+def editorRoot = System.getenv('THEME_STUDIO_ROOT')
+if (editorRoot == null) {
+    throw new GradleException('Set THEME_STUDIO_ROOT to the Theme Studio repository')
+}
+def sourceRoots = [
+    new File(editorRoot, 'integration/core/src/main/java'),
+    new File(editorRoot, 'integration/telegram/src/main/java')
+]
+sourceRoots.each { if (!it.isDirectory()) throw new GradleException("Missing editor sources: ${it}") }
+gradle.beforeProject { project ->
+    if (project.name == 'TMessagesProj') {
+        project.plugins.withId('com.android.library') {
+            sourceRoots.each { root -> project.android.sourceSets.main.java.srcDir(root) }
+        }
+    }
+}

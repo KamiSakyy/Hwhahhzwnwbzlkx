@@ -17,6 +17,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
     private final FrameLayout container;
     private final INavigationLayout navigation;
     private final EditorThemePreviewActivity preview;
+    private final ColorEditorController colorEditor;
     private boolean closed;
 
     public TelegramPreviewHost(Activity activity, FrameLayout container, Theme.ThemeInfo theme) {
@@ -36,6 +37,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
             navigation.removeAllFragments();
             throw new IllegalStateException("Official preview could not be presented");
         }
+        colorEditor = new ColorEditorController(activity, preview);
     }
 
     public EditorThemePreviewActivity getPreview() { requireOpen(); return preview; }
@@ -47,6 +49,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
     public void close() {
         requireMainThread();
         if (closed) return;
+        colorEditor.close();
         navigation.onPause();
         navigation.removeAllFragments();
         container.removeView(navigation.getView());

@@ -61,3 +61,16 @@
 Source-only CI компилирует/тестирует JVM-ядро и проверяет запрет APK. Он НЕ
 компилирует Telegram-интеграцию, НЕ подтверждает offline-режим и НЕ заменяет
 скриншотные/UI-тесты. Новый host пока не подключён к старому `app/`.
+
+### Подключение редактирования к host
+`ColorEditorController` зарегистрирован в host: выбор поддерживаемой области
+сообщения открывает **штатные Telegram ColorPicker, AlertDialog, SeekBarView и
+EditTextBoldCursor**. Alpha сохранён отдельно от RGB, полный HEX — #AARRGGBB;
+Apply подтверждает транзакцию, Back/внешний dismiss отменяет, Default удаляет
+переопределение. Это написанный исходник, не подтверждённый UI-тестами интерфейс.
+
+`editor-sources.init.gradle` добавляет исходники интеграции и JVM-ядра в
+официальный `TMessagesProj`, не изменяя подмодуль. Он требует полноценного
+upstream build environment и `THEME_STUDIO_ROOT`. Сейчас НЕ запускался;
+Android-компиляция, standalone entry point и проверка native/runtime впереди.
+Скрипт не разрешает сборку APK и не входит в CI-проверку JVM-ядра.
