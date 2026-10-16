@@ -1,0 +1,90 @@
+name: Build Telegram Theme Editor APK
+
+on:
+  push:
+    branches: [ "arena/7aaa3425-hwhahhzwnwbzlkx" ]
+    paths:
+      - "app/**"
+      - "build.gradle"
+      - "settings.gradle"
+      - "gradle.properties"
+      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.7 (Android SDK is preinstalled on the runner)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build release APK
+        run: |
+          set -o pipefail
+          gradle :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee build-log.txt
+
+      - name: Upload build log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build-log.txt
+          retention-days: 7
+
+      - name: Publish failure log to an issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let log = '';
+            try { log = fs.readFileSync('build-log.txt', 'utf8'); } catch (e) {}
+            const lines = log.split('\n');
+            let start = lines.findIndex(l => l.includes('What went wrong') || l.includes('FAILURE:'));
+            if (start < 0) start = Math.max(0, lines.length - 120);
+            const tail = lines.slice(Math.max(0, start - 5), start + 120).join('\n').slice(-60000);
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'APK build failed - log tail',
+              body: '```\n' + tail + '\n```',
+            });
+
+      - name: Collect APK + size report
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-release.apk out/TelegramThemeEditor.apk
+          ls -lh out/TelegramThemeEditor.apk
+          SIZE=$(stat -c%s out/TelegramThemeEditor.apk)
+          echo "APK size: $SIZE bytes"
+          if [ "$SIZE" -gt 10485760 ]; then echo "::warning::APK is over 10 MB ($SIZE)"; fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-theme-editor-apk
+          path: out/TelegramThemeEditor.apk
+          retention-days: 30
+
+      - name: Publish APK to rolling GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: "Telegram Theme Editor (latest)"
+          files: out/TelegramThemeEditor.apk
+          make_latest: true
