@@ -24,7 +24,8 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private final Map<String, Integer> themeColors = new HashMap<>();
-    private View root, actionBar, bubbleIn, bubbleOut, unreadDivider, inputBar, inputField, sendButton;
+    private View root, actionBar, bubbleIn, bubbleOut, unreadDivider, inputBar, inputField;
+    private TextView sendButton;
     private TextView actionBarTitle, actionBarSubtitle, bubbleInName, bubbleInText, bubbleInTime,
             bubbleOutText, bubbleOutTime, unreadDividerText, inputFieldText;
 
