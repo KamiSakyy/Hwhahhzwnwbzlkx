@@ -23,7 +23,13 @@ layout = ET.parse(root / 'integration/android-host/src/main/res/layout/activity_
 preview = next(node for node in layout if node.get(ns+'id') == '@+id/official_preview_container')
 assert preview.tag == 'FrameLayout' and len(preview) == 0
 assert preview.get(ns+'layout_width') == 'match_parent'
-assert preview.get(ns+'layout_weight') == '1'
+assert layout.tag == 'FrameLayout', 'Editor tools must not shrink the official viewport'
+assert preview.get(ns+'layout_height') == 'match_parent'
+assert preview.get(ns+'layout_weight') is None
+assert preview.get(ns+'layout_marginBottom') is None
+assert preview.get(ns+'paddingBottom') is None
+tools = next(node for node in layout if node.get(ns+'id') == '@+id/editor_tools')
+assert tools.get(ns+'layout_gravity') == 'bottom'
 assert any(node.get(ns+'id') == '@+id/editor_tools' for node in layout)
 for node in layout.iter():
     assert node.get(ns+'layout_width') != '360dp', 'No fixed/scaled phone canvas allowed'

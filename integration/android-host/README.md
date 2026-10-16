@@ -41,3 +41,9 @@ XML activity_editor теперь отделяет контейнер ориги�
 панель, включая Android 13+ OnBackInvoked callback. Каталог/undo/redo вызываются
 из host, оригинальные ActionBar больше не модифицируются EditorMenuController.
 Это проверено по исходникам, но НЕ по скриншотам/устройству.
+
+Viewport rule: the original preview is a match-parent child of a FrameLayout.
+The editor toolbar is a bottom overlay, never a weighted sibling shrinking the
+upstream screen. Pure mode removes that overlay without resizing the preview.
+Editing mode still occludes the bottom 48dp; pixel identity is NOT asserted for
+that mode or for the as-yet-unvalidated system-window insets.
