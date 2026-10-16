@@ -1,0 +1,42 @@
+name: Deliver APK to Handoff
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  handoff:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: arena/2e1290a9-hwhahhzwnwbzlkx
+      - uses: actions/download-artifact@v4
+        with:
+          name: ThemeStudio-signed-release
+          run-id: 38940786062
+          github-token: ${{ github.token }}
+          path: downloaded
+      - name: Verify and deliver unchanged release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=$(find downloaded -name app-release.apk -type f | head -1)
+          SUM=$(find downloaded -name SHA256SUMS -type f | head -1)
+          EXPECTED=$(awk 'NR==1 {print $1}' "$SUM")
+          ACTUAL=$(sha256sum "$APK" | awk '{print $1}')
+          test "$EXPECTED" = "$ACTUAL"
+          unzip -t "$APK"
+          test "$(stat -c%s "$APK")" -le 10000000
+          mkdir -p Handoff
+          cp "$APK" Handoff/ThemeStudio-release-arm64.apk
+          (cd Handoff && sha256sum ThemeStudio-release-arm64.apk > SHA256SUMS)
+          find downloaded -name signing-report.txt -exec cp {} Handoff/signing-report.txt \;
+          find downloaded -name size-report.txt -exec cp {} Handoff/size-report.txt \;
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f Handoff/ThemeStudio-release-arm64.apk
+          git add Handoff/SHA256SUMS Handoff/signing-report.txt Handoff/size-report.txt
+          git diff --cached --quiet && exit 0
+          git commit -m 'Deliver verified signed release APK in Handoff'
+          git push origin HEAD:arena/2e1290a9-hwhahhzwnwbzlkx
