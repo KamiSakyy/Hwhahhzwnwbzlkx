@@ -25,3 +25,11 @@ Workflow `Compile original Telegram sources (NO APK, NO emulator)` вызыва�
 policy запрещает упаковку APK/AAB и device/emulator tasks. Workflow не публикует
 APK, только текстовый лог компиляции. Успех JVM/syntax CI не означает успех
 Android-компиляции этого модуля.
+
+Пересоздание Activity: подтверждённые overrides проходят через Bundle и
+ColorSession.committedSnapshot(); незавершённая color-транзакция в saved state
+не попадает. Это пока source-реализация, поведение на устройстве не проверено.
+
+Первый compile-only запуск выявил инъекцию host в `buildSrc`: init-скрипт Gradle
+исполняется также для внутренних builds. Внесена проверка canonical settingsDir,
+так что host включается только в корневой официальный Telegram build.

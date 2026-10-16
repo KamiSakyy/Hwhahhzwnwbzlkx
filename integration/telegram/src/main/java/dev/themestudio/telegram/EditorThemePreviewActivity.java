@@ -25,7 +25,7 @@ public final class EditorThemePreviewActivity extends ThemePreviewActivity {
     private final ArrayList<Runnable> editorCleanup = new ArrayList<>();
     private boolean editorDestroyed;
     private java.util.function.Consumer<MessageElementResolver.Hit> selectionListener;
-    private final ColorSession session = new ColorSession(Collections.emptyMap(), 100);
+    private final ColorSession session;
     private final Theme.ResourcesProvider editorColors = new Theme.ResourcesProvider() {
         @Override
         public int getColor(int key) {
@@ -41,7 +41,12 @@ public final class EditorThemePreviewActivity extends ThemePreviewActivity {
     };
 
     public EditorThemePreviewActivity(Theme.ThemeInfo themeInfo) {
+        this(themeInfo, Collections.emptyMap());
+    }
+
+    public EditorThemePreviewActivity(Theme.ThemeInfo themeInfo, java.util.Map<String, Integer> initialColors) {
         super(themeInfo);
+        session = new ColorSession(initialColors, 100);
         setResourceProvider(editorColors);
         session.setListener(this::refreshOfficialViews);
     }
@@ -53,6 +58,7 @@ public final class EditorThemePreviewActivity extends ThemePreviewActivity {
         touchLayer = new EditorTouchLayer(context, officialView);
         touchLayer.setSelectionListener(selectionListener == null ? null : selectionListener::accept);
         fragmentView = touchLayer;
+        refreshOfficialViews();
         return touchLayer;
     }
 

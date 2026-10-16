@@ -10,9 +10,13 @@ def sourceRoots = [
     new File(editorRoot, 'integration/telegram/src/main/java')
 ]
 sourceRoots.each { if (!it.isDirectory()) throw new GradleException("Missing editor sources: ${it}") }
+def upstreamRoot = new File(editorRoot, 'vendor/telegram').canonicalFile
 gradle.settingsEvaluated { settings ->
-    settings.include(':ThemeStudioHost')
-    settings.project(':ThemeStudioHost').projectDir = new File(editorRoot, 'integration/android-host')
+    // Init scripts also run for buildSrc/included builds. Never inject the app there.
+    if (settings.settingsDir.canonicalFile == upstreamRoot) {
+        settings.include(':ThemeStudioHost')
+        settings.project(':ThemeStudioHost').projectDir = new File(editorRoot, 'integration/android-host')
+    }
 }
 gradle.beforeProject { project ->
     if (project.name == 'TMessagesProj') {
@@ -24,5 +28,7 @@ gradle.beforeProject { project ->
 }
 
 gradle.projectsLoaded {
-    gradle.rootProject.apply from: new File(editorRoot, 'gradle/no-artifact-policy.gradle')
+    if (gradle.rootProject.projectDir.canonicalFile == upstreamRoot) {
+        gradle.rootProject.apply from: new File(editorRoot, 'gradle/no-artifact-policy.gradle')
+    }
 }

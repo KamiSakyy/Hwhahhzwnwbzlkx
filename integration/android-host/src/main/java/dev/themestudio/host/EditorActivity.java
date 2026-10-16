@@ -16,6 +16,7 @@ import org.telegram.ui.ActionBar.Theme;
  * Android compilation, merged manifest and runtime validation are still pending.
  */
 public final class EditorActivity extends Activity {
+    private static final String COLORS = "editor.confirmedColors";
     private TelegramPreviewHost host;
 
     @Override
@@ -29,7 +30,23 @@ public final class EditorActivity extends Activity {
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         setContentView(R.layout.activity_editor);
         FrameLayout container = findViewById(R.id.official_preview_container);
-        host = new TelegramPreviewHost(this, container, Theme.getCurrentTheme());
+        java.util.Map<String, Integer> restored = new java.util.TreeMap<>();
+        Bundle savedColors = state == null ? null : state.getBundle(COLORS);
+        if (savedColors != null) {
+            for (String key : savedColors.keySet()) restored.put(key, savedColors.getInt(key));
+        }
+        host = new TelegramPreviewHost(this, container, Theme.getCurrentTheme(), restored);
+    }
+
+    @Override protected void onSaveInstanceState(Bundle out) {
+        if (host != null && host.isOpen()) {
+            Bundle colors = new Bundle();
+            for (java.util.Map.Entry<String, Integer> entry : host.getPreview().getEditorSession().committedSnapshot().entrySet()) {
+                colors.putInt(entry.getKey(), entry.getValue());
+            }
+            out.putBundle(COLORS, colors);
+        }
+        super.onSaveInstanceState(out);
     }
 
     @Override protected void onResume() {

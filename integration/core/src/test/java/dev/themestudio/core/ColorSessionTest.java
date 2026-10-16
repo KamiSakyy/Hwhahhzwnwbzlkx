@@ -13,11 +13,13 @@ public final class ColorSessionTest {
         check(s.getOverride("chat_inBubble") == null);
         s.begin("chat_inBubble"); s.preview(0x80123456);
         check(s.getOverride("chat_inBubble") == 0x80123456);
+        check(!s.committedSnapshot().containsKey("chat_inBubble"));
         fails(s::undo); fails(() -> s.begin("chat_outBubble"));
         s.cancel(); check(s.getOverride("chat_inBubble") == null); check(!s.undo());
         s.begin("chat_inBubble"); s.preview(1); s.preview(2); s.commit();
         check(s.undo()); check(s.getOverride("chat_inBubble") == null); check(!s.undo());
         check(s.redo()); check(s.getOverride("chat_inBubble") == 2);
+        check(s.committedSnapshot().get("chat_inBubble") == 2);
         s.begin("chat_inBubble"); s.previewDefault(); s.cancel(); check(s.getOverride("chat_inBubble") == 2);
         s.begin("chat_inBubble"); s.previewDefault(); s.commit(); check(s.getOverride("chat_inBubble") == null);
         check(s.undo()); check(s.getOverride("chat_inBubble") == 2);

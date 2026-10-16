@@ -22,6 +22,11 @@ public final class TelegramPreviewHost implements AutoCloseable {
     private boolean closed;
 
     public TelegramPreviewHost(Activity activity, FrameLayout container, Theme.ThemeInfo theme) {
+        this(activity, container, theme, java.util.Collections.emptyMap());
+    }
+
+    public TelegramPreviewHost(Activity activity, FrameLayout container, Theme.ThemeInfo theme,
+            java.util.Map<String, Integer> initialColors) {
         requireMainThread();
         if (ApplicationLoader.applicationContext == null || ApplicationLoader.applicationHandler == null) {
             throw new IllegalStateException("Official Telegram runtime is not initialized; standalone bootstrap is not implemented yet");
@@ -31,7 +36,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
         }
         this.container = container;
         navigation = INavigationLayout.newLayout(activity, false);
-        preview = new EditorThemePreviewActivity(theme);
+        preview = new EditorThemePreviewActivity(theme, initialColors);
         container.addView(navigation.getView(), new FrameLayout.LayoutParams(-1, -1));
         if (!navigation.presentFragment(preview)) {
             container.removeView(navigation.getView());

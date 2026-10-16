@@ -25,6 +25,11 @@ public final class ColorSession {
 
     public void setListener(Runnable listener) { checkThread(); this.listener = Objects.requireNonNull(listener); }
     public Map<String, Integer> snapshot() { checkThread(); return Collections.unmodifiableMap(new TreeMap<>(colors)); }
+    /** Safe for persistence/rotation: excludes any unconfirmed slider preview. */
+    public Map<String, Integer> committedSnapshot() {
+        checkThread();
+        return Collections.unmodifiableMap(new TreeMap<>(before == null ? colors : before));
+    }
     public Integer getOverride(String key) { checkThread(); validateKey(key); return colors.get(key); }
     public boolean isEditing() { checkThread(); return before != null; }
 
