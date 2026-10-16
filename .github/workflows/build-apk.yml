@@ -86,6 +86,12 @@ jobs:
               body: '```\n' + tail + '\n```',
             });
 
+      - name: Strip native libs + repack (single ABI, ≤10 MB)
+        run: |
+          python3 tools/prepare_release_apk.py app/build/outputs/apk/release/app-release.apk \
+            --sdk "${ANDROID_HOME:-$ANDROID_SDK_ROOT}" --build-tools 36.0.0 --ndk 27.2.12479018 \
+            --keystore signing/tsuyu-release.p12 --signing-properties signing/keystore.properties
+
       - name: Collect APK + size report
         run: |
           mkdir -p out
