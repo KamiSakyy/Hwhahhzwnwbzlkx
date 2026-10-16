@@ -1,0 +1,3 @@
+-dontwarn javax.naming.**
+-dontwarn javax.management.**
+-dontwarn java.lang.management.**

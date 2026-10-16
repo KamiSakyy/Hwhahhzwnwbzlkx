@@ -1,0 +1,1 @@
+-keep class dev.forge.runtime.Key { *; }

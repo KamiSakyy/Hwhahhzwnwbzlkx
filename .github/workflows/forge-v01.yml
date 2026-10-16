@@ -1,0 +1,59 @@
+name: Forge 0.1
+on:
+  workflow_dispatch:
+  push:
+    branches: [arena/db114f4b-hwhahhzwnwbzlkx]
+    paths: ['forge-v0.1/**', '.github/workflows/forge-v01.yml']
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Install SDK
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;27.0.12077973'
+      - name: Build runtime
+        working-directory: forge-v0.1
+        run: gradle :runtime:assembleRelease --no-daemon
+      - name: Embed runtime and signing identity
+        working-directory: forge-v0.1
+        run: |
+          mkdir -p app/src/main/assets
+          cp runtime/build/outputs/apk/release/runtime-release.apk app/src/main/assets/runtime.apk
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout signing.pem -out signing.pem.crt -days 10000 -subj '/CN=Application/'
+          openssl pkcs8 -topk8 -nocrypt -in signing.pem -outform DER -out app/src/main/assets/signing.pk8
+          openssl x509 -in signing.pem.crt -outform DER -out app/src/main/assets/signing.der
+          rm signing.pem signing.pem.crt
+      - name: Build builder
+        working-directory: forge-v0.1
+        run: gradle :app:assembleRelease --no-daemon
+      - name: Verify and package
+        run: |
+          APK=forge-v0.1/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          test "$(stat -c%s "$APK")" -le 3000000
+          mkdir -p handoff
+          test ! -e handoff/Forge-0.1.apk
+          test ! -e handoff/Forge-0.1-source.zip
+          cp "$APK" handoff/Forge-0.1.apk
+          git archive --format=zip HEAD forge-v0.1 .github/workflows/forge-v01.yml > handoff/Forge-0.1-source.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Forge-0.1
+          path: handoff/Forge-0.1*
+      - name: Save handoff on session branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f handoff/Forge-0.1.apk handoff/Forge-0.1-source.zip
+          git commit -m 'handoff: Forge 0.1 APK and source archive'
+          git push origin HEAD:arena/db114f4b-hwhahhzwnwbzlkx

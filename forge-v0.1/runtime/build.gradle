@@ -1,0 +1,7 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'dev.forge.runtime'; compileSdk 36
+ defaultConfig { applicationId 'dev.forge.generated'; minSdk 28; targetSdk 36; versionCode 1; versionName '0.1'; ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64' }; externalNativeBuild { cmake { arguments '-DANDROID_STL=none' } } }
+ externalNativeBuild { cmake { path 'src/main/cpp/CMakeLists.txt'; version '3.22.1' } }
+ buildTypes { release { minifyEnabled true; signingConfig signingConfigs.debug; proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'rules.pro' } }
+}
