@@ -127,6 +127,9 @@ jobs:
           unzip -l "$APK" | grep -E 'lib/|classes.dex|resources.arsc' || true
 
           cp "$APK" Tuman.apk
+          SHA=$(sha256sum Tuman.apk | cut -d' ' -f1)
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "SHA-256: $SHA"
           cp app/build/outputs/mapping/release/mapping.txt mapping.txt 2>/dev/null || true
 
       - name: Verify signature
@@ -137,6 +140,40 @@ jobs:
           else
             echo "apksigner not available"
           fi
+
+      - name: Publish build report
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SDK="${ANDROID_HOME:-/usr/lib/android/sdk}"
+          BT=$(ls -d "$SDK"/build-tools/* 2>/dev/null | sort -V | tail -1)
+          {
+            echo "### Build report - run ${GITHUB_RUN_ID}"
+            echo
+            echo "APK: **${{ steps.apk.outputs.size_mb }} MB**, SHA-256 \`${{ steps.apk.outputs.sha256 }}\`"
+            echo
+            echo '```'
+            if [ -n "$BT" ] && [ -x "$BT/aapt2" ]; then
+              "$BT/aapt2" dump badging Tuman.apk 2>/dev/null \
+                | grep -E "^package|^sdkVersion|^targetSdkVersion|^launchable-activity|^uses-permission|^application-label|^native-code" \
+                | head -25
+            else
+              echo "aapt2 not available"
+            fi
+            echo '```'
+            echo
+            echo '```'
+            if [ -n "$BT" ] && [ -x "$BT/apksigner" ]; then
+              "$BT/apksigner" verify --verbose --print-certs Tuman.apk 2>&1 | head -14
+            fi
+            echo '```'
+            echo
+            echo '```'
+            unzip -l Tuman.apk | grep -E "lib/|classes[0-9]*\.dex|resources\.arsc|AndroidManifest|assets/" | head -20
+            echo '```'
+          } > report.md
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" -F body=@report.md >/dev/null
 
       - name: Upload workflow artefact
         uses: actions/upload-artifact@v4
@@ -174,6 +211,7 @@ jobs:
             echo "(TCP -> SOCKS5, DNS-релей, блокировка QUIC и IPv6-утечек)."
             echo ""
             echo "- Размер APK: **${SIZE_MB} MB**"
+            echo "- SHA-256: \`${{ steps.apk.outputs.sha256 }}\`"
             echo "- R8: \`minifyEnabled\` + \`shrinkResources\`, \`mapping.txt\` в артефактах сборки"
             echo "- Подпись: v1 + v2"
             echo "- ABI: arm64-v8a, armeabi-v7a, x86, x86_64 (universal)"

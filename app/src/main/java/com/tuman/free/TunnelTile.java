@@ -44,9 +44,20 @@ public class TunnelTile extends TileService {
         try {
             Intent i = new Intent(this, TunnelVpnService.class);
             i.setAction(action);
-            if (TunnelVpnService.ACTION_START.equals(action)) {
-                i.putExtra(TunnelVpnService.EXTRA_STRATEGY, new Prefs(this).strategy());
+
+            if (TunnelVpnService.ACTION_STOP.equals(action)) {
+                // The tile fires while our process is in the background, and a service
+                // started with startForegroundService() MUST call startForeground()
+                // within a few seconds - the stop path never does, which Android
+                // answers with a RemoteServiceException. stopService() has no such
+                // contract, so tearing the tunnel down is always safe from here.
+                stopService(i);
+                Engine.setStopping();
+                Engine.setStopped();
+                return true;
             }
+
+            i.putExtra(TunnelVpnService.EXTRA_STRATEGY, new Prefs(this).strategy());
             if (Build.VERSION.SDK_INT >= 26) startForegroundService(i);
             else startService(i);
             return true;

@@ -54,6 +54,8 @@ public final class TunnelVpnService extends VpnService implements NetGuard {
     private Thread worker;
     private Thread watchdog;
     private volatile boolean live;
+    /** Set by every stop path so a start that is already in flight cannot resurrect the tunnel. */
+    private volatile boolean stopRequested;
     private volatile int boundPort = -1;
 
     // ------------------------------------------------------------------- service
@@ -65,6 +67,7 @@ public final class TunnelVpnService extends VpnService implements NetGuard {
         String action = intent != null ? intent.getAction() : null;
 
         if (ACTION_STOP.equals(action)) {
+            stopRequested = true;
             Engine.setStopping();
             shutdown();
             stopSelf();
@@ -101,6 +104,7 @@ public final class TunnelVpnService extends VpnService implements NetGuard {
 
     @Override
     public void onDestroy() {
+        stopRequested = true;
         shutdown();
         super.onDestroy();
     }
@@ -108,6 +112,7 @@ public final class TunnelVpnService extends VpnService implements NetGuard {
     @Override
     public void onRevoke() {
         Engine.log("! VPN \u043e\u0442\u043e\u0437\u0432\u0430\u043d \u0441\u0438\u0441\u0442\u0435\u043c\u043e\u0439");
+        stopRequested = true;
         shutdown();
         stopSelf();
         super.onRevoke();
@@ -143,6 +148,7 @@ public final class TunnelVpnService extends VpnService implements NetGuard {
 
     private void startTunnel(String strategyId) {
         try {
+            stopRequested = false;
             shutdownInternal();
 
             Prefs prefs = new Prefs(this);
@@ -180,6 +186,15 @@ public final class TunnelVpnService extends VpnService implements NetGuard {
                 return;
             }
             pfd = fd;
+
+            // A stop may have arrived while we were bringing the tunnel up. Honour it
+            // instead of publishing a RUNNING state that no longer matches reality.
+            if (stopRequested) {
+                Engine.log("! \u0417\u0430\u043f\u0443\u0441\u043a \u043e\u0442\u043c\u0435\u043d\u0451\u043d: \u043f\u043e\u0441\u0442\u0443\u043f\u0438\u043b\u0430 \u043a\u043e\u043c\u0430\u043d\u0434\u0430 \u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438");
+                shutdownInternal();
+                stopSelf();
+                return;
+            }
 
             // 3. Bridge between the interface and the SOCKS endpoint.
             TunBridge b = new TunBridge(fd, port, this, prefs.blockUdp());
@@ -350,6 +365,14 @@ public final class TunnelVpnService extends VpnService implements NetGuard {
     private void shutdown() {
         Engine.setStopping();
         shutdownInternal();
+        // Drop the ongoing notification ourselves: relying on the system to do it
+        // when the service dies leaves a ghost entry on some OEM builds.
+        // The boolean overload is deprecated since API 33 but it is the only one
+        // that exists across our whole supported range (24..35).
+        try {
+            stopForeground(true);
+        } catch (Throwable ignored) {
+        }
         Engine.setStopped();
     }
 
