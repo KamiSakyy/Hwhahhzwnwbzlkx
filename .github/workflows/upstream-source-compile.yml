@@ -3,7 +3,10 @@ on:
   workflow_dispatch:
   push:
     branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
-    paths: ['.github/workflows/upstream-source-compile.yml']
+    paths: ['.github/workflows/upstream-source-compile.yml', 'integration/telegram/editor-sources.init.gradle', 'integration/android-host/**']
+concurrency:
+  group: upstream-source-compile-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
