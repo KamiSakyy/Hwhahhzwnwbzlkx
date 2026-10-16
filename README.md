@@ -20,7 +20,8 @@
 ## 🚀 Сервер на Railway — одна кнопка
 
 Railway → **New Project** → **Deploy from GitHub repo** → этот репозиторий → **Deploy**.
-`Dockerfile` + `railway.json` уже в корне, настроек не нужно.
+В корне лежит `Dockerfile` — Railway (2026) находит и использует его сам,
+без railway.json (Config-as-Code устарел и отключён). Настроек не нужно.
 Потом в Railway открой **Settings → Networking → Generate Domain** — это и есть
 адрес сервера, который вводится в приложении.
 
@@ -39,7 +40,7 @@ Railway → **New Project** → **Deploy from GitHub repo** → этот реп�
   - `Ratchet.java` — Double Ratchet, `Crypto.java` — P-256 ECDH/HKDF/AES-GCM
   - `ChatEngine.java` — X3DH-сессии, отправка/синхронизация, E2EE-медиа
 - `.github/workflows/build-apk.yml` — сборка APK (Java 17, Gradle 8.7, Android SDK)
-- `Dockerfile`, `railway.json` — деплой сервера
+- `Dockerfile` — деплой сервера (Railway подхватывает его автоматически)
 
 ## 🔑 Как работает шифрование (честно)
 

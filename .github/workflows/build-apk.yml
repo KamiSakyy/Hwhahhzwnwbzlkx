@@ -32,7 +32,17 @@ jobs:
           gradle-version: "8.7"
 
       - name: Build release APK (minified, target < 8 MB)
-        run: gradle :app:assembleRelease --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee build-log.txt
+
+      - name: Upload build log (always — for debugging failures)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build-log.txt
+          retention-days: 7
 
       - name: Collect APK + size report
         run: |
