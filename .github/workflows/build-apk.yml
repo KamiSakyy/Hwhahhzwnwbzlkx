@@ -55,9 +55,7 @@ jobs:
             let log = '';
             try { log = fs.readFileSync('build-log.txt', 'utf8'); } catch (e) {}
             const lines = log.split('\n');
-            let start = lines.findIndex(l => l.includes('What went wrong') || l.includes('FAILURE:'));
-            if (start < 0) start = Math.max(0, lines.length - 120);
-            const tail = lines.slice(Math.max(0, start - 5), start + 120).join('\n').slice(-60000);
+            const tail = lines.slice(Math.max(0, lines.length - 250)).join('\n').slice(-60000);
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
