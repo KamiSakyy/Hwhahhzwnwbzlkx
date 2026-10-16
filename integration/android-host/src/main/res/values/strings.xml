@@ -1,0 +1,7 @@
+<resources>
+    <string name="ts_keys">Цвета</string>
+    <string name="ts_undo">Отмена</string>
+    <string name="ts_redo">Повтор</string>
+    <string name="ts_preview">Просмотр</string>
+    <string name="ts_pure_hint">Назад — вернуть инструменты редактора</string>
+</resources>

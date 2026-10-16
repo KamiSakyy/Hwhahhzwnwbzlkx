@@ -10,23 +10,30 @@ import android.widget.TextView;
 
 import dev.themestudio.core.ColorSession;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BottomSheet;
+import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import android.view.View;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeColors;
 import org.telegram.ui.Components.ColorPicker;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.SeekBarView;
 
-/** Official Telegram picker/dialog/slider. Never creates a replacement chat UI. */
+/** Official Telegram picker/sheet/slider. Never creates a replacement chat UI. */
 public final class ColorEditorController implements AutoCloseable {
     private final Context context;
     private final EditorThemePreviewActivity preview;
-    private AlertDialog dialog;
+    private BottomSheet dialog;
 
     public ColorEditorController(Context context, EditorThemePreviewActivity preview) {
         this.context = context;
         this.preview = preview;
         preview.setElementSelectionListener(hit -> open(hit.key));
+    }
+
+    public void setSelectionEnabled(boolean enabled) {
+        preview.setElementSelectionListener(enabled ? hit -> open(hit.key) : null);
+        if (!enabled && dialog != null) dialog.dismiss();
     }
 
     public void open(String keyName) {
@@ -74,7 +81,7 @@ public final class ColorEditorController implements AutoCloseable {
             syncControls.run();
         });
         picker[0].setType(0, false, 1, 1, false, 0, false);
-        content.addView(picker[0], new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(290)));
+        content.addView(picker[0], new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(273)));
         content.addView(alphaLabel, new LinearLayout.LayoutParams(-1, -2));
         content.addView(alpha, new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(44)));
         content.addView(hex, new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(48)));
@@ -109,24 +116,57 @@ public final class ColorEditorController implements AutoCloseable {
         syncControls.run();
         ScrollView scroll = new ScrollView(context);
         scroll.addView(content);
-        AlertDialog current = new AlertDialog.Builder(context)
+        // Keep actions visible while the color controls scroll on short screens/with IME.
+        LinearLayout sheetContent = new LinearLayout(context) {
+            @Override protected void onMeasure(int widthSpec, int heightSpec) {
+                int cap = Math.min(AndroidUtilities.dp(460), Math.round(getResources().getDisplayMetrics().heightPixels * .62f));
+                if (View.MeasureSpec.getMode(heightSpec) != View.MeasureSpec.UNSPECIFIED) {
+                    cap = Math.min(cap, View.MeasureSpec.getSize(heightSpec));
+                }
+                super.onMeasure(widthSpec, View.MeasureSpec.makeMeasureSpec(cap, View.MeasureSpec.EXACTLY));
+            }
+        };
+        sheetContent.setOrientation(LinearLayout.VERTICAL);
+        sheetContent.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        LinearLayout actions = new LinearLayout(context);
+        actions.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(8), AndroidUtilities.dp(12), AndroidUtilities.dp(8));
+        sheetContent.addView(actions, new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(64)));
+        // Same Telegram BottomSheet/ColorPicker widgets, not platform AlertDialog.
+        // No dim: the user must see the actual preview colors behind the editor.
+        BottomSheet current = new BottomSheet.Builder(context, true)
                 .setTitle(keyName)
-                .setView(scroll)
-                .setPositiveButton("Применить", (d, which) -> {
-                    try {
-                        session.preview(ColorSession.parseArgb(hex.getText().toString()));
-                    } catch (IllegalArgumentException e) {
-                        hex.setError("Введите цвет в формате #AARRGGBB");
-                        return;
-                    }
-                    session.commit(); committed[0] = true; d.dismiss();
-                })
-                .setNegativeButton("Отмена", (d, which) -> d.dismiss())
-                .setNeutralButton("Стандартный", (d, which) -> {
-                    session.previewDefault(); session.commit(); committed[0] = true; d.dismiss();
-                })
+                .setCustomView(sheetContent)
+                .setApplyBottomPadding(true)
                 .create();
-        current.setDismissDialogByButtons(false);
+        current.setDimBehind(false);
+        // A drag of the wheel/alpha slider must not dismiss the sheet accidentally.
+        current.setCanDismissWithSwipe(false);
+        ButtonWithCounterView apply = new ButtonWithCounterView(context, null);
+        apply.setText("Применить", false);
+        apply.setOnClickListener(v -> {
+            try {
+                session.preview(ColorSession.parseArgb(hex.getText().toString()));
+            } catch (IllegalArgumentException e) {
+                hex.setError("Введите цвет в формате #AARRGGBB");
+                return;
+            }
+            session.commit(); committed[0] = true; current.dismiss();
+        });
+        ButtonWithCounterView reset = new ButtonWithCounterView(context, false, null);
+        reset.setText("Сброс", false);
+        reset.setContentDescription("Вернуть стандартный цвет Telegram");
+        reset.setOnClickListener(v -> {
+            session.previewDefault(); session.commit(); committed[0] = true; current.dismiss();
+        });
+        ButtonWithCounterView cancel = new ButtonWithCounterView(context, false, null);
+        cancel.setText("Отмена", false);
+        cancel.setOnClickListener(v -> current.dismiss());
+        for (ButtonWithCounterView button : new ButtonWithCounterView[]{cancel, reset, apply}) {
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, AndroidUtilities.dp(48), 1);
+            params.setMarginStart(AndroidUtilities.dp(4));
+            params.setMarginEnd(AndroidUtilities.dp(4));
+            actions.addView(button, params);
+        }
         current.setOnDismissListener(d -> {
             if (!committed[0] && session.isEditing()) session.cancel();
             if (dialog == current) dialog = null;

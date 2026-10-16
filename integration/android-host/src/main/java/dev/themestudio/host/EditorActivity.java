@@ -16,6 +16,7 @@ import org.telegram.ui.ActionBar.Theme;
  * Android compilation, merged manifest and runtime validation are still pending.
  */
 public final class EditorActivity extends Activity {
+    private static final String PURE = "editor.purePreview";
     private static final String COLORS = "editor.confirmedColors";
     private TelegramPreviewHost host;
 
@@ -36,9 +37,36 @@ public final class EditorActivity extends Activity {
             for (String key : savedColors.keySet()) restored.put(key, savedColors.getInt(key));
         }
         host = new TelegramPreviewHost(this, container, Theme.getCurrentTheme(), restored);
+        findViewById(R.id.editor_keys).setOnClickListener(v -> { if (host.isOpen()) host.showThemeKeys(); });
+        findViewById(R.id.editor_undo).setOnClickListener(v -> { if (host.isOpen()) host.undo(); });
+        findViewById(R.id.editor_redo).setOnClickListener(v -> { if (host.isOpen()) host.redo(); });
+        findViewById(R.id.editor_pure).setOnClickListener(v -> {
+            findViewById(R.id.editor_tools).setVisibility(View.GONE);
+            host.setEditingEnabled(false);
+            android.widget.Toast.makeText(this, R.string.ts_pure_hint, android.widget.Toast.LENGTH_LONG).show();
+        });
+        if (state != null && state.getBoolean(PURE)) {
+            findViewById(R.id.editor_tools).setVisibility(View.GONE);
+            host.setEditingEnabled(false);
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::onBackPressed);
+        }
+    }
+
+    @Override public void onBackPressed() {
+        View tools = findViewById(R.id.editor_tools);
+        if (tools != null && tools.getVisibility() == View.GONE) {
+            tools.setVisibility(View.VISIBLE);
+            if (host != null && host.isOpen()) host.setEditingEnabled(true);
+            return;
+        }
+        super.onBackPressed();
     }
 
     @Override protected void onSaveInstanceState(Bundle out) {
+        out.putBoolean(PURE, findViewById(R.id.editor_tools).getVisibility() == View.GONE);
         if (host != null && host.isOpen()) {
             Bundle colors = new Bundle();
             for (java.util.Map.Entry<String, Integer> entry : host.getPreview().getEditorSession().committedSnapshot().entrySet()) {

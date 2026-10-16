@@ -33,3 +33,11 @@ ColorSession.committedSnapshot(); незавершённая color-транза�
 Первый compile-only запуск выявил инъекцию host в `buildSrc`: init-скрипт Gradle
 исполняется также для внутренних builds. Внесена проверка canonical settingsDir,
 так что host включается только в корневой официальный Telegram build.
+
+### Отдельные инструменты, неизменённая шапка preview
+XML activity_editor теперь отделяет контейнер оригинального preview от панели
+команд. Нет маркетинговой шапки/телефонной рамки/масштабирования до 360px.
+Чистый режим скрывает панель и выключает editor touch interception. Back возвращает
+панель, включая Android 13+ OnBackInvoked callback. Каталог/undo/redo вызываются
+из host, оригинальные ActionBar больше не модифицируются EditorMenuController.
+Это проверено по исходникам, но НЕ по скриншотам/устройству.

@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/official_preview_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical">
+    <!-- No cards, scaled phone frames, replacement ActionBars or marketing header. -->
+    <FrameLayout android:id="@+id/official_preview_container"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" />
+    <!-- Editor chrome is outside the original preview; pure mode hides this whole row. -->
+    <LinearLayout android:id="@+id/editor_tools"
+        android:layout_width="match_parent" android:layout_height="48dp"
+        android:orientation="horizontal" android:background="#FFFFFF"
+        android:elevation="2dp">
+        <TextView android:id="@+id/editor_keys" style="@style/ThemeStudioTool"
+            android:text="@string/ts_keys" />
+        <TextView android:id="@+id/editor_undo" style="@style/ThemeStudioTool"
+            android:text="@string/ts_undo" />
+        <TextView android:id="@+id/editor_redo" style="@style/ThemeStudioTool"
+            android:text="@string/ts_redo" />
+        <TextView android:id="@+id/editor_pure" style="@style/ThemeStudioTool"
+            android:text="@string/ts_preview" />
+    </LinearLayout>
+</LinearLayout>

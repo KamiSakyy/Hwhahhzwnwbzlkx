@@ -55,6 +55,10 @@ public final class TelegramPreviewHost implements AutoCloseable {
     public boolean isOpen() { requireMainThread(); return !closed && !preview.isEditorDestroyed(); }
 
     public EditorThemePreviewActivity getPreview() { requireOpen(); return preview; }
+    public void setEditingEnabled(boolean enabled) { requireOpen(); colorEditor.setSelectionEnabled(enabled); }
+    public void showThemeKeys() { requireOpen(); editorMenu.showKeys(); }
+    public void undo() { requireOpen(); editorMenu.changeHistory(true); }
+    public void redo() { requireOpen(); editorMenu.changeHistory(false); }
     public void onResume() { requireOpen(); navigation.onResume(); }
     public void onPause() { requireOpen(); navigation.onPause(); }
     public void onLowMemory() { requireOpen(); navigation.onLowMemory(); }
