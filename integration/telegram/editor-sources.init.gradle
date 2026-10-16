@@ -17,3 +17,7 @@ gradle.beforeProject { project ->
         }
     }
 }
+
+gradle.projectsLoaded {
+    gradle.rootProject.apply from: new File(editorRoot, 'gradle/no-artifact-policy.gradle')
+}

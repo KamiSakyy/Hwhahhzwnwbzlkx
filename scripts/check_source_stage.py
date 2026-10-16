@@ -18,3 +18,9 @@ assert 'View officialView = super.createView(context);' in bridge
 assert 'drawText(' not in bridge and 'drawRoundRect(' not in bridge
 print('Source guards OK: official checkout pinned; APK jobs blocked; adapter delegates rendering to upstream.')
 print('This is NOT a compile, runtime, visual or completion test.')
+
+policy = (root / 'gradle/no-artifact-policy.gradle').read_text()
+assert "application &&" in policy and "name.contains('emulator')" in policy
+assert "gradle/no-artifact-policy.gradle" in (root / 'build.gradle').read_text()
+assert "gradle/no-artifact-policy.gradle" in (root / 'integration/telegram/editor-sources.init.gradle').read_text()
+print('Packaging/device task policy is connected to both build entry points.')

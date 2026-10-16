@@ -18,6 +18,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
     private final INavigationLayout navigation;
     private final EditorThemePreviewActivity preview;
     private final ColorEditorController colorEditor;
+    private final EditorMenuController editorMenu;
     private boolean closed;
 
     public TelegramPreviewHost(Activity activity, FrameLayout container, Theme.ThemeInfo theme) {
@@ -38,6 +39,9 @@ public final class TelegramPreviewHost implements AutoCloseable {
             throw new IllegalStateException("Official preview could not be presented");
         }
         colorEditor = new ColorEditorController(activity, preview);
+        editorMenu = new EditorMenuController(activity, preview, colorEditor);
+        preview.addEditorCleanup(editorMenu::close);
+        preview.addEditorCleanup(colorEditor::close);
     }
 
     public EditorThemePreviewActivity getPreview() { requireOpen(); return preview; }
@@ -49,6 +53,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
     public void close() {
         requireMainThread();
         if (closed) return;
+        editorMenu.close();
         colorEditor.close();
         navigation.onPause();
         navigation.removeAllFragments();
@@ -56,7 +61,7 @@ public final class TelegramPreviewHost implements AutoCloseable {
         closed = true;
     }
 
-    private void requireOpen() { requireMainThread(); if (closed) throw new IllegalStateException("Preview host is closed"); }
+    private void requireOpen() { requireMainThread(); if (closed || preview.isEditorDestroyed()) throw new IllegalStateException("Preview host is closed or its fragment was destroyed"); }
     private static void requireMainThread() {
         if (Looper.myLooper() != Looper.getMainLooper()) throw new IllegalStateException("Telegram UI must run on the main thread");
     }

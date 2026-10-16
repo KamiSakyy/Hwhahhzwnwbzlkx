@@ -74,3 +74,21 @@ Apply подтверждает транзакцию, Back/внешний dismiss
 upstream build environment и `THEME_STUDIO_ROOT`. Сейчас НЕ запускался;
 Android-компиляция, standalone entry point и проверка native/runtime впереди.
 Скрипт не разрешает сборку APK и не входит в CI-проверку JVM-ядра.
+
+### Продолжение: каталог ключей и меню редактора
+Добавлены `ThemeKeyBrowser` и `EditorMenuController`. Каталог получает все
+имена непосредственно из runtime `ThemeColors`, исключая служебный
+`wallpaperFileOffset`, фильтрует по подстроке и показывает штатные TextColorCell
+в RecyclerListView. Меню добавляется в настоящие ActionBar обеих страниц preview;
+оригинальные обработчики Back и остальных пунктов сохраняются и восстанавливаются
+при закрытии. Подключены undo/redo. UI на устройстве пока не проверен.
+
+Resolver также использует caption layout и ссылки в подписи медиа. На время
+`animateBackgroundBoundsInner` выбор отключён: вместо угадывания координат
+дожидаемся стабильного layout. Сложные quote/code и время/reply не объявляются
+поддержанными. На destroy восстанавливаются цвета общих ThemeDescription paints.
+
+Дополнительно `gradle/no-artifact-policy.gradle` блокирует application packaging,
+APK/AAB, install и device/emulator tasks. Применяется корневым проектом и
+init-скриптом интеграции. Это дополнительный запрет к выключенным APK workflows,
+а не разрешение на Android-сборку. Эмулятор НЕ используется.

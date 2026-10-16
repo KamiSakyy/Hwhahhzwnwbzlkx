@@ -22,6 +22,8 @@ import java.util.ArrayList;
  */
 public final class EditorThemePreviewActivity extends ThemePreviewActivity {
     private EditorTouchLayer touchLayer;
+    private final ArrayList<Runnable> editorCleanup = new ArrayList<>();
+    private boolean editorDestroyed;
     private java.util.function.Consumer<MessageElementResolver.Hit> selectionListener;
     private final ColorSession session = new ColorSession(Collections.emptyMap(), 100);
     private final Theme.ResourcesProvider editorColors = new Theme.ResourcesProvider() {
@@ -67,7 +69,15 @@ public final class EditorThemePreviewActivity extends ThemePreviewActivity {
         }
     }
 
+    public void addEditorCleanup(Runnable cleanup) {
+        if (editorDestroyed) throw new IllegalStateException("Editor preview has been destroyed");
+        editorCleanup.add(java.util.Objects.requireNonNull(cleanup));
+    }
+
+    public boolean isEditorDestroyed() { return editorDestroyed; }
+
     public ColorSession getEditorSession() {
+        if (editorDestroyed) throw new IllegalStateException("Editor preview has been destroyed");
         return session;
     }
 
@@ -80,8 +90,24 @@ public final class EditorThemePreviewActivity extends ThemePreviewActivity {
 
     @Override
     public void onFragmentDestroy() {
+        editorDestroyed = true;
+        for (Runnable cleanup : new ArrayList<>(editorCleanup)) {
+            try {
+                cleanup.run();
+            } catch (RuntimeException e) {
+                org.telegram.messenger.FileLog.e(e);
+            }
+        }
+        editorCleanup.clear();
         if (session.isEditing()) {
             session.cancel();
+        }
+        // ThemeDescription updates some shared Paint/Drawable objects even when save=false.
+        // Restore their installed-theme colors before this preview leaves the runtime.
+        if (fragmentView != null) {
+            for (ThemeDescription description : getThemeDescriptionsInternal()) {
+                description.setColor(Theme.getColor(description.getCurrentKey()), false, false);
+            }
         }
         session.setListener(() -> {});
         setElementSelectionListener(null);

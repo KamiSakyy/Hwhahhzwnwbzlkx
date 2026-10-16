@@ -31,3 +31,8 @@ checkout содержит Java, Android resources, Gradle и buildSrc; native/м
 редактирование нажатием; RGBA/HEX; обои; серьёзный удобный интерфейс Java/XML;
 arm64 release <=10 МБ, только GitHub Actions, без Secrets. Размер и полная
 точность остаются непроверенными для нового движка. Лицензия GPL-2.0.
+
+## Актуальный ход переработки
+[Подробный статус: реализованные исходники и оставшиеся работы](docs/CURRENT_STATUS.md).
+Новые инструменты используют штатные ActionBar, ColorPicker, RecyclerListView и
+TextColorCell. Введён запрет packaging/device-задач Gradle; эмуляторы запрещены.

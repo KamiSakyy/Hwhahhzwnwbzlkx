@@ -1,1 +1,4 @@
 plugins { id 'com.android.application' version '8.9.2' apply false }
+
+// Source work only. Packaging and device/emulator execution are prohibited.
+apply from: 'gradle/no-artifact-policy.gradle'

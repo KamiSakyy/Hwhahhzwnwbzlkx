@@ -1,0 +1,19 @@
+// User policy: no APK/AAB production and no emulator/device execution until
+// explicit approval after the editor is complete. There is no -P bypass.
+gradle.taskGraph.whenReady { graph ->
+    def forbidden = graph.allTasks.findAll { task ->
+        def name = task.name.toLowerCase(java.util.Locale.ROOT)
+        def application = task.project.plugins.hasPlugin('com.android.application')
+        def packagesApplication = application && (
+            name.startsWith('assemble') || name.startsWith('bundle') ||
+            name.startsWith('package') || name.startsWith('install') ||
+            name.contains('apk') || name.contains('aab')
+        )
+        def launchesDevice = name.startsWith('connected') || name.contains('emulator') ||
+            name.contains('manageddevice') || name.endsWith('androidtest')
+        packagesApplication || launchesDevice
+    }
+    if (!forbidden.isEmpty()) {
+        throw new GradleException('BLOCKED by user policy: APK/AAB production and device/emulator tasks are forbidden. Tasks: ' + forbidden*.path.join(', '))
+    }
+}
