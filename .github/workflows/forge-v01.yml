@@ -8,14 +8,13 @@ permissions:
   contents: write
 jobs:
   assemble:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
@@ -23,7 +22,7 @@ jobs:
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;27.0.12077973'
       - name: Build runtime
         working-directory: forge-v0.1
-        run: gradle :runtime:assembleRelease --no-daemon
+        run: gradle :runtime:assembleRelease --no-daemon > build.log 2>&1 || { tail -80 build.log | sed 's/^/::error::/'; exit 1; }
       - name: Embed runtime and signing identity
         working-directory: forge-v0.1
         run: |
@@ -35,7 +34,7 @@ jobs:
           rm signing.pem signing.pem.crt
       - name: Build builder
         working-directory: forge-v0.1
-        run: gradle :app:assembleRelease --no-daemon
+        run: gradle :app:assembleRelease --no-daemon > build.log 2>&1 || { tail -80 build.log | sed 's/^/::error::/'; exit 1; }
       - name: Verify and package
         run: |
           APK=forge-v0.1/app/build/outputs/apk/release/app-release.apk
