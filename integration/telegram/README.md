@@ -38,3 +38,26 @@
    под этот лимит без измерений. Нельзя урезать точность без согласования.
 
 **Сборка APK запрещена пользователем до завершения.** Тестовую APK не создавать.
+
+## Продолжение: host, транзакции и выбор областей
+Добавлены исходники (пока без Android-компиляции/проверки на устройстве):
+- `TelegramPreviewHost`: официальный INavigationLayout, проверка main thread,
+  attach, resume/pause/low-memory, освобождение фрагментов. Только для уже
+  инициализированного Telegram runtime. Это НЕ standalone/offline bootstrap.
+- `EditorTouchLayer`: контейнер без собственной отрисовки. Координаты переводятся
+  в дочерние View с учётом matrix/scroll; короткий tap отменяет исходный click,
+  движение передаётся оригинальному RecyclerView. Без listener работает обычный
+  preview. Визуальный порядок overlay/elevation и TalkBack пока не проверены.
+- `MessageElementResolver`: реальные StaticLayout/line bounds/RTL/block offsets
+  для обычного текста и ClickableSpan, реальные bounds drawable для пузыря.
+  Время, reply, quote/code, caption/media, selection, реакции пока НЕ покрыты.
+  Для остальных областей внутри пузыря возможен выбор его фона; это не выбор
+  каждого элемента и не полное выполнение требований.
+- `ColorSession` в `integration/core`: транзакции, снимки, отмена, undo/redo,
+  ограничение истории, проверка thread, строгий #AARRGGBB. Адаптер использует
+  сессию и штатные ThemeDescription без сохранения в глобальную тему.
+- ResourcesProvider теперь возвращает штатные drawable вместо `null`.
+
+Source-only CI компилирует/тестирует JVM-ядро и проверяет запрет APK. Он НЕ
+компилирует Telegram-интеграцию, НЕ подтверждает offline-режим и НЕ заменяет
+скриншотные/UI-тесты. Новый host пока не подключён к старому `app/`.

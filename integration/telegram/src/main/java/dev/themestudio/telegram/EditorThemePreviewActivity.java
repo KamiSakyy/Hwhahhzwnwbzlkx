@@ -1,7 +1,9 @@
 package dev.themestudio.telegram;
 
 import android.content.Context;
-import android.util.SparseIntArray;
+import android.graphics.drawable.Drawable;
+import dev.themestudio.core.ColorSession;
+import java.util.Collections;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -19,24 +21,37 @@ import java.util.ArrayList;
  * No replacement drawing, no stub ChatMessageCell, no APK acceptance implied.
  */
 public final class EditorThemePreviewActivity extends ThemePreviewActivity {
-    private final SparseIntArray overrides = new SparseIntArray();
+    private EditorTouchLayer touchLayer;
+    private java.util.function.Consumer<MessageElementResolver.Hit> selectionListener;
+    private final ColorSession session = new ColorSession(Collections.emptyMap(), 100);
     private final Theme.ResourcesProvider editorColors = new Theme.ResourcesProvider() {
         @Override
         public int getColor(int key) {
-            int index = overrides.indexOfKey(key);
-            return index >= 0 ? overrides.valueAt(index) : Theme.getColor(key);
+            String name = ThemeColors.getStringName(key);
+            Integer color = name == null ? null : session.getOverride(name);
+            return color != null ? color : Theme.getColor(key);
+        }
+
+        @Override
+        public Drawable getDrawable(String key) {
+            return Theme.getThemeDrawable(key);
         }
     };
 
     public EditorThemePreviewActivity(Theme.ThemeInfo themeInfo) {
         super(themeInfo);
         setResourceProvider(editorColors);
+        session.setListener(this::refreshOfficialViews);
     }
 
     @Override
     public View createView(Context context) {
         // Official ActionBar, RecyclerListView, DialogCell and ChatMessageCell.
-        return super.createView(context);
+        View officialView = super.createView(context);
+        touchLayer = new EditorTouchLayer(context, officialView);
+        touchLayer.setSelectionListener(selectionListener == null ? null : selectionListener::accept);
+        fragmentView = touchLayer;
+        return touchLayer;
     }
 
     @Override
@@ -45,22 +60,33 @@ public final class EditorThemePreviewActivity extends ThemePreviewActivity {
         return getThemeDescriptionsInternal();
     }
 
-    public void setEditorColor(String keyName, int argb) {
-        int key = ThemeColors.stringKeyToInt(keyName);
-        if (key < 0) {
-            throw new IllegalArgumentException("Unknown Telegram theme key: " + keyName);
+    public void setElementSelectionListener(java.util.function.Consumer<MessageElementResolver.Hit> listener) {
+        selectionListener = listener;
+        if (touchLayer != null) {
+            touchLayer.setSelectionListener(listener == null ? null : listener::accept);
         }
-        overrides.put(key, argb);
-        refreshOfficialViews();
     }
 
-    public void resetEditorColor(String keyName) {
-        int key = ThemeColors.stringKeyToInt(keyName);
-        if (key < 0) {
+    public ColorSession getEditorSession() {
+        return session;
+    }
+
+    public void beginColorEdit(String keyName) {
+        if (ThemeColors.stringKeyToInt(keyName) < 0) {
             throw new IllegalArgumentException("Unknown Telegram theme key: " + keyName);
         }
-        overrides.delete(key);
-        refreshOfficialViews();
+        session.begin(keyName);
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        if (session.isEditing()) {
+            session.cancel();
+        }
+        session.setListener(() -> {});
+        setElementSelectionListener(null);
+        touchLayer = null;
+        super.onFragmentDestroy();
     }
 
     private void refreshOfficialViews() {

@@ -14,7 +14,7 @@ for source in ['ThemePreviewActivity.java', 'Cells/ChatMessageCell.java', 'Cells
     assert path.is_file(), path
 bridge = (root / 'integration/telegram/src/main/java/dev/themestudio/telegram/EditorThemePreviewActivity.java').read_text()
 assert 'extends ThemePreviewActivity' in bridge
-assert 'return super.createView(context);' in bridge
+assert 'View officialView = super.createView(context);' in bridge
 assert 'drawText(' not in bridge and 'drawRoundRect(' not in bridge
 print('Source guards OK: official checkout pinned; APK jobs blocked; adapter delegates rendering to upstream.')
 print('This is NOT a compile, runtime, visual or completion test.')

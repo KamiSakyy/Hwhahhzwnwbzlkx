@@ -1,0 +1,35 @@
+name: Source checks (NO APK)
+on:
+  push:
+    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
+    paths: ['integration/**', 'scripts/**', '.github/workflows/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  java-core:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compile and test editor transactions (not Android, no Gradle, no APK)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/theme-core-classes
+          javac -Xlint:all -Werror -d /tmp/theme-core-classes integration/core/src/main/java/dev/themestudio/core/ColorSession.java integration/core/src/test/java/dev/themestudio/core/ColorSessionTest.java
+          java -cp /tmp/theme-core-classes dev.themestudio.core.ColorSessionTest | tee /tmp/core-test-report.txt
+          echo "::notice::$(cat /tmp/core-test-report.txt)"
+      - name: Ensure APK workflows remain blocked
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for name in ['android-release.yml', 'handoff.yml']:
+              s=(Path('.github/workflows')/name).read_text()
+              assert '\n  push:' not in s
+              assert 'if: ${{ false }}' in s
+          print('APK workflows blocked. No Android compilation or packaging performed.')
+          PY
