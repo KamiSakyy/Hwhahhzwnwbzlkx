@@ -53,19 +53,24 @@ jobs:
       - name: Generate release signing key
         run: |
           KEYSTORE="$RUNNER_TEMP/tuman-release.jks"
+          # PKCS12 (the keytool default since JDK 9) protects the private key with
+          # the *store* password, so store and key passwords must be identical -
+          # otherwise AGP fails with "Get Key failed: Given final block not properly padded".
           keytool -genkeypair -v \
             -keystore "$KEYSTORE" \
+            -storetype PKCS12 \
             -alias tuman \
             -keyalg RSA -keysize 2048 \
             -validity 10950 \
-            -storepass tum4nstore \
-            -keypass tum4nkey \
+            -storepass tum4npass \
+            -keypass tum4npass \
             -dname "CN=Tuman, OU=Mobile, O=Tuman, L=Amsterdam, ST=NH, C=NL"
+          keytool -list -v -keystore "$KEYSTORE" -storepass tum4npass | head -8
           {
             echo "TUMAN_KEYSTORE=$KEYSTORE"
-            echo "TUMAN_STORE_PASSWORD=tum4nstore"
+            echo "TUMAN_STORE_PASSWORD=tum4npass"
             echo "TUMAN_KEY_ALIAS=tuman"
-            echo "TUMAN_KEY_PASSWORD=tum4nkey"
+            echo "TUMAN_KEY_PASSWORD=tum4npass"
           } >> "$GITHUB_ENV"
 
       - name: Build release APK
