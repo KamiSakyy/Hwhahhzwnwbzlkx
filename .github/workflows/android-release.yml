@@ -22,7 +22,8 @@ jobs:
       - name: Install SDK
         run: |
           set -o pipefail
-          sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018' 2>&1 | tee sdk.log || { tail -25 sdk.log | while IFS= read -r line; do echo "::error::$line"; done; exit 1; }
+          SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018' 2>&1 | tee sdk.log || { tail -25 sdk.log | while IFS= read -r line; do echo "::error::$line"; done; exit 1; }
       - name: Package arm64-only ABI marker
         run: |
           mkdir -p app/src/main/jniLibs/arm64-v8a
