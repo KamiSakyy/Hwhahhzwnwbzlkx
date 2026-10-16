@@ -1,14 +1,13 @@
 name: Deliver APK to Handoff
 on:
   workflow_dispatch:
-  push:
-    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
-    paths: ['.github/workflows/handoff.yml']
 permissions:
   contents: write
   actions: read
 jobs:
   handoff:
+    # APK production is forbidden until explicit acceptance of the completed editor.
+    if: ${{ false }}
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5

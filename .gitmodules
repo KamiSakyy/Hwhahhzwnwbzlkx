@@ -1,0 +1,3 @@
+[submodule "vendor/telegram"]
+	path = vendor/telegram
+	url = https://github.com/DrKLO/Telegram.git

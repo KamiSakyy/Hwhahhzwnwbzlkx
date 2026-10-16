@@ -1,13 +1,12 @@
 name: Android release
 on:
   workflow_dispatch:
-  push:
-    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
-    paths: ['app/**', '*.gradle', 'gradle.properties', 'settings.gradle', 'signing/**', '.github/workflows/android-release.yml']
 permissions:
   contents: read
 jobs:
   release:
+    # APK production is forbidden until explicit acceptance of the completed editor.
+    if: ${{ false }}
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
