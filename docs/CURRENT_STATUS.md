@@ -58,3 +58,11 @@ Sparse checkout снят. Развёрнуты все 19 вложенных по
 Экспериментальный Android-host теперь включается в upstream settings init-скриптом.
 Отдельный compile-only workflow проверяет настоящий Java build graph и merged
 manifest; никакого эмулятора, assemble, bundle, install или публикации APK.
+
+## Остановка upstream-компиляции по требованию пользователя
+Запуск 38947107483 отменён через workflow concurrency; результат GitHub содержит
+`The operation was canceled`. APK-сборка в этом запуске не запрашивалась.
+Upstream compile job теперь безусловно заблокирован и не запускается по push.
+Автозапуск source-checks также убран. Полный клон Telegram сохранён, но сборка
+полного мессенджера не является конечным продуктом: нужен самостоятельный
+редактор тем. Экспериментальный Android host не считать принятой архитектурой.

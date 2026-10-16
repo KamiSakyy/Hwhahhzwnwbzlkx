@@ -1,9 +1,5 @@
 name: Source checks (NO APK)
 on:
-  push:
-    branches: ['arena/2e1290a9-hwhahhzwnwbzlkx']
-    paths: ['integration/**', 'scripts/**', 'tools/**', '.github/workflows/**']
-  workflow_dispatch:
 permissions:
   contents: read
 jobs:
