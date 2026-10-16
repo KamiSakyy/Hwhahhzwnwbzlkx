@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#E5DDD5">
+
+    <!-- Action Bar -->
+    <LinearLayout
+        android:id="@+id/actionBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/actionBarTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Telegram"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/actionBarSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="online"
+            android:textSize="12sp"
+            android:textColor="#229AF0" />
+    </LinearLayout>
+
+    <!-- Chat area -->
+    <ScrollView
+        android:id="@+id/chatScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#E5DDD5">
+
+        <LinearLayout
+            android:id="@+id/chatContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- Incoming bubble -->
+            <LinearLayout
+                android:id="@+id/bubbleIn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:padding="10dp"
+                android:layout_marginBottom="8dp"
+                android:maxWidth="260dp">
+
+                <TextView
+                    android:id="@+id/bubbleInName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="John"
+                    android:textColor="#FF5722"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/bubbleInText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hey! How are you?"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/bubbleInTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="12:34"
+                    android:textColor="#8E8E93"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Outgoing bubble -->
+            <LinearLayout
+                android:id="@+id/bubbleOut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#DCF8C6"
+                android:padding="10dp"
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="end"
+                android:maxWidth="260dp">
+
+                <TextView
+                    android:id="@+id/bubbleOutText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="I'm great, thanks!"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/bubbleOutTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="12:35 ✓✓"
+                    android:textColor="#8E8E93"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Unread divider -->
+            <TextView
+                android:id="@+id/unreadDivider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Unread messages"
+                android:gravity="center"
+                android:padding="4dp"
+                android:background="#E1F0FB"
+                android:textColor="#229AF0"
+                android:textSize="12sp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Input bar -->
+    <LinearLayout
+        android:id="@+id/inputBar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="#FFFFFF">
+
+        <TextView
+            android:id="@+id/inputField"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="#F2F2F2"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:text="Message"
+            android:textColor="#8E8E93"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/sendButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="➤"
+            android:textColor="#229AF0"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <!-- Toolbar buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#F5F5F5"
+        android:padding="4dp">
+
+        <Button
+            android:id="@+id/btnWallpaper"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Wallpaper" />
+
+        <Button
+            android:id="@+id/btnExport"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Export .attheme" />
+
+        <Button
+            android:id="@+id/btnReset"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Reset" />
+    </LinearLayout>
+
+</LinearLayout>
