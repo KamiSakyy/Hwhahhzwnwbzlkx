@@ -181,6 +181,28 @@ def now_ms() -> int:
 
 app = FastAPI(title="Tsuyu self-hosted")
 
+# --- tiny in-memory rate limiter for auth endpoints (per IP, 30 req/min) ---
+_AUTH_HITS: dict[str, list[float]] = {}
+
+
+@app.middleware("http")
+async def rate_limit_auth(request: Request, call_next):
+    if request.url.path in ("/api/auth/login", "/api/auth/register"):
+        ip = request.client.host if request.client else "?"
+        now = time.time()
+        hits = [h for h in _AUTH_HITS.get(ip, []) if now - h < 60]
+        if len(hits) >= 30:
+            from fastapi.responses import JSONResponse
+            return JSONResponse({"detail": "too many attempts, wait a minute"}, status_code=429)
+        hits.append(now)
+        _AUTH_HITS[ip] = hits
+    return await call_next(request)
+
+
+@app.get("/api/me")
+def me(authorization: str | None = Header(None)):
+    return {"user": pub_user(auth(authorization))}
+
 # online websocket peers: uid -> set[WebSocket]
 WS_PEERS: dict[str, set] = {}
 
