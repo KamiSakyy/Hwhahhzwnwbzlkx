@@ -4,5 +4,8 @@ __pycache__
 *.pyc
 .pytest_cache
 .env
+messenger.db
+messenger.db-wal
+messenger.db-shm
 README.md
-test_doom.py
+test_messenger.py

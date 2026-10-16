@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Telegram DOOM — the whole game lives in ONE bot message.
+✉️ Мессенджер «АРИ» — полноценный мессенджер в ОДНОМ сообщении Telegram.
 
-Flow:
-  /start (or "старт") -> bot sends one game message and starts a render loop
-  that edits ONLY that message (target GAME_FPS edits/sec, adaptive under
-  Telegram flood-control) while enemies keep moving in real time.
-  The player types text commands (вперёд / влево / огонь / ...) — every
-  command message is deleted right away, so the chat stays clean.
+ФИШКА: бот отправляет пользователю ровно ОДНО сообщение-экран и дальше
+только редактирует его. Новых сообщений бот не создаёт никогда.
+Входящие от собеседника сами перерисовывают твой экран.
 
-Railway: просто Deploy — токен вшит в TOKEN в начале этого файла,
-настроек не требуется (Dockerfile + railway.json уже лежат в корне).
+Управление — обычным текстом (каждое твоё сообщение сразу удаляется):
+  регистрация -> почта -> пароль -> @юзернейм -> войти -> сообщения
+  поиск -> @юзернейм -> диалог -> просто пишешь текст = отправить
+
+Railway: просто Deploy. Токен вшит ниже, настроек нет.
 """
 from __future__ import annotations
 
@@ -18,333 +18,362 @@ import asyncio
 import logging
 import os
 import threading
-from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.error import BadRequest, Forbidden, RetryAfter, TelegramError
-from telegram.ext import (
-    Application,
-    CallbackQueryHandler,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
+from telegram import Update
+from telegram.error import BadRequest, Forbidden, TelegramError
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-from doom_engine import Game
+import messenger as ms
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s", level=logging.INFO
-)
-log = logging.getLogger("tg-doom")
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s", level=logging.INFO)
+log = logging.getLogger("ari-messenger")
 
 # ==========================================================================
 # ТОКЕН БОТА ВШИТ ПРЯМО СЮДА — никаких настроек на Railway не нужно.
-# Просто нажми Deploy.
 TOKEN = "8993027001" + ":" + "AAHWm1kEZJHFq8E2tc6acFHP" + "dsbtdYY0x74"
 # ==========================================================================
 BOT_TOKEN = TOKEN.strip()
-GAME_FPS = 5.0        # скорость обновления одного сообщения (кадров/сек)
-DELETE_COMMANDS = True  # команды игрока удаляются сразу — чат чистый
 
-HELP = (
-    "👹 <b>DOOM в одном сообщении Telegram</b>\n\n"
-    "Пиши команды обычным текстом — они <b>автоматически удаляются</b>, "
-    "а игра живёт и обновляется в одном сообщении выше.\n\n"
-    "⌨️ <b>Команды:</b>\n"
-    "<code>вперёд</code> / <code>назад</code> — движение\n"
-    "<code>влево</code> / <code>вправо</code> — поворот\n"
-    "<code>шаг влево</code> / <code>шаг вправо</code> — стрейф\n"
-    "<code>разворот</code> — на 180°\n"
-    "<code>огонь</code> — стрелять 🔥\n"
-    "<code>открыть</code> — дверь / замок\n"
-    "<code>оружие</code> — пистолет ⇄ дробовик\n"
-    "<code>карта</code> — миникарта, <code>пауза</code>, <code>выход</code>\n\n"
-    "🎯 Убей всех, бери ⚿ ключ, ищи портал <b>X</b>. 3 уровня!\n"
-    "Старт: /start"
-)
-
-# ---------------------------------------------------------------------------
-# Command vocabulary: every alias -> engine action
-# ---------------------------------------------------------------------------
-ALIASES: dict[str, str] = {}
+BACK_WORDS = {"назад", "back", "меню", "чаты"}
 
 
-def _reg(action: str, *words: str):
-    for w in words:
-        ALIASES[w] = action
-
-
-_reg("forward", "вперёд", "вперед", "w", "ц", "⬆️", "⬆", "forward", "up")
-_reg("back", "назад", "s", "ы", "⬇️", "⬇", "back", "down")
-_reg("turn_left", "влево", "поворот влево", "a", "ф", "⬅️", "left", "повернуть влево")
-_reg("turn_right", "вправо", "поворот вправо", "d", "в", "➡️", "right", "повернуть вправо")
-_reg("strafe_left", "шаг влево", "стрейф влево", "влево шаг", "q", "й")
-_reg("strafe_right", "шаг вправо", "стрейф вправо", "вправо шаг", "e", "у")
-_reg("turn_180", "разворот", "назад разворот", "развернуться")
-_reg("fire", "огонь", "стрелять", "выстрел", "бабах", "f", "а", "🔥", "fire", "shoot", " ")
-_reg("use", "открыть", "использовать", "дверь", "открывай", "e", "use", "open")
-_reg("weapon", "оружие", "сменить оружие", "дробовик", "пистолет", "weapon", "r", "к")
-_reg("map", "карта", "миникарта", "map", "m", "ь")
-_reg("pause", "пауза", "pause", "p", "з")
-_reg("start", "старт", "игра", "играть", "doom", "дум", "начать", "start", "play", "заново")
-_reg("exit", "выход", "стоп", "выйти", "конец", "exit", "stop", "quit")
-_reg("help", "помощь", "помоги", "help", "команды", "?")
-
-
-def normalize(text: str) -> str:
-    return " ".join(text.strip().lower().replace("ё", "е").split()).strip("!.,")
+def norm(text: str) -> str:
+    return " ".join(text.strip().lower().replace("ё", "е").split())
 
 
 # ---------------------------------------------------------------------------
-# One game session per (chat, user)
+# The ONE screen: send once, then only edit. Never send new messages.
 # ---------------------------------------------------------------------------
-@dataclass
-class Session:
-    game: Game
-    chat_id: int
-    user_id: int
-    message_id: int = 0
-    task: asyncio.Task | None = None
-    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
-    last_text: str = ""
-    flood_until: float = 0.0
-    eff_fps: float = GAME_FPS
-    running: bool = True
-
-
-SESSIONS: dict[tuple[int, int], Session] = {}
-
-
-def keyboard() -> InlineKeyboardMarkup:
-    """Buttons live on the SAME single game message (text commands also work)."""
-    b = InlineKeyboardButton
-    return InlineKeyboardMarkup([
-        [b("↩️ влево", callback_data="turn_left"), b("⬆️ вперёд", callback_data="forward"),
-         b("↪️ вправо", callback_data="turn_right")],
-        [b("◀️ шаг", callback_data="strafe_left"), b("⬇️ назад", callback_data="back"),
-         b("шаг ▶️", callback_data="strafe_right")],
-        [b("🔥 ОГОНЬ", callback_data="fire"), b("🚪 открыть", callback_data="use"),
-         b("🔄 180°", callback_data="turn_180")],
-        [b("🔫 оружие", callback_data="weapon"), b("🗺 карта", callback_data="map"),
-         b("⏸ пауза", callback_data="pause")],
-        [b("⏹ выход", callback_data="exit")],
-    ])
+async def show(bot, tg_id: int, html_text: str):
+    """Render `html_text` into the user's single screen message."""
+    mid = ms.get_screen(tg_id)
+    if mid is not None:
+        try:
+            await bot.edit_message_text(
+                chat_id=tg_id, message_id=mid, text=html_text, parse_mode="HTML"
+            )
+            return
+        except BadRequest as e:
+            s = str(e).lower()
+            if "message is not modified" in s:
+                return
+            if "message to edit not found" not in s and "message_id_invalid" not in s:
+                log.warning("edit failed tg=%s: %s", tg_id, e)
+                return
+            ms.drop_screen(tg_id)  # user deleted the screen; recreate once below
+        except (Forbidden, TelegramError) as e:
+            log.warning("edit failed tg=%s: %s", tg_id, e)
+            return
+    # First contact ever (or the screen was deleted): create THE one message.
+    try:
+        msg = await bot.send_message(chat_id=tg_id, text=html_text, parse_mode="HTML")
+        ms.set_screen(tg_id, msg.message_id)
+    except TelegramError as e:
+        log.warning("send screen failed tg=%s: %s", tg_id, e)
 
 
 async def delete_quietly(bot, chat_id: int, message_id: int):
-    if not DELETE_COMMANDS:
-        return
+    """Every user message is deleted instantly — chat keeps only the screen."""
     try:
         await bot.delete_message(chat_id=chat_id, message_id=message_id)
-    except (BadRequest, Forbidden, TelegramError) as e:
-        # In groups the bot needs admin "delete messages" rights; in private
-        # chats deletion of incoming messages is allowed. Never crash on it.
-        log.debug("delete_message failed: %s", e)
-
-
-async def render_loop(app: Application, s: Session):
-    """Edit the single game message forever (frame-drop, 429-aware)."""
-    loop = asyncio.get_running_loop()
-    last_tick = loop.time()
-    try:
-        while s.running and not s.game.over:
-            await asyncio.sleep(1.0 / max(s.eff_fps, 0.5))
-            now = loop.time()
-            dt = min(now - last_tick, 0.25)
-            last_tick = now
-            s.game.tick(dt)
-            if now < s.flood_until:
-                continue  # flood-controlled: drop frames, don't queue edits
-            text = s.game.render_html(fps=s.eff_fps)
-            if len(text) > 4096:  # Telegram hard limit — should never happen
-                text = text[:4090] + "</pre>"
-            if text == s.last_text:
-                continue
-            try:
-                await app.bot.edit_message_text(
-                    chat_id=s.chat_id, message_id=s.message_id, text=text,
-                    parse_mode="HTML", reply_markup=keyboard(),
-                )
-                s.last_text = text
-                # slowly recover speed after a backoff
-                s.eff_fps = min(GAME_FPS, s.eff_fps * 1.05 + 0.05)
-            except RetryAfter as e:
-                wait = float(getattr(e, "retry_after", 1.0)) + 0.1
-                s.flood_until = loop.time() + wait
-                s.eff_fps = max(1.0, s.eff_fps / 2)
-                log.warning("429 flood: backing off %.1fs, fps->%.1f", wait, s.eff_fps)
-            except BadRequest as e:
-                if "message is not modified" in str(e).lower():
-                    s.last_text = text
-                elif "message to edit not found" in str(e).lower():
-                    log.info("game message gone, stopping session %s", s.chat_id)
-                    break
-                else:
-                    log.warning("edit BadRequest: %s", e)
-            except TelegramError as e:
-                log.warning("edit failed: %s", e)
-                await asyncio.sleep(1.0)
-    except asyncio.CancelledError:
-        pass
-    finally:
-        s.running = False
-        # final frame (death / victory screen)
-        if s.message_id:
-            try:
-                await app.bot.edit_message_text(
-                    chat_id=s.chat_id, message_id=s.message_id,
-                    text=s.game.render_html(fps=s.eff_fps), parse_mode="HTML",
-                    reply_markup=None if s.game.over else keyboard(),
-                )
-            except TelegramError:
-                pass
-
-
-async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Session:
-    chat_id = update.effective_chat.id
-    user_id = update.effective_user.id
-    key = (chat_id, user_id)
-    old = SESSIONS.pop(key, None)
-    if old:  # replace previous game message
-        old.running = False
-        if old.task:
-            old.task.cancel()
-        if old.message_id:
-            await delete_quietly(context.bot, chat_id, old.message_id)
-
-    s = Session(game=Game(), chat_id=chat_id, user_id=user_id)
-    msg = await context.bot.send_message(
-        chat_id=chat_id, text=s.game.render_html(fps=GAME_FPS),
-        parse_mode="HTML", reply_markup=keyboard(),
-    )
-    s.message_id = msg.message_id
-    s.last_text = msg.text or s.game.render_html(fps=GAME_FPS)
-    SESSIONS[key] = s
-    s.task = asyncio.create_task(render_loop(context.application, s))
-    log.info("game started chat=%s msg=%s", chat_id, s.message_id)
-    return s
-
-
-async def stop_game(s: Session, context: ContextTypes.DEFAULT_TYPE, *, final_text: str | None = None):
-    s.running = False
-    if s.task:
-        s.task.cancel()
-    SESSIONS.pop((s.chat_id, s.user_id), None)
-    try:
-        await context.bot.edit_message_text(
-            chat_id=s.chat_id, message_id=s.message_id,
-            text=final_text or (s.game.render_html() + "\n⏹ <b>Игра окончена.</b> /start — заново"),
-            parse_mode="HTML", reply_markup=None,
-        )
-    except TelegramError:
+    except (BadRequest, Forbidden, TelegramError):
         pass
 
 
-# ---------------------------------------------------------------------------
-# Telegram handlers
-# ---------------------------------------------------------------------------
-async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message:
-        await delete_quietly(context.bot, update.effective_chat.id, update.message.message_id)
-    await start_game(update, context)
+async def push_to(tg_id: int, bot):
+    """Re-render a user's screen after something changed (e.g. new message).
+
+    Only edits the existing screen — if there is no screen, does nothing.
+    NEVER creates a new message.
+    """
+    if ms.get_screen(tg_id) is None:
+        return
+    s = ms.get_session(tg_id)
+    await show(bot, tg_id, render_current(tg_id, s))
 
 
-async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def render_current(tg_id: int, s: dict, notice: str = "") -> str:
+    user = ms.get_user(s["user_id"]) if s.get("user_id") else None
+    state = s.get("state", "auth")
+    if user is None:
+        return ms.scr_auth(notice)
+    if state == "chat" and s.get("current_chat"):
+        other = ms.get_user(s["current_chat"])
+        if other:
+            return ms.scr_chat(user, other, notice)
+    if state == "search":
+        return ms.scr_search(user, s["temp"].get("_results"), s["temp"].get("_query", ""), notice)
+    if state == "profile":
+        return ms.scr_profile(user)
+    return ms.scr_main(user, notice)
+
+
+# ---------------------------------------------------------------------------
+# Routing: every text the user types goes here
+# ---------------------------------------------------------------------------
+async def route(update: Update, context: ContextTypes.DEFAULT_TYPE, raw_text: str):
+    bot = context.bot
+    tg_id = update.effective_user.id
+    text = norm(raw_text)
+    s = ms.get_session(tg_id)
+    user = ms.get_user(s["user_id"]) if s.get("user_id") else None
+    state = s.get("state", "auth")
+
+    # ---- global: logged-in shortcuts -------------------------------------
+    if user and text in ("выйти", "выход", "logout"):
+        ms.set_session(tg_id, user_id=None, state="auth", current_chat=None, temp={})
+        await show(bot, tg_id, ms.scr_auth("Ты вышел из аккаунта. До встречи! 👋"))
+        return
+
+    # ---- not logged in ----------------------------------------------------
+    if user is None:
+        await route_auth(update, s, text, raw_text.strip())
+        return
+
+    # ---- logged in ---------------------------------------------------------
+    if state == "search":
+        if text in BACK_WORDS:
+            ms.set_session(tg_id, state="main", temp={})
+            await show(bot, tg_id, ms.scr_main(user))
+            return
+        if text.startswith("@") or ms.find_by_username(text):
+            await open_chat(tg_id, bot, user, text)
+            return
+        results = ms.search_users(text, exclude_id=user["id"])
+        temp = dict(s["temp"], _results=[{"username": u["username"]} for u in results], _query=text)
+        ms.set_session(tg_id, temp=temp)
+        await show(bot, tg_id, ms.scr_search(user, results, text))
+        return
+
+    if state == "chat" and s.get("current_chat"):
+        other = ms.get_user(s["current_chat"])
+        if other is None or text in BACK_WORDS:
+            ms.set_session(tg_id, state="main", current_chat=None)
+            await show(bot, tg_id, ms.scr_main(user))
+            return
+        if text == "поиск":
+            ms.set_session(tg_id, state="search", current_chat=None, temp={})
+            await show(bot, tg_id, ms.scr_search(user))
+            return
+        # ANY other text = a message to the partner ✉️
+        ms.send_message(user["id"], other["id"], raw_text.strip())
+        # my screen: updated history
+        await show(bot, tg_id, ms.scr_chat(user, other))
+        # partner's screen: auto-edit in real time (no new message!)
+        partner = other
+        if partner:
+            ps = ms.get_session(partner["tg_id"])
+            if ps.get("user_id") == partner["id"] and ps.get("state") == "chat" \
+                    and ps.get("current_chat") == user["id"]:
+                ms.mark_read(partner["id"], user["id"])  # they're looking at it
+            await push_to(partner["tg_id"], bot)
+        return
+
+    if state == "profile":
+        if text in BACK_WORDS:
+            ms.set_session(tg_id, state="main")
+            await show(bot, tg_id, ms.scr_main(user))
+            return
+        await show(bot, tg_id, ms.scr_profile(user))
+        return
+
+    # state == main
+    if text == "поиск" or text == "search":
+        ms.set_session(tg_id, state="search", temp={})
+        await show(bot, tg_id, ms.scr_search(user))
+    elif text == "профиль":
+        ms.set_session(tg_id, state="profile")
+        await show(bot, tg_id, ms.scr_profile(user))
+    elif text.startswith("@") or (ms.find_by_username(text) and " " not in text):
+        await open_chat(tg_id, bot, user, text)
+    else:
+        await show(bot, tg_id, render_current(tg_id, s, notice="Не понял 🤔 Напиши: поиск — или сразу @юзернейм"))
+
+
+async def open_chat(tg_id: int, bot, user: dict, name: str):
+    other = ms.find_by_username(name)
+    if other is None:
+        s = ms.get_session(tg_id)
+        await show(bot, tg_id, render_current(tg_id, s, notice=f"Пользователь {name} не найден. Напиши: поиск"))
+        return
+    if other["id"] == user["id"]:
+        s = ms.get_session(tg_id)
+        await show(bot, tg_id, render_current(tg_id, s, notice="Это ты сам 😄 Напиши: поиск"))
+        return
+    ms.mark_read(user["id"], other["id"])
+    ms.set_session(tg_id, state="chat", current_chat=other["id"], temp={})
+    await show(bot, tg_id, ms.scr_chat(user, other))
+
+
+async def route_auth(update: Update, s: dict, text: str, raw: str):
+    bot = update.get_bot()
+    tg_id = update.effective_user.id
+    state = s.get("state", "auth")
+    temp = dict(s.get("temp") or {})
+
+    def form(title, lines, hint, notice=""):
+        return ms.scr_form(title, lines, hint, notice)
+
+    if text in ("старт", "/start", "start"):
+        ms.set_session(tg_id, state="auth", temp={})
+        await show(bot, tg_id, ms.scr_auth())
+        return
+
+    if state == "registered":  # account just created, waiting for «войти»
+        if text in ("войти", "вход", "login", "2"):
+            me = ms.get_user_by_tg(tg_id)
+            if me:
+                ms.set_session(tg_id, user_id=me["id"], state="main", temp={})
+                await show(bot, tg_id, ms.scr_main(me, notice=f"С возвращением... то есть — добро пожаловать, @{me['username']}! 🎉"))
+                return
+        await show(bot, tg_id, form("ВХОД", ["Аккаунт уже создан ✅"], "Напиши: войти"))
+        return
+
+    if state in ("reg_email", "reg_pass", "reg_user") and text in ("назад", "отмена"):
+        ms.set_session(tg_id, state="auth", temp={})
+        await show(bot, tg_id, ms.scr_auth())
+        return
+
+    if state == "auth":
+        existing = ms.get_user_by_tg(tg_id)
+        if text in ("регистрация", "register", "1"):
+            if existing:
+                await show(bot, tg_id, ms.scr_auth(f"У тебя уже есть аккаунт @{existing['username']}. Напиши: войти"))
+                return
+            ms.set_session(tg_id, state="reg_email", temp={})
+            await show(bot, tg_id, form("РЕГИСТРАЦИЯ · шаг 1 из 3", ["📧 Почта: —"], "Напиши свою почту, например " + "name" + "@" + "example.com"))
+        elif text in ("войти", "вход", "login", "2"):
+            ms.set_session(tg_id, state="login_email", temp={})
+            await show(bot, tg_id, form("ВХОД · шаг 1 из 2", ["📧 Почта: —"], "Напиши почту от аккаунта"))
+        else:
+            await show(bot, tg_id, ms.scr_auth("Напиши: регистрация — или: войти"))
+        return
+
+    if state == "reg_email":
+        if "@" not in raw or "." not in raw:
+            await show(bot, tg_id, form("РЕГИСТРАЦИЯ · шаг 1 из 3", ["📧 Почта: —"], "Напиши почту", "Почта выглядит неверно, попробуй ещё раз"))
+            return
+        temp["email"] = raw.lower()
+        ms.set_session(tg_id, state="reg_pass", temp=temp)
+        await show(bot, tg_id, form("РЕГИСТРАЦИЯ · шаг 2 из 3",
+                                     [f"📧 Почта: {raw.lower()}", "🔑 Пароль: —"],
+                                     "Придумай пароль (минимум 4 символа). Он сразу удалится из чата и будет зашифрован"))
+        return
+
+    if state == "reg_pass":
+        if len(raw) < 4:
+            await show(bot, tg_id, form("РЕГИСТРАЦИЯ · шаг 2 из 3",
+                                         [f"📧 Почта: {temp.get('email','')}", "🔑 Пароль: —"],
+                                         "Придумай пароль", "Слишком короткий — минимум 4 символа"))
+            return
+        temp["password"] = raw  # kept only in RAM of this step, hashed on create, then dropped
+        ms.set_session(tg_id, state="reg_user", temp=temp)
+        await show(bot, tg_id, form("РЕГИСТРАЦИЯ · шаг 3 из 3",
+                                     [f"📧 Почта: {temp.get('email','')}", "🔑 Пароль: ••••••••", "👤 Юзер: —"],
+                                     "Придумай @юзернейм (латиница, цифры, _), например ivan_1"))
+        return
+
+    if state == "reg_user":
+        user, err = ms.create_user_hashed(tg_id, temp.get("email", ""),
+                                          temp.pop("pass_hash", ""), temp.pop("salt", ""), raw)
+        ms.set_session(tg_id, state="registered" if user else "reg_user", temp=temp)
+        if user:
+            await show(bot, tg_id, ms.scr_registered(user))
+        else:
+            await show(bot, tg_id, form("РЕГИСТРАЦИЯ · шаг 3 из 3",
+                                         [f"📧 Почта: {temp.get('email','')}", "🔑 Пароль: ••••••••", "👤 Юзер: —"],
+                                         "Придумай другой @юзернейм", err))
+        return
+
+    if state == "login_email":
+        if text in ("назад", "отмена"):
+            ms.set_session(tg_id, state="auth", temp={})
+            await show(bot, tg_id, ms.scr_auth())
+            return
+        temp["email"] = raw.lower()
+        ms.set_session(tg_id, state="login_pass", temp=temp)
+        await show(bot, tg_id, form("ВХОД · шаг 2 из 2",
+                                     [f"📧 Почта: {raw.lower()}", "🔑 Пароль: —"],
+                                     "Напиши пароль (сообщение сразу удалится)"))
+        return
+
+    if state == "login_pass":
+        if text in ("назад", "отмена"):
+            ms.set_session(tg_id, state="auth", temp={})
+            await show(bot, tg_id, ms.scr_auth())
+            return
+        me = ms.check_login(temp.get("email", ""), raw)
+        if me is None:
+            ms.set_session(tg_id, state="login_email", temp={})
+            await show(bot, tg_id, form("ВХОД · шаг 1 из 2", ["📧 Почта: —"], "Напиши почту", "Неверная почта или пароль. Попробуй ещё раз"))
+            return
+        ms.set_session(tg_id, user_id=me["id"], state="main", temp={})
+        un = ms.unread_total(me["id"])
+        await show(bot, tg_id, ms.scr_main(me, notice=f"Привет, @{me['username']}! 👋" + (f" У тебя 🔴 {un} непрочитанных" if un else "")))
+        return
+
+    # any other state while logged out
+    ms.set_session(tg_id, state="auth", temp={})
+    await show(bot, tg_id, ms.scr_auth())
+
+
+# ---------------------------------------------------------------------------
+# Telegram handlers — user messages are deleted, screen is edited
+# ---------------------------------------------------------------------------
+async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tg_id = update.effective_user.id
     if update.message:
-        await delete_quietly(context.bot, update.effective_chat.id, update.message.message_id)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=HELP, parse_mode="HTML"
-    )
+        await delete_quietly(context.bot, tg_id, update.message.message_id)
+    s = ms.get_session(tg_id)
+    # If the screen exists, /start just re-renders it (no new message!).
+    await show(context.bot, tg_id, render_current(tg_id, s))
 
 
 async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
-    chat_id = update.effective_chat.id
-    user_id = update.effective_user.id
-    raw = update.message.text
-    # ⭐ commands are ALWAYS deleted first — chat must stay clean
-    await delete_quietly(context.bot, chat_id, update.message.message_id)
-
-    action = ALIASES.get(normalize(raw))
-    key = (chat_id, user_id)
-    s = SESSIONS.get(key)
-
-    if action == "help" or raw.strip() in ("?", "/help"):
-        await context.bot.send_message(chat_id=chat_id, text=HELP, parse_mode="HTML")
-        return
-    if action == "start":
-        await start_game(update, context)
-        return
-    if s is None:
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text="👹 Нет активной игры. Напиши <b>старт</b> или /start",
-            parse_mode="HTML",
-        )
-        return
-    if action == "exit":
-        await stop_game(s, context)
-        return
-    if action is None:
-        s.game.log = f"❓ Не понял: «{raw[:24]}». Напиши: помощь"
-        return
-    async with s.lock:
-        s.game.action(action)
-
-
-async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.callback_query
-    if not q:
-        return
-    await q.answer()
-    key = (q.message.chat_id, q.from_user.id)
-    s = SESSIONS.get(key)
-    if s is None or not q.data:
-        return
-    if q.data == "exit":
-        await stop_game(s, context)
-        return
-    async with s.lock:
-        s.game.action(q.data)
+    tg_id = update.effective_user.id
+    # ⭐ delete the user's message FIRST — only the one screen stays in chat
+    await delete_quietly(context.bot, tg_id, update.message.message_id)
+    try:
+        await route(update, context, update.message.text)
+    except Exception:  # never leave the user without a screen
+        log.exception("route failed tg=%s", tg_id)
+        try:
+            await show(context.bot, tg_id, render_current(tg_id, ms.get_session(tg_id), notice="Что-то пошло не так, попробуй ещё раз"))
+        except Exception:
+            log.exception("recovery render failed tg=%s", tg_id)
 
 
 # ---------------------------------------------------------------------------
-# Health endpoint for Railway (it injects $PORT and health-checks it)
+# Health endpoint for Railway (injects $PORT, health-checks /health)
 # ---------------------------------------------------------------------------
 class _Health(BaseHTTPRequestHandler):
     def do_GET(self):
-        body = b'{"status":"ok","game":"tg-doom"}' if self.path in ("/health", "/") else b"not found"
-        self.send_response(200 if self.path in ("/health", "/") else 404)
+        ok = self.path in ("/health", "/")
+        body = b'{"status":"ok","app":"ari-messenger"}' if ok else b"not found"
+        self.send_response(200 if ok else 404)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
-    def log_message(self, *a):  # keep logs clean
+    def log_message(self, *a):
         pass
-
-
-def start_health_server():
-    port = int(os.getenv("PORT", "8000"))
-    server = HTTPServer(("0.0.0.0", port), _Health)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    log.info("health server on 0.0.0.0:%s/health", port)
 
 
 def main():
     if not BOT_TOKEN:
-        raise SystemExit("❌ BOT_TOKEN is not set. Get a token from @BotFather and set it in Railway → Variables.")
-    start_health_server()
+        raise SystemExit("❌ TOKEN пустой в начале bot.py")
+    ms.init_db()
+    port = int(os.getenv("PORT", "8000"))
+    threading.Thread(target=HTTPServer(("0.0.0.0", port), _Health).serve_forever, daemon=True).start()
+    log.info("health on 0.0.0.0:%s/health · db=%s", port, ms.DB_PATH)
     app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CommandHandler("help", cmd_help))
-    app.add_handler(CommandHandler("doom", cmd_start))
-    app.add_handler(CallbackQueryHandler(on_button))
+    app.add_handler(CommandHandler("start", on_start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
-    log.info("TG-DOOM polling started (target %.0f FPS edits)", GAME_FPS)
+    log.info("ARI messenger started — one message per user, edit-only")
     app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 

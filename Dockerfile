@@ -12,9 +12,9 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ALL project files live in the root — no subfolders, Railway sees everything
-COPY bot.py doom_engine.py ./
+COPY bot.py messenger.py ./
 
-RUN useradd --create-home appuser && chown -R appuser /app
+RUN useradd --create-home appuser && mkdir -p /app/data && chown -R appuser /app
 USER appuser
 
 # Railway injects $PORT; bot.py serves /health there (default 8000 locally)
