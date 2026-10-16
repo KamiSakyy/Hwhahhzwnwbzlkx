@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/bg" android:orientation="vertical" android:padding="28dp">
+
+    <TextView
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginTop="36dp" android:text="✉️" android:textSize="44sp" />
+
+    <TextView
+        android:id="@+id/authTitle"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginTop="10dp" android:text="Вход в ARI"
+        android:textColor="@color/text_primary" android:textSize="26sp" android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/authServer"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginTop="4dp" android:textColor="@color/text_secondary" android:textSize="13sp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/ARI.Input"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="28dp" android:hint="Почта">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/emailInput"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:inputType="textEmailAddress" android:textColor="@color/text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/usernameLayout"
+        style="@style/ARI.Input"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="14dp" android:hint="@юзернейм" android:visibility="gone">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/usernameInput"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:inputType="text" android:textColor="@color/text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/ARI.Input"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="14dp" android:hint="Пароль">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/passwordInput"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:inputType="textPassword" android:textColor="@color/text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/authButton"
+        style="@style/ARI.Button"
+        android:layout_width="match_parent" android:layout_height="56dp"
+        android:layout_marginTop="24dp" android:text="Войти" />
+
+    <Button
+        android:id="@+id/authSwitch"
+        style="@style/ARI.ButtonText"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:text="Нет аккаунта? Регистрация" />
+
+    <Button
+        android:id="@+id/authServerBtn"
+        style="@style/ARI.ButtonText"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Сменить сервер" />
+
+    <ProgressBar
+        android:id="@+id/authProgress"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="14dp"
+        android:visibility="gone" />
+</LinearLayout>

@@ -1,0 +1,63 @@
+name: Build ARI APK
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "app/**"
+      - "build.gradle"
+      - "settings.gradle"
+      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.7 (Android SDK is preinstalled on the runner)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build release APK (minified, target < 8 MB)
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Collect APK + size report
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-release.apk out/ARI.apk
+          ls -lh out/ARI.apk
+          SIZE=$(stat -c%s out/ARI.apk)
+          echo "APK size: $SIZE bytes"
+          if [ "$SIZE" -gt 8388608 ]; then echo "::warning::APK is over 8 MB ($SIZE)"; fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARI-apk
+          path: out/ARI.apk
+          retention-days: 30
+
+      - name: Publish APK to a rolling GitHub Release (direct download link)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: "ARI Android (latest)"
+          body: |
+            📱 **ARI — self-hosted messenger (Android)**
+            Скачай **ARI.apk** ниже и установи на телефон.
+            При первом запуске введи адрес СВОЕГО сервера на Railway.
+          files: out/ARI.apk
+          make_latest: true

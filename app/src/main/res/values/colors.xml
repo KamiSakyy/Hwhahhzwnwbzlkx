@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Telegram-2026 dark palette -->
+    <color name="bg">#0E1621</color>
+    <color name="bg_secondary">#17212B</color>
+    <color name="surface">#1C2733</color>
+    <color name="bubble_out">#2B5278</color>
+    <color name="bubble_in">#182533</color>
+    <color name="accent">#2AABEE</color>
+    <color name="accent_dark">#1D7FB8</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#7F91A4</color>
+    <color name="divider">#0A121B</color>
+    <color name="danger">#E53935</color>
+    <color name="online">#0ACF83</color>
+</resources>
