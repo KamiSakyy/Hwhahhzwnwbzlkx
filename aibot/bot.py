@@ -123,6 +123,8 @@ async def _handle(update, user_text, images=None):
             raw = await _generate(user_id, user_text, images=images)
         await _deliver(update, user_id, raw)
     except Exception:
+        import traceback
+        traceback.print_exc()  # причина видна в логах Railway
         try:
             await update.message.reply_text(
                 "Что-то пошло не так. Попробуй ещё раз.")

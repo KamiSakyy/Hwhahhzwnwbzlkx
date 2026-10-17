@@ -32,6 +32,15 @@ _BANNED = (
 )
 
 
+def strip_think(text):
+    """Убирает служебные рассуждения <think>…</think> из видимого ответа."""
+    if not text:
+        return text
+    text = re.sub(r"(?is)<think>.*?</think>", "", text)
+    text = re.sub(r"(?is)<think>.*$", "", text)
+    return text.strip()
+
+
 def acceptable(text):
     """Отсев ботовских, канцелярских ответов."""
     if not text or len(text.strip()) < 2:
@@ -141,11 +150,14 @@ async def _judge(persona, question, drafts, vision=False):
             f"Сообщение человека:\n{question[:1500]}\n\n" + "\n\n".join(blocks)
         )},
     ]
-    judge_units = providers.candidates(vision=vision, limit=8)
-    good, emergency = await _collect(judge_units, judge_messages, want=1, deadline=60.0, grace=0.0)
+    # Судьёй — в первую очередь ДУМАЮЩИЕ модели (Magistral, DeepSeek-R1, QwQ)
+    pool_units = providers.candidates(vision=vision, limit=10)
+    judge_units = sorted(
+        pool_units, key=lambda u: (0 if u.get("think") else 1, -u["tier"]))[:6]
+    good, emergency = await _collect(judge_units, judge_messages, want=1, deadline=90.0, grace=0.0)
     pool = good or emergency
     if pool:
-        return pool[0][1]
+        return strip_think(pool[0][1])
     return max(drafts, key=lambda d: len(d[1]))[1]
 
 
@@ -168,16 +180,22 @@ async def answer(persona, history, user_text, images=None):
         return strip_think(drafts[0][1])
     if emergency:
         return strip_think(emergency[0][1])
-    # полный второй шанс всем списком
-    drafts, emergency = await _collect(
-        providers.candidates(vision=vision), messages, want=4, deadline=70.0)
-    drafts = _diverse(drafts)
-    if len(drafts) >= 2:
-        return await _judge(persona, user_text, drafts, vision=vision)
-    if drafts:
-        return drafts[0][1]
-    if emergency:
-        return emergency[0][1]
+    # Аварийный режим: ансамбль не собрался — идём по всем моделям ПО ОДНОЙ,
+    # пока хоть кто-нибудь не ответит. Отвечает первый живой.
+    all_units = providers.candidates(vision=vision)
+    print(f"[router] ensemble empty, sequential fallback over {len(all_units)} units",
+          flush=True)
+    for unit in all_units:
+        try:
+            text = await providers.chat(unit, messages, timeout=35.0)
+            if text:
+                print(f"[router] fallback answered by {unit['provider']}/{unit['model']}",
+                      flush=True)
+                return strip_think(text)
+        except Exception as e:
+            print(f"[router] fallback fail {unit['provider']}/{unit['model']}: {e}",
+                  flush=True)
+            continue
     raise RuntimeError("all providers down")
 
 
@@ -212,6 +230,7 @@ def strip_internal(text):
     """Убирает случайные технические оговорки моделей о себе."""
     if not text:
         return text
+    text = strip_think(text)
     text = re.sub(r"(?i)as an ai language model,?\s*", "", text)
     text = re.sub(r"(?i)как (ии|искусственный интеллект|языковая модель),?\s*", "", text)
     return text.strip()

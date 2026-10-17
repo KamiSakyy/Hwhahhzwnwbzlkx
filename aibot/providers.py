@@ -92,7 +92,7 @@ async def chat(unit, messages, timeout=90.0, max_tokens=4096):
             resp = await client.post(url, headers=headers, json=payload)
         if resp.status_code != 200:
             await mark_fail(unit, resp.status_code)
-            raise RuntimeError(f"http {resp.status_code}")
+            raise RuntimeError(f"http {resp.status_code}: {resp.text[:200]}")
         try:
             data = resp.json()
         except Exception:
