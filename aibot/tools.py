@@ -101,8 +101,51 @@ async def fetch_page(url, limit=8000):
         return ""
 
 
+_CODE_BLOCK = re.compile(r"```[a-zA-Z0-9]*\n(.*?)```", re.S)
+
+
+def extract_code_block(text):
+    """Самый большой блок ```...``` из ответа -> (код, текст без блока)."""
+    best, best_span = None, None
+    for m in _CODE_BLOCK.finditer(text or ""):
+        if best is None or len(m.group(1)) > len(best):
+            best, best_span = m.group(1), m.span()
+    if not best or len(best) < 400:
+        return None, text
+    rest = (text[:best_span[0]] + text[best_span[1]:]).strip()
+    rest = re.sub(r"\n{3,}", "\n\n", rest)
+    return best.strip(), rest
+
+
+def guess_filename(user_text, code):
+    m = re.search(r"([\w.\-]+\.(?:html?|py|js|css|txt|md|csv|json))", (user_text or "").lower())
+    if m:
+        return m.group(1)
+    head = (code or "")[:300].lower()
+    if "<!doctype" in head or "<html" in head:
+        return "index.html"
+    if "import " in head or "def " in head:
+        return "main.py"
+    return "file.txt"
+
+
+async def _bing_images(query, limit):
+    try:
+        async with httpx.AsyncClient(timeout=20.0, headers=_UA, follow_redirects=True) as c:
+            resp = await c.get("https://www.bing.com/images/search",
+                               params={"q": query, "form": "HDRSC2", "first": "1"})
+        urls = re.findall(r'"murl":"(https?://[^"]+)"', resp.text)
+        urls = [u.replace("\\u0026", "&") for u in urls]
+        return urls[:limit]
+    except Exception:
+        return []
+
+
 async def image_search(query, limit=5):
-    """Фото из интернета (не генерация): DDG Images -> Openverse -> Wikimedia."""
+    """Фото из интернета (не генерация): Bing -> DDG Images -> Openverse -> Wikimedia."""
+    found = await _bing_images(query, limit)
+    if found:
+        return found
     # 1) DuckDuckGo Images (нужен vqd-токен со страницы)
     try:
         async with httpx.AsyncClient(timeout=20.0, headers=_UA, follow_redirects=True) as c:

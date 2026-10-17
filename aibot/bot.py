@@ -49,10 +49,33 @@ async def _typing_loop(bot, chat_id, stop: asyncio.Event):
             pass
 
 
+_FILE_ASK = ("файл", "index.html", "одним файлом", "в виде файла")
+
+
+def _wants_file(user_text):
+    low = (user_text or "").lower()
+    return any(w in low for w in _FILE_ASK)
+
+
 async def _generate(user_id, user_text, images=None):
     """Диалог с автовыбором моделей + цикл инструментов (поиск/страницы)."""
     history = memory.context(user_id)
-    raw = await router.answer(SYSTEM_PROMPT, history, user_text, images=images)
+    # Текущее сообщение обязано быть в контексте (для документов это весь текст файла)
+    if not history or history[-1].get("content") != user_text:
+        history = history + [{"role": "user", "content": user_text}]
+        memory.add(user_id, "user", user_text)
+    if _wants_file(user_text):
+        history = history + [{"role": "system", "content": (
+            "Итог нужен ФАЙЛОМ: оформи его тегом <file name=\"index.html\">...</file> "
+            "(имя — из запроса пользователя). Код и длинные тексты в чат НЕ пиши, "
+            "только короткое пояснение.")}]
+    try:
+        raw = await router.answer(SYSTEM_PROMPT, history, user_text, images=images)
+    except Exception:
+        if not images:
+            raise
+        raw = await router.answer(SYSTEM_PROMPT, history,
+                                  user_text + " (фото открыть не удалось)")
     for _ in range(2):
         parsed = tools.parse_tags(raw)
         if not parsed["searches"] and not parsed["urls"]:
@@ -93,20 +116,39 @@ async def _send_found_photo(update, query):
     return False
 
 
-async def _deliver(update, user_id, raw):
+async def _deliver(update, user_id, raw, user_text=""):
     parsed = tools.parse_tags(raw)
-    text = router.strip_internal(parsed["clean"])
+    text = router.dedupe(router.strip_internal(parsed["clean"]))
+    files = list(parsed["files"])
+    # Просили файл, а модель написала код в чат — упаковываем в файл сами
+    if _wants_file(user_text) and not files:
+        code, rest = tools.extract_code_block(text)
+        if code:
+            files.append((tools.guess_filename(user_text, code), code))
+            text = rest or "Готово, файл ниже."
     memory.add(user_id, "assistant", text)
-    for chunk in _split(text):
-        await update.message.reply_text(chunk)
+    sent_any = False
+    if text:
+        for chunk in _split(text):
+            await update.message.reply_text(chunk)
+        sent_any = True
     for query in parsed["images"]:
-        await _send_found_photo(update, query)
-    for name, content in parsed["files"]:
+        if await _send_found_photo(update, query):
+            sent_any = True
+        else:
+            await update.message.reply_text(
+                f"Картинок по запросу «{query}» в интернете не нашлось.")
+            sent_any = True
+    for name, content in files:
         data = content.encode("utf-8", errors="ignore")
         if 0 < len(data) <= config.TG_MAX_FILE:
             bio = io.BytesIO(data)
             bio.name = os.path.basename(name)[:64] or "file.txt"
             await update.message.reply_document(document=bio)
+            sent_any = True
+    if not sent_any:
+        await update.message.reply_text(
+            "Не получилось сформировать ответ. Попробуй переформулировать.")
 
 
 async def _handle(update, user_text, images=None):
@@ -121,7 +163,7 @@ async def _handle(update, user_text, images=None):
     try:
         async with _gen_lock:
             raw = await _generate(user_id, user_text, images=images)
-        await _deliver(update, user_id, raw)
+        await _deliver(update, user_id, raw, user_text)
     except Exception:
         import traceback
         traceback.print_exc()  # причина видна в логах Railway
@@ -179,7 +221,19 @@ async def on_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 _TEXT_EXT = (".txt", ".md", ".py", ".js", ".ts", ".json", ".csv", ".log", ".html",
              ".xml", ".yml", ".yaml", ".ini", ".java", ".c", ".cpp", ".h", ".sh",
-             ".sql", ".go", ".rs", ".php", ".rb", ".kt", ".swift", ".lua")
+             ".sql", ".go", ".rs", ".php", ".rb", ".kt", ".swift", ".lua", ".fb2")
+
+
+def _extract_docx(data):
+    try:
+        import re as _re
+        import zipfile
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            xml = z.read("word/document.xml").decode("utf-8", errors="ignore")
+        xml = _re.sub(r"<w:p[ >]", "\n", xml)
+        return _re.sub(r"<[^>]+>", "", xml)[:24000]
+    except Exception:
+        return ""
 
 
 def _extract_text(name, data):
@@ -191,6 +245,8 @@ def _extract_text(name, data):
             return "\n".join((p.extract_text() or "") for p in reader.pages)[:24000]
         except Exception:
             return ""
+    if low.endswith(".docx"):
+        return _extract_docx(data)
     if low.endswith(_TEXT_EXT):
         for enc in ("utf-8", "cp1251", "latin-1"):
             try:

@@ -84,6 +84,26 @@ def test_dedupe_and_no_persona_prompt():
     assert "<search>" in SYSTEM_PROMPT and "<image>" in SYSTEM_PROMPT
 
 
+def test_code_block_to_file():
+    text = "Вот сайт:\n```html\n<html>" + "x" * 500 + "</html>\n```\nГотово"
+    code, rest = tools.extract_code_block(text)
+    assert code and "<html>" in code and "Готово" in rest
+    assert tools.guess_filename("сделай сайт один файл index.html", code) == "index.html"
+    assert tools.guess_filename("напиши скрипт", "import os\n" + "x" * 10) == "main.py"
+    small, _ = tools.extract_code_block("```py\nx=1\n```")
+    assert small is None
+
+
+def test_live_openrouter_catalog():
+    from aibot.config import all_units
+    ids = {u["model"] for u in all_units()}
+    # живые бесплатные модели OpenRouter на 2026-10-17
+    assert "thinkingmachines/inkling:free" in ids
+    assert "google/gemma-4-31b-it:free" in ids
+    # мёртвые бесплатности должны быть убраны
+    assert not any("deepseek-r1" in i or "llama-4-scout" in i for i in ids)
+
+
 def test_strip_internal():
     assert router.strip_internal("Как языковая модель, я отвечу: да") != ""
     assert "модель" not in router.strip_internal("Я обычная девушка~")

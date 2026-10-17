@@ -41,10 +41,16 @@ async def mark_fail(unit, status=0):
         h["until"] = time.time() + cooldown
 
 
+# Приоритет провайдеров: сначала те, у кого щедрые лимиты.
+# OpenRouter :free — всего 50 запросов/сутки на аккаунт, его бережём (последний).
+PROVIDER_RANK = {"mistral": 0, "kilo": 1, "ovh": 2, "llm7": 3, "openrouter": 4}
+
+
 def sort_key(unit):
     h = _h(unit)
-    # Сначала сильные модели, потом быстрые; недоступные — в конец
-    return (0 if is_available(unit) else 1, -unit["tier"], h["lat"])
+    # Доступные -> по приоритету провайдера -> сильные -> быстрые
+    return (0 if is_available(unit) else 1,
+            PROVIDER_RANK.get(unit["provider"], 9), -unit["tier"], h["lat"])
 
 
 def candidates(vision=False, limit=None):
