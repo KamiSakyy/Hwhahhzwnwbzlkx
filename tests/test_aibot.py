@@ -58,10 +58,18 @@ def test_parse_tags():
     assert "<" not in parsed["clean"] and "Готово!" in parsed["clean"]
 
 
-def test_complexity():
-    assert router.is_complex("Напиши код сортировки на Python")
-    assert router.is_complex("x" * 400)
-    assert not router.is_complex("привет, как дела?")
+def test_acceptable_filter():
+    assert not router.acceptable("Конечно! Как языковая модель, я помогу. Надеюсь, это поможет!")
+    assert not router.acceptable("Привет! Чем могу помочь?")
+    assert router.acceptable("привет~ ну что, как день прошёл? ^^")
+
+
+def test_looks_like_image():
+    assert tools.looks_like_image(b"\xff\xd8\xff\xe0" + b"x" * 9000)       # JPEG
+    assert tools.looks_like_image(b"\x89PNG\r\n\x1a\n" + b"x" * 9000)      # PNG
+    assert not tools.looks_like_image(b"\xff\xd8\xff\xe0" + b"x" * 100)    # слишком маленькая
+    assert not tools.looks_like_image(b"<html>404</html>" + b"x" * 9000)   # не картинка
+    assert not tools.looks_like_image(b"")
 
 
 def test_strip_internal():

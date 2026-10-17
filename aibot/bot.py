@@ -78,19 +78,19 @@ async def _generate(user_id, user_text, images=None):
     return raw
 
 
-async def _send_photo_url(update, url):
-    try:
-        await update.message.reply_photo(photo=url)
-        return
-    except Exception:
-        pass
-    try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as c:
-            resp = await c.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        if resp.status_code == 200 and len(resp.content) < 10 * 1024 * 1024:
-            await update.message.reply_photo(photo=io.BytesIO(resp.content))
-    except Exception:
-        pass
+async def _send_found_photo(update, query):
+    """Фото ТОЛЬКО из веб-поиска. Каждое скачивается и проверяется перед отправкой."""
+    urls = await tools.image_search(query, limit=6)
+    for url in urls:
+        data = await tools.fetch_image_bytes(url)
+        if not data:
+            continue
+        try:
+            await update.message.reply_photo(photo=io.BytesIO(data))
+            return True
+        except Exception:
+            continue
+    return False
 
 
 async def _deliver(update, user_id, raw):
@@ -100,9 +100,7 @@ async def _deliver(update, user_id, raw):
     for chunk in _split(text):
         await update.message.reply_text(chunk)
     for query in parsed["images"]:
-        urls = await tools.image_search(query)
-        if urls:
-            await _send_photo_url(update, urls[0])
+        await _send_found_photo(update, query)
     for name, content in parsed["files"]:
         data = content.encode("utf-8", errors="ignore")
         if 0 < len(data) <= config.TG_MAX_FILE:

@@ -1,29 +1,43 @@
 # -*- coding: utf-8 -*-
-"""Автовыбор: 50+ моделей думают вместе.
+"""АВТОРОУТИНГ: 50+ моделей — один ум.
 
-- Обычный вопрос: гонка нескольких моделей — побеждает первый хороший ответ.
-- Сложный вопрос: три модели отвечают параллельно, четвёртая (судья) собирает
-  из черновиков самый сильный итоговый ответ.
-- Мёртвые/лимитированные модели автоматически уходят на кулдаун.
+Никакой гонки за скоростью. На каждое сообщение несколько моделей от разных
+провайдеров отвечают ПАРАЛЛЕЛЬНО, затем модель-судья сравнивает черновики,
+проверяет факты и собирает один лучший ответ голосом Аи.
+Ботовские/канцелярские черновики бракуются ещё до судьи.
 """
 import asyncio
 import re
+import time
 
 from . import providers
 
-_COMPLEX_WORDS = (
-    "код", "программ", "скрипт", "функци", "алгоритм", "реши", "задач",
-    "объясни подробно", "подробно", "сравни", "сочини", "эссе", "рассказ",
-    "план", "стратеги", "переведи", "анализ", "посчитай", "докажи",
-    "почему", "как работает", "придумай", "составь", "напиши",
+_REMINDER = (
+    "Ты — Ая, живая девушка, а не служба поддержки. Отвечай эмоционально и "
+    "по-своему: со своим мнением, шутками, теплом, иногда коротко, как в "
+    "переписке. Запрещены сервисные фразы: «конечно!», «надеюсь, поможет», "
+    "«чем могу помочь», «если есть ещё вопросы — спрашивай». Не выдумывай "
+    "факты (имена, аниме, даты): не уверена — используй тег поиска."
+)
+
+_BANNED = (
+    "как языковая модель", "как искусственный интеллект", "как ии,",
+    "я — искусственный интеллект", "я - искусственный интеллект",
+    "я искусственный интеллект", "я — бот", "я бот,",
+    "as an ai", "as a language model", "i'm an ai",
+    "чем могу помочь?", "чем могу помочь!",
+    "если у тебя есть ещё вопросы", "если у вас есть ещё вопросы",
+    "надеюсь, это поможет", "надеюсь, мой ответ поможет",
+    "обращайся, если что", "дай знать, если понадобится",
 )
 
 
-def is_complex(text):
-    t = (text or "").lower()
-    if len(t) > 300 or "```" in (text or ""):
-        return True
-    return any(w in t for w in _COMPLEX_WORDS)
+def acceptable(text):
+    """Отсев ботовских, канцелярских ответов."""
+    if not text or len(text.strip()) < 2:
+        return False
+    low = text.lower()
+    return not any(b in low for b in _BANNED)
 
 
 def _with_images(messages, images):
@@ -44,101 +58,118 @@ def _with_images(messages, images):
     return out
 
 
-async def _race(units, messages, need=1, timeout=75.0):
-    """Запускает модели параллельно, собирает первые `need` хороших ответов."""
-    results = []
-    tasks = {}
+async def _collect(units, messages, want=4, deadline=55.0, grace=6.0):
+    """Запускает модели параллельно и СОБИРАЕТ черновики (не первый попавшийся!).
+
+    Ждём, пока наберётся `want` живых ответов от разных провайдеров
+    (+ grace секунд на опоздавших сильных), либо истечёт дедлайн.
+    """
+    good, emergency = [], []
 
     async def run(unit):
         return unit, await providers.chat(unit, messages)
 
-    for unit in units:
-        tasks[asyncio.ensure_future(run(unit))] = unit
+    tasks = {asyncio.ensure_future(run(u)): u for u in units[:10]}
+    started = time.monotonic()
+    first_good_at = None
     try:
         pending = set(tasks)
-        while pending and len(results) < need:
-            done, pending = await asyncio.wait(
-                pending, timeout=timeout, return_when=asyncio.FIRST_COMPLETED
-            )
-            if not done:
+        while pending:
+            elapsed = time.monotonic() - started
+            if elapsed >= deadline:
                 break
+            if len(good) >= want and first_good_at is not None \
+                    and time.monotonic() - first_good_at >= grace:
+                break
+            done, pending = await asyncio.wait(
+                pending, timeout=2.0, return_when=asyncio.FIRST_COMPLETED)
             for task in done:
                 try:
                     unit, text = task.result()
                 except Exception:
                     continue
-                results.append((unit, text))
-                if len(results) >= need:
-                    break
+                if acceptable(text):
+                    good.append((unit, text))
+                    if first_good_at is None:
+                        first_good_at = time.monotonic()
+                else:
+                    emergency.append((unit, text))
     finally:
         for task in tasks:
             if not task.done():
                 task.cancel()
-    return results
+    return good, emergency
 
 
-async def _judge(persona, question, drafts):
-    units = [u for u in providers.candidates(vision=False, limit=6)]
+def _diverse(drafts):
+    seen, out = set(), []
+    for unit, text in drafts:
+        if unit["provider"] not in seen:
+            out.append((unit, text))
+            seen.add(unit["provider"])
+    return out or drafts
+
+
+async def _judge(persona, question, drafts, vision=False):
+    """Судья: сравнивает черновики, проверяет факты, собирает лучший ответ."""
     blocks = []
-    for i, (unit, text) in enumerate(drafts):
+    for i, (unit, text) in enumerate(drafts[:4]):
         blocks.append(f"--- ЧЕРНОВИК {i + 1} ---\n{text[:3500]}")
     judge_messages = [
         {"role": "system", "content": persona},
         {"role": "user", "content": (
-            "Тебе нужно дать итоговый ответ человеку. Ниже — несколько черновиков "
-            "ответа на его сообщение. Собери из них ОДИН лучший: возьми самое верное, "
-            "полное и живое, исправь ошибки и противоречия, отбрось мусор. "
+            "Дай итоговый ответ человеку. Ниже — несколько черновиков ответа на его "
+            "сообщение от разных «голосов в твоей голове». Собери ОДИН лучший: возьми "
+            "самое верное, полное и живое, исправь ошибки и противоречия, отбрось мусор, "
+            "воду и канцелярит. ОБЯЗАТЕЛЬНО проверь факты: имена персонажей и названия "
+            "аниме/игр/фильмов, даты, числа. Если черновики противоречат в фактах — бери "
+            "общеизвестную правду (Асуна — Sword Art Online, а не Re:Zero), выдуманную "
+            "уверенность отбрасывай. Голос — живой девушки: без «конечно!», «надеюсь, "
+            "поможет», «если есть вопросы — спрашивай». Если черновики ставят теги "
+            "(<search>, <image>, <file>) — сохрани нужные теги в итоговом ответе. "
             "Отвечай сразу итоговым текстом, без упоминания черновиков.\n\n"
             f"Сообщение человека:\n{question[:1500]}\n\n" + "\n\n".join(blocks)
         )},
     ]
-    try:
-        got = await _race(units, judge_messages, need=1, timeout=80.0)
-        if got:
-            return got[0][1]
-    except Exception:
-        pass
-    # судья недоступен — отдаём самый длинный черновик
+    judge_units = providers.candidates(vision=vision, limit=8)
+    good, emergency = await _collect(judge_units, judge_messages, want=1, deadline=60.0, grace=0.0)
+    pool = good or emergency
+    if pool:
+        return pool[0][1]
     return max(drafts, key=lambda d: len(d[1]))[1]
 
 
 async def answer(persona, history, user_text, images=None):
-    """Главный вход: возвращает итоговый текст ответа (с тегами инструментов, если надо)."""
+    """Главный вход: ансамбль думает вместе, судья выбирает лучшее."""
     messages = [{"role": "system", "content": persona}] + history
     vision = bool(images)
     if images:
         messages = _with_images(messages, images)
+    messages = messages + [{"role": "system", "content": _REMINDER}]
     units = providers.candidates(vision=vision, limit=10)
     if not units:
         raise RuntimeError("no units")
 
-    if is_complex(user_text) and not vision:
-        drafts = await _race(units, messages, need=3, timeout=85.0)
-        # ответы должны быть от разных провайдеров, если получилось
-        seen, diverse = set(), []
-        for unit, text in drafts:
-            if unit["provider"] not in seen:
-                diverse.append((unit, text))
-                seen.add(unit["provider"])
-        drafts = diverse or drafts
-        if len(drafts) >= 2:
-            return await _judge(persona, user_text, drafts)
-        if drafts:
-            return drafts[0][1]
-        # все упали — пробуем ещё раз обычной гонкой с другим набором
-        units = providers.candidates(vision=False, limit=10)
-        got = await _race(units, messages, need=1, timeout=85.0)
-        if got:
-            return got[0][1]
-        raise RuntimeError("all providers down")
-
-    got = await _race(units, messages, need=1)
-    if not got:
-        # второй шанс: полный список, вдруг кулдауны мешали
-        got = await _race(providers.candidates(vision=vision), messages, need=1)
-    if not got:
-        raise RuntimeError("all providers down")
-    return got[0][1]
+    drafts, emergency = await _collect(
+        units, messages, want=3 if vision else 4, deadline=55.0)
+    drafts = _diverse(drafts)
+    if len(drafts) >= 2:
+        return await _judge(persona, user_text, drafts, vision=vision)
+    if drafts:
+        return drafts[0][1]
+    if emergency:
+        return emergency[0][1]
+    # полный второй шанс всем списком
+    drafts, emergency = await _collect(
+        providers.candidates(vision=vision), messages, want=4, deadline=55.0)
+    drafts = _diverse(drafts)
+    if len(drafts) >= 2:
+        return await _judge(persona, user_text, drafts, vision=vision)
+    if drafts:
+        return drafts[0][1]
+    if emergency:
+        return emergency[0][1]
+    raise RuntimeError("all providers down")
 
 
 def strip_internal(text):

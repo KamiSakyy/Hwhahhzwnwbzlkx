@@ -146,7 +146,31 @@ async def image_search(query, limit=5):
                 return urls[:limit]
     except Exception:
         pass
-    return ["https://picsum.photos/seed/" + re.sub(r"\W+", "", query)[:16] + "/900/700"]
+    return []  # лучше ничего, чем случайное левое фото
+
+
+def looks_like_image(data):
+    """Проверка, что скачанное — настоящая картинка, а не заглушка/мусор."""
+    if not data or not (6000 <= len(data) <= 10 * 1024 * 1024):
+        return False
+    return (data[:2] == b"\xff\xd8"                       # JPEG
+            or data[:8] == b"\x89PNG\r\n\x1a\n"           # PNG
+            or data[:6] in (b"GIF87a", b"GIF89a")         # GIF
+            or (data[:4] == b"RIFF" and data[8:12] == b"WEBP"))
+
+
+async def fetch_image_bytes(url):
+    """Скачивает картинку для отправки файлом (URL-адреса в Телеге часто битые)."""
+    try:
+        async with httpx.AsyncClient(timeout=25.0, follow_redirects=True) as c:
+            resp = await c.get(url, headers={
+                **_UA, "Referer": "https://duckduckgo.com/",
+                "Accept": "image/avif,image/webp,image/png,image/jpeg,*/*"})
+        if resp.status_code == 200 and looks_like_image(resp.content):
+            return resp.content
+    except Exception:
+        pass
+    return None
 
 
 def format_search_results(query, results):
