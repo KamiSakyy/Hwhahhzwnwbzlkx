@@ -1,8 +1,4 @@
-.gradle/
-build/
-app/build/
-*.db
-*.db-wal
-*.db-shm
+bot.db
 __pycache__/
-local.properties
+*.pyc
+.venv/
