@@ -571,70 +571,83 @@ public final class MainActivity extends AppCompatActivity {
         }
         primary.setText(authFormIsRegister ? R.string.auth_register : R.string.auth_login);
         switchMode.setText(authFormIsRegister ? R.string.auth_have_account : R.string.auth_create_account);
+        final TextView authStatus = root.findViewById(R.id.auth_status);
         primary.setOnClickListener(v -> {
-            String srv = serverInput == null || serverInput.getText() == null
-                    ? "" : serverInput.getText().toString().trim();
-            if (srv.isEmpty()) {
-                toast("Введите адрес вашего сервера (например, my-app.up.railway.app).");
-                return;
-            }
-            com.tsuyu.messenger.util.Settings.putString("server_url", srv);
-            com.tsuyu.messenger.net.TsuyuServerClient.setServerUrl(srv);
-            String username = usernameInput.getText() == null ? ""
-                    : usernameInput.getText().toString().trim().replaceFirst("^@", "").toLowerCase(java.util.Locale.ROOT);
-            String pass = password.getText() == null ? "" : password.getText().toString();
-            if (!username.matches("[a-z0-9_]{3,20}")) {
-                toast("Юзернейм: 3–20 символов, латиница, цифры и _.");
-                return;
-            }
-            if (pass.length() < 6) {
-                toast("Пароль должен быть не короче 6 символов.");
-                return;
-            }
-            primary.setEnabled(false);
-            primary.setText("Проверяю сервер…");
-            // Сначала убеждаемся, что по адресу живёт именно сервер Tsuyu:
-            // иначе вместо «404» человек получает понятное объяснение.
-            com.tsuyu.messenger.net.TsuyuServerClient.checkServer(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
-                @Override public void onSuccess(org.json.JSONObject health) {
-                    primary.setText(authFormIsRegister ? R.string.auth_register : R.string.auth_login);
-                    if (authFormIsRegister) {
-                        com.tsuyu.messenger.net.TsuyuServerClient.register(username, pass, authCallback(primary, true));
-                    } else {
-                        com.tsuyu.messenger.net.TsuyuServerClient.login(username, pass, authCallback(primary, false));
+            try {
+                String srv = serverInput == null || serverInput.getText() == null
+                        ? "" : serverInput.getText().toString().trim();
+                if (srv.isEmpty()) {
+                    authSay(authStatus, "Введите адрес вашего сервера (например, my-app.up.railway.app).", true);
+                    return;
+                }
+                com.tsuyu.messenger.util.Settings.putString("server_url", srv);
+                com.tsuyu.messenger.net.TsuyuServerClient.setServerUrl(srv);
+                String username = usernameInput.getText() == null ? ""
+                        : usernameInput.getText().toString().trim().replaceFirst("^@", "").toLowerCase(java.util.Locale.ROOT);
+                String pass = password.getText() == null ? "" : password.getText().toString();
+                if (!username.matches("[a-z0-9_]{3,20}")) {
+                    authSay(authStatus, "Юзернейм: 3–20 символов, латиница, цифры и _.", true);
+                    return;
+                }
+                if (pass.length() < 6) {
+                    authSay(authStatus, "Пароль должен быть не короче 6 символов.", true);
+                    return;
+                }
+                primary.setEnabled(false);
+                authSay(authStatus, "Проверяю сервер " + com.tsuyu.messenger.net.TsuyuServerClient.getServerUrl() + " …", false);
+                // Сначала убеждаемся, что по адресу живёт именно сервер Tsuyu:
+                // вместо молчания или «404» экран показывает, что происходит.
+                com.tsuyu.messenger.net.TsuyuServerClient.checkServer(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
+                    @Override public void onSuccess(org.json.JSONObject health) {
+                        authSay(authStatus, authFormIsRegister ? "Сервер на связи. Создаю аккаунт…" : "Сервер на связи. Вхожу…", false);
+                        if (authFormIsRegister) {
+                            com.tsuyu.messenger.net.TsuyuServerClient.register(username, pass, authCallback(primary, true, authStatus));
+                        } else {
+                            com.tsuyu.messenger.net.TsuyuServerClient.login(username, pass, authCallback(primary, false, authStatus));
+                        }
                     }
-                }
-                @Override public void onError(String error) {
-                    primary.setEnabled(true);
-                    primary.setText(authFormIsRegister ? R.string.auth_register : R.string.auth_login);
-                    toast(error);
-                }
-            });
+                    @Override public void onError(String error) {
+                        primary.setEnabled(true);
+                        authSay(authStatus, error, true);
+                    }
+                });
+            } catch (Throwable e) {
+                primary.setEnabled(true);
+                authSay(authStatus, "Ошибка: " + e.getMessage(), true);
+                com.tsuyu.messenger.TsuyuLogs.crash(this, "экран входа", e);
+            }
         });
         switchMode.setOnClickListener(v -> { authFormIsRegister = !authFormIsRegister; showAuth(); });
     }
 
-    private com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject> authCallback(MaterialButton primary, boolean register) {
+    private com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject> authCallback(MaterialButton primary, boolean register, TextView status) {
         return new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
             @Override public void onSuccess(org.json.JSONObject result) {
                 primary.setEnabled(true);
                 org.json.JSONObject user = result.optJSONObject("user");
                 String newUid = user != null ? user.optString("uid", user.optString("id")) : "";
                 if (newUid.isEmpty()) {
-                    toast("Сервер ответил без аккаунта. Попробуйте ещё раз.");
+                    authSay(status, "Сервер ответил без аккаунта. Попробуйте ещё раз.", true);
                     return;
                 }
                 persistSession(newUid, result.optString("token"));
-                toast(register ? "Аккаунт @" + (user.optString("username")) + " создан!"
-                        : "С возвращением, @" + user.optString("username") + "!");
+                authSay(status, register ? "Аккаунт создан! Открываю Tsuyu…" : "Вход выполнен! Открываю Tsuyu…", false);
                 handleSignedIn(newUid);
             }
             @Override public void onError(String error) {
                 primary.setEnabled(true);
-                toast(error == null || error.isEmpty()
-                        ? (register ? "Не удалось создать аккаунт." : "Не удалось войти.") : error);
+                authSay(status, error == null || error.isEmpty()
+                        ? (register ? "Не удалось создать аккаунт." : "Не удалось войти.") : error, true);
             }
         };
+    }
+
+    /** Пишет статус прямо на экран входа (тосты легко не заметить — строка не пропадёт). */
+    private void authSay(TextView status, String text, boolean error) {
+        if (status == null) { toast(text); return; }
+        status.setText(text);
+        status.setTextColor(ContextCompat.getColor(this,
+                error ? R.color.tsuyu_red : R.color.tsuyu_secondary));
     }
 
     /** Ящик навигации доступен только после входа: до него — ни свайпом, ни кнопкой. */
