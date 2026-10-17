@@ -118,7 +118,12 @@ async def _judge(persona, question, drafts, vision=False):
     judge_messages = [
         {"role": "system", "content": persona},
         {"role": "user", "content": (
-            "Дай итоговый ответ человеку по черновикам ниже. ЖЁСТКИЕ ПРАВИЛА:\n"
+            "Сначала ОБДУМАЙ внутри <think>...</think>: что именно спрашивают; "
+            "какие конкретные факты и признаки есть в черновиках (для фото — внешность, "
+            "цвет волос и глаз, одежда, оружие, символы, позы, стиль рисунка); какие "
+            "кандидаты возможны и какой подтверждается признаками лучше всех; где "
+            "черновики противоречат друг другу. После </think> дай итоговый ответ "
+            "человеку по этим правилам:\n"
             "1. Ответь прямо на вопрос. Если спрашивают «кто это?» — итог НАЗЫВАЕТ, "
             "кто это (самое конкретное имя/название из черновиков), а не уходит в "
             "«какой-то персонаж из тёмного фэнтези». Если черновики называют имя — "
@@ -155,17 +160,17 @@ async def answer(persona, history, user_text, images=None):
         raise RuntimeError("no units")
 
     drafts, emergency = await _collect(
-        units, messages, want=3 if vision else 4, deadline=55.0)
+        units, messages, want=4, deadline=70.0)
     drafts = _diverse(drafts)
     if len(drafts) >= 2:
         return await _judge(persona, user_text, drafts, vision=vision)
     if drafts:
-        return drafts[0][1]
+        return strip_think(drafts[0][1])
     if emergency:
-        return emergency[0][1]
+        return strip_think(emergency[0][1])
     # полный второй шанс всем списком
     drafts, emergency = await _collect(
-        providers.candidates(vision=vision), messages, want=4, deadline=55.0)
+        providers.candidates(vision=vision), messages, want=4, deadline=70.0)
     drafts = _diverse(drafts)
     if len(drafts) >= 2:
         return await _judge(persona, user_text, drafts, vision=vision)

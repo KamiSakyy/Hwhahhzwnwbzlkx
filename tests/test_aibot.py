@@ -9,12 +9,15 @@ from aibot import config, router, tools
 from aibot.memory import Memory
 
 
-def test_units_50_plus_and_vision():
+def test_units_strong_only_and_vision():
     units = config.all_units()
-    assert len(units) >= 50, len(units)
-    assert sum(1 for u in units if u["vision"]) >= 5
+    assert len(units) >= 35, len(units)
+    assert all(u["tier"] >= 3 for u in units), "слабые модели запрещены"
+    assert not any(u["provider"] == "pollinations" for u in units)
+    assert sum(1 for u in units if u["vision"]) >= 6
+    assert sum(1 for u in units if u["think"]) >= 4, "нужны думающие модели"
     names = {u["provider"] for u in units}
-    assert {"mistral", "openrouter", "ovh", "kilo", "llm7", "pollinations"} <= names
+    assert {"mistral", "openrouter", "ovh", "kilo", "llm7"} <= names
 
 
 def test_keys_embedded_shape():

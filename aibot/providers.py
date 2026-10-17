@@ -69,7 +69,7 @@ def _content_to_text(content):
     return ""
 
 
-async def chat(unit, messages, timeout=70.0, max_tokens=2048):
+async def chat(unit, messages, timeout=90.0, max_tokens=4096):
     """Один запрос к модели. Возвращает текст или бросает исключение."""
     headers = {"Content-Type": "application/json"}
     if unit["api_key"]:
@@ -77,11 +77,13 @@ async def chat(unit, messages, timeout=70.0, max_tokens=2048):
     if unit["provider"] == "openrouter":
         headers["HTTP-Referer"] = "https://telegram.org"
         headers["X-Title"] = "Aya"
+    if unit.get("think"):
+        max_tokens = 8192  # думающим моделям нужен запас токенов на рассуждение
     payload = {
         "model": unit["model"],
         "messages": messages,
         "max_tokens": max_tokens,
-        "temperature": 0.85,
+        "temperature": 0.7,
     }
     url = unit["base_url"] + "/chat/completions"
     started = time.time()
