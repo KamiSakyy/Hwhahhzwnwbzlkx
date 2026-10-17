@@ -558,9 +558,10 @@ public final class MainActivity extends AppCompatActivity {
     private void showAuth() {
         if (isFinishing()) return;
         page = "auth";
+        setDrawerLocked(true);
         View root = showScreen(R.layout.screen_auth);
         TextInputEditText serverInput = root.findViewById(R.id.auth_server_url);
-        TextInputEditText email = root.findViewById(R.id.auth_email);
+        TextInputEditText usernameInput = root.findViewById(R.id.auth_email);
         TextInputEditText password = root.findViewById(R.id.auth_password);
         MaterialButton primary = root.findViewById(R.id.auth_primary);
         MaterialButton switchMode = root.findViewById(R.id.auth_switch_mode);
@@ -571,54 +572,79 @@ public final class MainActivity extends AppCompatActivity {
         primary.setText(authFormIsRegister ? R.string.auth_register : R.string.auth_login);
         switchMode.setText(authFormIsRegister ? R.string.auth_have_account : R.string.auth_create_account);
         primary.setOnClickListener(v -> {
-            if (serverInput != null && serverInput.getText() != null) {
-                String srv = serverInput.getText().toString().trim();
-                if (!srv.isEmpty()) {
-                    com.tsuyu.messenger.util.Settings.putString("server_url", srv);
-                    com.tsuyu.messenger.net.TsuyuServerClient.setServerUrl(srv);
-                }
+            String srv = serverInput == null || serverInput.getText() == null
+                    ? "" : serverInput.getText().toString().trim();
+            if (srv.isEmpty()) {
+                toast("Введите адрес вашего сервера (например, my-app.up.railway.app).");
+                return;
             }
-            String mail = email.getText() == null ? "" : email.getText().toString().trim();
+            com.tsuyu.messenger.util.Settings.putString("server_url", srv);
+            com.tsuyu.messenger.net.TsuyuServerClient.setServerUrl(srv);
+            String username = usernameInput.getText() == null ? ""
+                    : usernameInput.getText().toString().trim().replaceFirst("^@", "").toLowerCase(java.util.Locale.ROOT);
             String pass = password.getText() == null ? "" : password.getText().toString();
-            if (mail.isEmpty() || pass.length() < 6) {
-                toast("Введите почту и пароль (не короче 6 символов).");
+            if (!username.matches("[a-z0-9_]{3,20}")) {
+                toast("Юзернейм: 3–20 символов, латиница, цифры и _.");
+                return;
+            }
+            if (pass.length() < 6) {
+                toast("Пароль должен быть не короче 6 символов.");
                 return;
             }
             primary.setEnabled(false);
-            if (authFormIsRegister) {
-                // Автономная регистрация на сервере Tsuyu
-                com.tsuyu.messenger.net.TsuyuServerClient.register(mail, pass, new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
-                    @Override public void onSuccess(org.json.JSONObject result) {
-                        primary.setEnabled(true);
-                        toast("Аккаунт создан на сервере Tsuyu!");
-                        org.json.JSONObject user = result.optJSONObject("user");
-                        String newUid = user != null ? user.optString("uid", user.optString("id")) : "";
-                        persistSession(newUid, result.optString("token"));
-                        handleSignedIn(newUid);
+            primary.setText("Проверяю сервер…");
+            // Сначала убеждаемся, что по адресу живёт именно сервер Tsuyu:
+            // иначе вместо «404» человек получает понятное объяснение.
+            com.tsuyu.messenger.net.TsuyuServerClient.checkServer(new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
+                @Override public void onSuccess(org.json.JSONObject health) {
+                    primary.setText(authFormIsRegister ? R.string.auth_register : R.string.auth_login);
+                    if (authFormIsRegister) {
+                        com.tsuyu.messenger.net.TsuyuServerClient.register(username, pass, authCallback(primary, true));
+                    } else {
+                        com.tsuyu.messenger.net.TsuyuServerClient.login(username, pass, authCallback(primary, false));
                     }
-                    @Override public void onError(String error) {
-                        primary.setEnabled(true);
-                        toast(error == null || error.isEmpty() ? "Не удалось создать аккаунт. Проверьте адрес сервера." : error);
-                    }
-                });
-            } else {
-                com.tsuyu.messenger.net.TsuyuServerClient.login(mail, pass, new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
-                    @Override public void onSuccess(org.json.JSONObject result) {
-                        primary.setEnabled(true);
-                        toast("Вход на сервер выполнен успешно!");
-                        org.json.JSONObject user = result.optJSONObject("user");
-                        String loginUid = user != null ? user.optString("uid", user.optString("id")) : "";
-                        persistSession(loginUid, result.optString("token"));
-                        handleSignedIn(loginUid);
-                    }
-                    @Override public void onError(String error) {
-                        primary.setEnabled(true);
-                        toast(error == null || error.isEmpty() ? "Не удалось войти. Проверьте почту, пароль и адрес сервера." : error);
-                    }
-                });
-            }
+                }
+                @Override public void onError(String error) {
+                    primary.setEnabled(true);
+                    primary.setText(authFormIsRegister ? R.string.auth_register : R.string.auth_login);
+                    toast(error);
+                }
+            });
         });
         switchMode.setOnClickListener(v -> { authFormIsRegister = !authFormIsRegister; showAuth(); });
+    }
+
+    private com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject> authCallback(MaterialButton primary, boolean register) {
+        return new com.tsuyu.messenger.net.TsuyuServerClient.Callback<org.json.JSONObject>() {
+            @Override public void onSuccess(org.json.JSONObject result) {
+                primary.setEnabled(true);
+                org.json.JSONObject user = result.optJSONObject("user");
+                String newUid = user != null ? user.optString("uid", user.optString("id")) : "";
+                if (newUid.isEmpty()) {
+                    toast("Сервер ответил без аккаунта. Попробуйте ещё раз.");
+                    return;
+                }
+                persistSession(newUid, result.optString("token"));
+                toast(register ? "Аккаунт @" + (user.optString("username")) + " создан!"
+                        : "С возвращением, @" + user.optString("username") + "!");
+                handleSignedIn(newUid);
+            }
+            @Override public void onError(String error) {
+                primary.setEnabled(true);
+                toast(error == null || error.isEmpty()
+                        ? (register ? "Не удалось создать аккаунт." : "Не удалось войти.") : error);
+            }
+        };
+    }
+
+    /** Ящик навигации доступен только после входа: до него — ни свайпом, ни кнопкой. */
+    private void setDrawerLocked(boolean locked) {
+        if (drawerLayout != null) {
+            drawerLayout.setDrawerLockMode(locked
+                    ? androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+                    : androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
+        if (locked && drawerLayout != null) closeDrawer();
     }
 
     private void showProfileEditor(boolean newProfile) {
@@ -670,6 +696,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void showHome() {
         if (uid == null) { showAuth(); return; }
+        setDrawerLocked(false);
         isNewProfile = false;
         markNoActiveChat();
         page = "home";
@@ -833,6 +860,27 @@ public final class MainActivity extends AppCompatActivity {
         JSONObject peerJson = d.optJSONObject("peer");
         Profile profile = peerJson != null
                 ? ProfileRepository.fromJson(peerJson, peerUid) : new Profile();
+        // Аватар: берём из кеша по версии, недостающий — один раз качаем с сервера.
+        String avatarVersion = peerJson == null ? "" : peerJson.optString("avatar_v", "");
+        if (!avatarVersion.isEmpty()) {
+            String cachedAvatar = com.tsuyu.messenger.net.AvatarCache.peek(this, peerUid, avatarVersion);
+            if (cachedAvatar != null) {
+                profile.avatarBase64 = cachedAvatar;
+            } else {
+                final String wantPeer = peerUid;
+                final String wantVersion = avatarVersion;
+                com.tsuyu.messenger.net.AvatarCache.load(this, peerUid, avatarVersion, () -> {
+                    ChatSummary s = summaries.get(chatId);
+                    if (s != null && s.peer != null) {
+                        String loaded = com.tsuyu.messenger.net.AvatarCache.peek(this, wantPeer, wantVersion);
+                        if (loaded != null) {
+                            s.peer.avatarBase64 = loaded;
+                            requestChatListRender();
+                        }
+                    }
+                });
+            }
+        }
         if (profile.uid == null) profile.uid = peerUid;
         if ((profile.displayName == null || profile.displayName.trim().isEmpty())
                 && (profile.username == null || profile.username.trim().isEmpty())) {

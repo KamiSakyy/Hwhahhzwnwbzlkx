@@ -47,11 +47,11 @@ public final class TsuyuServerClient {
         Log.i(TAG, "Установлен адрес сервера: " + serverBaseUrl);
     }
 
-    public static void register(String email, String password, Callback<JSONObject> callback) {
+    public static void register(String username, String password, Callback<JSONObject> callback) {
         executor.execute(() -> {
             try {
                 JSONObject body = new JSONObject();
-                body.put("email", email);
+                body.put("username", username);
                 body.put("password", password);
                 JSONObject resp = postJson("/api/auth/register", body);
                 String token = resp.optString("token");
@@ -64,11 +64,11 @@ public final class TsuyuServerClient {
         });
     }
 
-    public static void login(String email, String password, Callback<JSONObject> callback) {
+    public static void login(String username, String password, Callback<JSONObject> callback) {
         executor.execute(() -> {
             try {
                 JSONObject body = new JSONObject();
-                body.put("email", email);
+                body.put("username", username);
                 body.put("password", password);
                 JSONObject resp = postJson("/api/auth/login", body);
                 String token = resp.optString("token");
@@ -77,6 +77,29 @@ public final class TsuyuServerClient {
             } catch (Exception e) {
                 Log.e(TAG, "Ошибка входа на сервере", e);
                 mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    /** Pre-flight check: is there really a Tsuyu server at this address? */
+    public static void checkServer(Callback<JSONObject> callback) {
+        executor.execute(() -> {
+            try {
+                JSONObject resp = getJson("/health");
+                if (!"tsuyu".equals(resp.optString("app"))) {
+                    mainHandler.post(() -> callback.onError(
+                            "По этому адресу отвечает не сервер Tsuyu. Проверьте адрес."));
+                    return;
+                }
+                if (!"ok".equals(resp.optString("status"))) {
+                    mainHandler.post(() -> callback.onError(
+                            "Сервер Tsuyu не готов (нет базы данных). Проверьте деплой."));
+                    return;
+                }
+                mainHandler.post(() -> callback.onSuccess(resp));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(
+                        "Сервер не найден. Проверьте адрес сервера и что он задеплоен на Railway."));
             }
         });
     }

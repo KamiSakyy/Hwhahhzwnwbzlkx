@@ -151,13 +151,15 @@ def _avatar_b64(u: dict) -> str:
     return ""
 
 
-def pub_user(u: dict) -> dict:
-    avatar = _avatar_b64(u)
+def pub_user(u: dict, avatar: bool = False) -> dict:
+    # avatarBase64 is heavy: only single-profile responses include it.
+    # Lists (dialogs/search/contacts) carry avatar_v so clients cache by version.
     return {
         "uid": u["uid"], "id": u["uid"], "username": u["username"] or "",
         "display_name": u["display_name"] or "", "about": u["about"] or "",
         "avatar_url": (f"/api/avatar/{u['uid']}" if u.get("avatar_file") else (u["avatar_url"] or "")),
-        "avatarBase64": avatar, "email": u["email"],
+        "avatar_v": u.get("avatar_file") or "",
+        "avatarBase64": _avatar_b64(u) if avatar else "", "email": u["email"],
         "last_seen": u["last_seen"] or 0,
         "online": (int(time.time() * 1000) - (u["last_seen"] or 0)) < 20_000,
     }
@@ -201,7 +203,7 @@ async def rate_limit_auth(request: Request, call_next):
 
 @app.get("/api/me")
 def me(authorization: str | None = Header(None)):
-    return {"user": pub_user(auth(authorization))}
+    return {"user": pub_user(auth(authorization), avatar=True)}
 
 # online websocket peers: uid -> set[WebSocket]
 WS_PEERS: dict[str, set] = {}
@@ -229,17 +231,20 @@ def ping():
 # ---------------------------------------------------------------- auth
 @app.post("/api/auth/register")
 async def register(req: Request):
+    """Registration by @username + password (email is legacy-optional)."""
     d = await req.json()
-    email = str(d.get("email", "")).strip().lower()
     cred = d.get("pass" + "word", "")
     password = cred if isinstance(cred, str) else ""
-    username = str(d.get("username", "")).strip().lstrip("@").lower() or None
-    if "@" not in email or "." not in email:
-        raise HTTPException(400, "invalid email")
+    username = str(d.get("username", "")).strip().lstrip("@").lower()
+    email = str(d.get("email", "")).strip().lower()
+    if not username and "@" in email:
+        username = email.split("@")[0]
+    if len(username) < 3 or len(username) > 20 or not all(ch.isalnum() or ch == "_" for ch in username):
+        raise HTTPException(400, "Юзернейм: 3–20 символов, латиница, цифры и _")
     if len(password) < 6:
-        raise HTTPException(400, "password too short (min 6)")
-    if username and (len(username) < 3 or not all(ch.isalnum() or ch == "_" for ch in username)):
-        raise HTTPException(400, "bad username")
+        raise HTTPException(400, "Пароль должен быть не короче 6 символов")
+    if not email or "@" not in email:
+        email = f"{username}@tsuyu.local"  # internal only; login is by @username
     uid = uuid.uuid4().hex
     salt = os.urandom(16).hex()
     try:
@@ -248,25 +253,26 @@ async def register(req: Request):
                       " VALUES(?,?,?,?,?,?)",
                       (uid, email, username, _hash(password, salt), salt, now_ms()))
     except sqlite3.IntegrityError:
-        raise HTTPException(409, "email or username already taken")
+        raise HTTPException(409, "Этот @юзернейм уже занят")
     with db() as c:
         u = dict(c.execute("SELECT * FROM users WHERE uid=?", (uid,)).fetchone())
-    return {"token": make_token(uid), "user": pub_user(u)}
+    return {"token": make_token(uid), "user": pub_user(u, avatar=True)}
 
 
 @app.post("/api/auth/login")
 async def login(req: Request):
+    """Login by @username + password (old email accounts still work)."""
     d = await req.json()
-    account = str(d.get("email", "")).strip().lower()
+    account = str(d.get("username", d.get("email", ""))).strip().lstrip("@").lower()
     cred = d.get("pass" + "word", "")
     password = cred if isinstance(cred, str) else ""
     with db() as c:
-        u = c.execute("SELECT * FROM users WHERE email=? OR username=?",
-                      (account, account.lstrip("@"))).fetchone()
+        u = c.execute("SELECT * FROM users WHERE username=? OR email=?",
+                      (account, account)).fetchone()
     if not u or dict(u)["password_hash"] != _hash(password, dict(u)["salt"]):
-        raise HTTPException(401, "wrong email or password")
+        raise HTTPException(401, "Неверный @юзернейм или пароль")
     u = dict(u)
-    return {"token": make_token(u["uid"]), "user": pub_user(u)}
+    return {"token": make_token(u["uid"]), "user": pub_user(u, avatar=True)}
 
 
 # ---------------------------------------------------------------- profile/search
@@ -277,7 +283,7 @@ def get_profile(uid: str, authorization: str | None = Header(None)):
         u = c.execute("SELECT * FROM users WHERE uid=?", (uid,)).fetchone()
     if not u:
         raise HTTPException(404, "user not found")
-    return {"user": pub_user(dict(u))}
+    return {"user": pub_user(dict(u), avatar=True)}
 
 
 @app.post("/api/profile")
@@ -323,7 +329,7 @@ async def save_profile(req: Request, authorization: str | None = Header(None)):
             c.execute("UPDATE users SET username=?, display_name=?, about=? WHERE uid=?",
                       (username or None, display_name, about, me["uid"]))
         u = dict(c.execute("SELECT * FROM users WHERE uid=?", (me["uid"],)).fetchone())
-    return {"user": pub_user(u)}
+    return {"user": pub_user(u, avatar=True)}
 
 
 @app.get("/api/avatar/{uid}")
@@ -426,9 +432,9 @@ def fetch_messages(peer_uid: str, before: int = 0, limit: int = 1000,
             "SELECT * FROM messages WHERE ((sender_uid=? AND recipient_uid=?)"
             " OR (sender_uid=? AND recipient_uid=?))"
             " AND id NOT IN (SELECT message_id FROM message_hidden WHERE uid=?)"
-            " AND (?=0 OR created_at<?) ORDER BY created_at ASC LIMIT ?",
+            " AND (?=0 OR created_at<?) ORDER BY created_at DESC LIMIT ?",
             (me["uid"], peer_uid, peer_uid, me["uid"], me["uid"], before, before, limit)).fetchall()
-    return {"messages": [_msg_out(r) for r in rows]}
+    return {"messages": [_msg_out(r) for r in reversed(rows)]}
 
 
 @app.post("/api/messages/edit")

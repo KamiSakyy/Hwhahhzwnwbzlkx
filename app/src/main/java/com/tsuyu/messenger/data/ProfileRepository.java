@@ -50,7 +50,8 @@ public final class ProfileRepository {
         p.username = user.optString("username");
         p.displayName = user.optString("display_name", user.optString("displayName"));
         p.about = user.optString("about");
-        p.avatarBase64 = user.optString("avatar_url", user.optString("avatarBase64"));
+        String b64 = user.optString("avatarBase64", "");
+        p.avatarBase64 = b64 == null ? "" : b64; // бинарник аватара; путь avatar_url сюда не кладём
         return p;
     }
 

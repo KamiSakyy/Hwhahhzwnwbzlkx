@@ -58,7 +58,7 @@
     <string name="profile_name_hint">Имя</string>
     <string name="profile_username_hint">@юзернейм</string>
     <string name="profile_about_hint">О себе</string>
-    <string name="email_hint">Почта</string>
+    <string name="email_hint">@юзернейм</string>
     <string name="password_hint">Пароль</string>
     <string name="nav_chats">Чаты</string>
     <string name="nav_search">Поиск</string>
