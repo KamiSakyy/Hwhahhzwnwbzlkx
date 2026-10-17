@@ -26,7 +26,9 @@ public final class TsuyuServerClient {
     private static final ExecutorService executor = Executors.newCachedThreadPool();
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private static String serverBaseUrl = "http://10.0.2.2:8080";
+    // Никакого адреса по умолчанию и никаких эмуляторов: сервер — только тот,
+    // который пользователь ввёл сам на экране входа (и он хранится в настройках).
+    private static String serverBaseUrl = "";
     private static String authToken = "";
 
     public interface Callback<T> {
@@ -545,6 +547,9 @@ public final class TsuyuServerClient {
     }
 
     public static JSONObject postJson(String endpoint, JSONObject payload) throws Exception {
+        if (serverBaseUrl == null || serverBaseUrl.isEmpty()) {
+            throw new Exception("Адрес сервера не задан. Введите его на экране входа.");
+        }
         URL url = new URL(serverBaseUrl + endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -585,6 +590,9 @@ public final class TsuyuServerClient {
     }
 
     public static JSONObject getJson(String endpoint) throws Exception {
+        if (serverBaseUrl == null || serverBaseUrl.isEmpty()) {
+            throw new Exception("Адрес сервера не задан. Введите его на экране входа.");
+        }
         URL url = new URL(serverBaseUrl + endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
