@@ -33,6 +33,8 @@ def parse_tags(text):
     clean = TAG_SEARCH.sub("", clean)
     clean = TAG_BROWSE.sub("", clean)
     clean = TAG_IMAGE.sub("", clean)
+    clean = re.sub(r"\s+—\s*\.", ".", clean)   # дырки вида «чтобы сказать — .»
+    clean = re.sub(r"\s+—\s*,", ",", clean)
     out["clean"] = re.sub(r"\n{3,}", "\n\n", clean).strip()
     return out
 

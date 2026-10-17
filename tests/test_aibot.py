@@ -72,6 +72,15 @@ def test_looks_like_image():
     assert not tools.looks_like_image(b"")
 
 
+def test_dedupe_and_no_persona_prompt():
+    dup = "Он стоит с мечом. Он стоит с мечом.\n\nОн стоит с мечом."
+    assert router.dedupe(dup).count("Он стоит с мечом") == 1
+    from aibot.persona import SYSTEM_PROMPT
+    for word in ("Ая", "девушк", "характер", "личность", "отыгрыв"):
+        assert word not in SYSTEM_PROMPT
+    assert "<search>" in SYSTEM_PROMPT and "<image>" in SYSTEM_PROMPT
+
+
 def test_strip_internal():
     assert router.strip_internal("Как языковая модель, я отвечу: да") != ""
     assert "модель" not in router.strip_internal("Я обычная девушка~")

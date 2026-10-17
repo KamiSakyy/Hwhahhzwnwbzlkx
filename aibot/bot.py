@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Telegram-бот Ая: текст, фото, документы, видео, голосовые."""
+"""Telegram-бот: текст, фото, документы, видео, голосовые."""
 import asyncio
 import base64
 import io
@@ -125,7 +125,7 @@ async def _handle(update, user_text, images=None):
     except Exception:
         try:
             await update.message.reply_text(
-                "Ой… у меня на секунду всё поплыло перед глазами >_< Напиши ещё раз, ладно?")
+                "Что-то пошло не так. Попробуй ещё раз.")
         except Exception:
             pass
     finally:
@@ -150,13 +150,12 @@ def _group_allows(update):
 async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     memory.clear(update.effective_user.id)
     await update.message.reply_text(
-        "Привет! Я Ая~ Рада, что ты зашёл. Рассказывай, что у тебя на уме, "
-        "или скинь фотку — всё посмотрю, всё обсудим (≧◡≦)")
+        "Привет. Пиши текстом или присылай фото, файл, видео, голосовое — посмотрю и отвечу.")
 
 
 async def on_reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     memory.clear(update.effective_user.id)
-    await update.message.reply_text("Всё, выкинула из головы наш разговор~ Начинаем с чистого листа!")
+    await update.message.reply_text("История разговора очищена.")
 
 
 async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -171,7 +170,7 @@ async def on_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file = await photo.get_file()
     data = bytes(await file.download_as_bytearray())
     uri = "data:image/jpeg;base64," + base64.b64encode(data).decode()
-    caption = update.message.caption or "Посмотри, что тут? Расскажи своими словами~"
+    caption = update.message.caption or "Что на этом фото? Ответь конкретно."
     memory.add(update.effective_user.id, "user", "(прислал фото) " + caption)
     await _handle(update, caption, images=[uri])
 
@@ -202,7 +201,7 @@ def _extract_text(name, data):
 async def on_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     doc = update.message.document
     if doc.file_size and doc.file_size > 20 * 1024 * 1024:
-        await update.message.reply_text("Файл великоват для меня, до 20 МБ могу взять~")
+        await update.message.reply_text("Файл слишком большой: могу принять до 20 МБ.")
         return
     file = await doc.get_file()
     data = bytes(await file.download_as_bytearray())
@@ -255,7 +254,7 @@ async def on_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if video is None:
         return
     if video.file_size and video.file_size > 20 * 1024 * 1024:
-        await update.message.reply_text("Видео тяжеловато, до 20 МБ смогу посмотреть~")
+        await update.message.reply_text("Видео слишком большое: могу принять до 20 МБ.")
         return
     file = await video.get_file()
     tmp = tempfile.mktemp(suffix=".mp4", prefix="aya_vid_")
@@ -301,7 +300,7 @@ async def on_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = bytes(await file.download_as_bytearray())
     text = await _transcribe_voice(data)
     if not text:
-        await update.message.reply_text("Мм, не расслышала тебя >_< Напиши текстом, хорошо?")
+        await update.message.reply_text("Не удалось распознать голосовое. Напиши текстом.")
         return
     memory.add(update.effective_user.id, "user", text)
     await update.message.reply_text(f"🎧 «{text}»", reply_to_message_id=update.message.message_id)
