@@ -73,7 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/aot
-          gcc -std=c11 -O2 -I engine/src/main/cpp \
+          gcc -std=c11 -O0 -g -I engine/src/main/cpp \
             engine/src/main/cpp/lsrt.c tools/aot_host_test.c \
             -o build/aot/aot_host -ldl -lm 2>&1 | tee aot-build.log
           ./build/aot/aot_host build/aot/liblsapp.so > build/aot/actual.txt 2> build/aot/actual.err || {

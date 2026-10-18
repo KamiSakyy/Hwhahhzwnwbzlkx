@@ -1833,7 +1833,8 @@ static ls_value api_new_cell(ls_value *args) {
 
 static ls_value api_new_closure(ls_value *args) {
     void *code = (void *)(uintptr_t)args[0];
-    ls_closure *c = lsrt_new_closure(code, (uint32_t)args[1], (uint32_t)args[2]);
+    ls_closure *c = lsrt_new_closure(code, (uint32_t)ls_as_num(args[1]),
+                                     (uint32_t)ls_as_num(args[2]));
     return (ls_value)(uintptr_t)c;
 }
 
