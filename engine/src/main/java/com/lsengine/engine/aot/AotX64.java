@@ -355,7 +355,7 @@ public final class AotX64 extends AotBackend {
     @Override
     public void callApi(int apiIndex, int argsDisp) {
         // rdi = адрес аргументов, r10 = адрес функции
-        rex(true, RDI, FP);
+        rex(true, RDI, RBP);
         u8(0x8D);
         modrmMem(RDI, RBP, argsDisp);
         rex(true, R10, 0);
