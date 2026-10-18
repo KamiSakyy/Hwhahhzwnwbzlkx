@@ -126,8 +126,10 @@ public final class AotElf {
         int dataSize = module.data.length;
 
         int textOffset = PAGE;
-        int rodataOffset = align(textOffset + textSize, 16);
-        int dataOffset = align(rodataOffset + rodataSize, 16);
+        // Смещения сегментов должны быть кратны странице: иначе загрузчик
+        // не сможет отобразить библиотеку в память.
+        int rodataOffset = align(textOffset + textSize, PAGE);
+        int dataOffset = align(rodataOffset + rodataSize, PAGE);
 
         // Динамические секции размещаются в записываемом сегменте.
         List<String> symbolNames = new ArrayList<>();
