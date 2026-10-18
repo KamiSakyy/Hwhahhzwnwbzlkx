@@ -24,7 +24,8 @@ jobs:
           gradle assembleRelease --stacktrace > build.log 2>&1
           code=$?
           tail -n 60 build.log
-          echo "GRADLE_EXIT=$code" 
+          grep -E "error:|e: file|FAILURE|What went wrong|Execution failed|Caused by" build.log | head -n 40 | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g' | while IFS= read -r l; do echo "::error::$l"; done
+          grep -A3 "What went wrong" build.log | head -n 20 | sed 's/%/%25/g' | while IFS= read -r l; do echo "::error::$l"; done
           exit $code
       - name: Upload build log
         if: always()
