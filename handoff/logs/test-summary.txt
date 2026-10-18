@@ -17,15 +17,15 @@ com.lsengine.engine.BytecodeFileTest                         tests=3 failures=0 
 com.lsengine.engine.CodecTest                                tests=4 failures=0 errors=0 skipped=0
 com.lsengine.engine.LanguageTest                             tests=12 failures=1 errors=0 skipped=0
   [FAILURE] compoundAssignmentAndTernary
-      com.lsengine.engine.lang.LsError: Ожидалось имя метода, получено 'мало'
-      	at app//com.lsengine.engine.lang.Parser.expect(Parser.java:60)
-      	at app//com.lsengine.engine.lang.Parser.parseSuffixedExpr(Parser.java:521)
-      	at app//com.lsengine.engine.lang.Parser.parsePower(Parser.java:497)
-      	at app//com.lsengine.engine.lang.Parser.parseUnary(Parser.java:493)
-      	at app//com.lsengine.engine.lang.Parser.parseMultiplicative(Parser.java:478)
-      	at app//com.lsengine.engine.lang.Parser.parseAdditive(Parser.java:468)
-      	at app//com.lsengine.engine.lang.Parser.parseConcat(Parser.java:458)
-      	at app//com.lsengine.engine.lang.Parser.parseComparison(Parser.java:448)
-      	at app//com.lsengine.engine.lang.Parser.parseNot(Parser.java:444)
-      	at app//com.lsengine.engine.lang.Parser.parseAnd(Parser.java:429)
-      	at app//com.lsengine.engine.lang.Parser.parseOr(Parser.java:419)
+      com.lsengine.engine.vm.VmException: переполнение стека (внутренняя ошибка VM)
+      	at app//com.lsengine.engine.vm.Vm.pop(Vm.java:157)
+      	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:298)
+      	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
+      	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
+      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:34)
+      	at app//com.lsengine.engine.LanguageTest.compoundAssignmentAndTernary(LanguageTest.java:115)
+      	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+      	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+      	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+      	at java.base@17.0.20.1/java.lang.reflect.Method.invoke(Method.java:569)
+      	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
