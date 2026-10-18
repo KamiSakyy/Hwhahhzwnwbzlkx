@@ -290,7 +290,7 @@ public final class Vm {
                 break;
             case Opcodes.GET_FIELD: {
                 Value t = pop();
-                push(indexOf(t, constantString(b)));
+                push(indexOf(t, Value.of(constantString(b))));
                 break;
             }
             case Opcodes.SET_FIELD: {
@@ -498,17 +498,19 @@ public final class Vm {
             }
             case Opcodes.FOR_PREP: {
                 Value it = pop();
-                Value f;
+                Value iterValue;
                 Value s = Value.nil();
                 Value ctrl = Value.nil();
                 if (it.isTable()) {
-                    f = Value.of(new IteratorState(it.asTable()));
+                    iterValue = Value.of(new IteratorState(it.asTable()));
+                } else if (it.isIterator()) {
+                    iterValue = it;
                 } else if (it.isFunction() || it.isNative()) {
-                    f = it;
+                    iterValue = it;
                 } else {
                     throw new VmException("некорректный итератор: " + it.typeName());
                 }
-                push(f);
+                push(iterValue);
                 push(s);
                 push(ctrl);
                 break;
@@ -531,10 +533,10 @@ public final class Vm {
                         val = st.table.get(key);
                     }
                 } else {
-                    Value[] res = call(iterFn, new Value[]{state, control});
-                    if (res != null && res.length > 0 && !res[0].isNil()) {
-                        key = res[0];
-                        val = res.length > 1 ? res[1] : Value.nil();
+                    Value res = call(iterFn, new Value[]{state, control});
+                    if (res != null && !res.isNil()) {
+                        key = res;
+                        val = Value.nil();
                     }
                 }
                 if (key == null) {

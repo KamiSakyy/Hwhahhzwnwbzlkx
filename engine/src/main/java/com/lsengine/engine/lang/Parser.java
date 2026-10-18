@@ -70,12 +70,12 @@ public final class Parser {
         advance();
     }
 
-    private void expectOp(String op) throws LsError {
+    private Token expectOp(String op) throws LsError {
         Token t = peek();
         if (!t.isOp(op)) {
             throw new LsError("Ожидалось '" + op + "', получено '" + t.text + "'", t.line, t.col);
         }
-        advance();
+        return advance();
     }
 
     private <T extends Ast.Node> T pos(T node, Token t) {

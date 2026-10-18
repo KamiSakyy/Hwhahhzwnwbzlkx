@@ -273,6 +273,13 @@ public final class AxmlPatcher {
                 | ((data[offset + 3] & 0xFF) << 24);
     }
 
+    private static void writeIntLE(ByteArrayOutputStream out, int value) {
+        out.write(value & 0xFF);
+        out.write((value >> 8) & 0xFF);
+        out.write((value >> 16) & 0xFF);
+        out.write((value >> 24) & 0xFF);
+    }
+
     private static void writeIntLE(byte[] data, int offset, int value) {
         data[offset] = (byte) (value & 0xFF);
         data[offset + 1] = (byte) ((value >> 8) & 0xFF);

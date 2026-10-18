@@ -182,10 +182,10 @@ public final class Compiler {
     private int compileFunction(String name, List<String> params, Ast.Block body) {
         FuncState parent = current;
         FuncState fs = new FuncState(parent, name, params.size());
-        for (String p : params) {
-            fs.declareLocal(p);
-        }
         current = fs;
+        for (String p : params) {
+            declareLocal(p);
+        }
         compileBlock(body);
         emit(Opcodes.RETURN, 0, 0);
         current = parent;

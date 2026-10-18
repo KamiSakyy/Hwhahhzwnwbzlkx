@@ -138,7 +138,7 @@ public final class Ast {
 
     public static final class VarDecl extends Stat {
         public final String name;
-        public final Expr value;
+        public Expr value;
 
         public VarDecl(String name, Expr value) {
             this.name = name;
