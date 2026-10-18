@@ -54,11 +54,11 @@ public final class ApkSignerV2 {
         ByteArrayOutputStream digests = new ByteArrayOutputStream();
         writeIntLE(digests, ALGORITHM_RSA_PKCS1_SHA256);
         writeIntLE(digests, contentDigest.length);
-        digests.write(contentDigest);
+        digests.write(contentDigest, 0, contentDigest.length);
 
         ByteArrayOutputStream certificates = new ByteArrayOutputStream();
         writeIntLE(certificates, certDer.length);
-        certificates.write(certDer);
+        certificates.write(certDer, 0, certDer.length);
 
         ByteArrayOutputStream signedData = new ByteArrayOutputStream();
         writeLengthPrefixed(signedData, digests.toByteArray());
@@ -75,7 +75,7 @@ public final class ApkSignerV2 {
         ByteArrayOutputStream signatures = new ByteArrayOutputStream();
         writeIntLE(signatures, ALGORITHM_RSA_PKCS1_SHA256);
         writeIntLE(signatures, signatureBytes.length);
-        signatures.write(signatureBytes);
+        signatures.write(signatureBytes, 0, signatureBytes.length);
 
         ByteArrayOutputStream signer = new ByteArrayOutputStream();
         writeLengthPrefixed(signer, signedDataBytes);
@@ -93,25 +93,25 @@ public final class ApkSignerV2 {
         long pairSize = 4L + v2BlockValue.length;
         writeLongLE(block, pairSize);
         writeIntLE(block, APK_SIGNATURE_SCHEME_V2_BLOCK_ID);
-        block.write(v2BlockValue);
+        block.write(v2BlockValue, 0, v2BlockValue.length);
         byte[] blockBytes = block.toByteArray();
 
         int totalSize = 8 + blockBytes.length + 8 + APK_SIG_BLOCK_MAGIC.length;
         ByteArrayOutputStream signingBlock = new ByteArrayOutputStream();
         writeLongLE(signingBlock, totalSize - 8L);
-        signingBlock.write(blockBytes);
+        signingBlock.write(blockBytes, 0, blockBytes.length);
         writeLongLE(signingBlock, totalSize - 8L);
-        signingBlock.write(APK_SIG_BLOCK_MAGIC);
+        signingBlock.write(APK_SIG_BLOCK_MAGIC, 0, APK_SIG_BLOCK_MAGIC.length);
         byte[] signingBlockBytes = signingBlock.toByteArray();
 
         // --- сборка итогового файла ---
         ByteArrayOutputStream result = new ByteArrayOutputStream(apk.length + signingBlockBytes.length);
-        result.write(beforeCentralDir);
-        result.write(signingBlockBytes);
-        result.write(centralDir);
+        result.write(beforeCentralDir, 0, beforeCentralDir.length);
+        result.write(signingBlockBytes, 0, signingBlockBytes.length);
+        result.write(centralDir, 0, centralDir.length);
         byte[] finalEocd = eocd.clone();
         writeIntLE(finalEocd, 16, cdOffset + signingBlockBytes.length);
-        result.write(finalEocd);
+        result.write(finalEocd, 0, finalEocd.length);
         return result.toByteArray();
     }
 
@@ -154,7 +154,7 @@ public final class ApkSignerV2 {
 
     private static void writeLengthPrefixed(ByteArrayOutputStream out, byte[] data) {
         writeIntLE(out, data.length);
-        out.write(data);
+        out.write(data, 0, data.length);
     }
 
     private static void writeShortLE(ByteArrayOutputStream out, int value) {

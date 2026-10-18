@@ -26,7 +26,7 @@ public final class BytecodeFile {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(bos);
-            out.write(MAGIC);
+            out.write(MAGIC, 0, MAGIC.length);
             out.writeByte(VERSION);
             out.writeUTF(chunk.name == null ? "main" : chunk.name);
 
@@ -56,7 +56,7 @@ public final class BytecodeFile {
                     out.writeShort(slot);
                 }
                 out.writeInt(f.code.length);
-                out.write(f.code);
+                out.write(f.code, 0, f.code.length);
                 out.writeShort(f.upvalues.size());
                 for (Chunk.Upval u : f.upvalues) {
                     out.writeBoolean(u.fromParentLocal);

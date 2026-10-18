@@ -130,8 +130,8 @@ public final class AxmlPatcher {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(manifest.length + 64);
         out.write(manifest, 0, headerSize);
-        out.write(newPool);
-        out.write(tail);
+        out.write(newPool, 0, newPool.length);
+        out.write(tail, 0, tail.length);
         byte[] result = out.toByteArray();
         writeIntLE(result, 4, result.length);
         return result;
@@ -216,7 +216,7 @@ public final class AxmlPatcher {
         }
         // данные строк
         for (byte[] raw : encoded) {
-            out.write(raw);
+            out.write(raw, 0, raw.length);
         }
         byte[] result = out.toByteArray();
         if (result.length != newChunkSize) {

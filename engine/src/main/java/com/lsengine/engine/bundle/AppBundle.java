@@ -36,7 +36,7 @@ public final class AppBundle {
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try (DataOutputStream out = new DataOutputStream(bos)) {
-            out.write(MAGIC);
+            out.write(MAGIC, 0, MAGIC.length);
             out.writeByte(VERSION);
             out.writeUTF(appName == null ? "" : appName);
             out.writeUTF(packageName == null ? "" : packageName);
@@ -46,13 +46,13 @@ public final class AppBundle {
             out.writeUTF(description == null ? "" : description);
             out.writeUTF(entryFile == null ? "main.ls" : entryFile);
             out.writeInt(bytecode.length);
-            out.write(bytecode);
+            out.write(bytecode, 0, bytecode.length);
             out.writeInt(files.size());
             for (Map.Entry<String, byte[]> entry : files.entrySet()) {
                 out.writeUTF(entry.getKey());
                 byte[] data = entry.getValue();
                 out.writeInt(data.length);
-                out.write(data);
+                out.write(data, 0, data.length);
             }
         }
         return bos.toByteArray();

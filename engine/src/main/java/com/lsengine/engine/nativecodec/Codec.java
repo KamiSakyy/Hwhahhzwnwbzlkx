@@ -111,7 +111,7 @@ public final class Codec {
             byte[] encrypted = cipher.doFinal(compressed);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            out.write(MAGIC);
+            out.write(MAGIC, 0, MAGIC.length);
             out.write(1);
             out.write(1);
             out.write(0);
@@ -121,8 +121,8 @@ public final class Codec {
             out.write((size >> 8) & 0xFF);
             out.write((size >> 16) & 0xFF);
             out.write((size >> 24) & 0xFF);
-            out.write(iv);
-            out.write(encrypted);
+            out.write(iv, 0, iv.length);
+            out.write(encrypted, 0, encrypted.length);
             return out.toByteArray();
         } catch (Exception e) {
             throw new CodecException("не удалось упаковать контейнер", e);

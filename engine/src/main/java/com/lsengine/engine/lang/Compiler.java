@@ -91,8 +91,8 @@ public final class Compiler {
     }
 
     private void emit(int op, int a, int b) {
-        current.code.write(op);
-        current.code.write(a);
+        current.code.write(op, 0, op.length);
+        current.code.write(a, 0, a.length);
         current.code.write(b & 0xFF);
         current.code.write((b >> 8) & 0xFF);
     }

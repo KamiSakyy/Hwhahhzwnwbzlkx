@@ -1528,6 +1528,21 @@ ls_value lsrt_for_iter_value(ls_value iter, ls_value ctrl, ls_value *out) {
 /* ------------------------------------------------------------------ */
 
 /*
+ * Вызывает глобальную функцию программы по имени (update, draw, ...).
+ */
+ls_value lsrt_call_global(const char *name, ls_value *args, int argc) {
+    ls_table *g = lsrt_globals();
+    if (!g || !name) {
+        return LS_NIL;
+    }
+    ls_value fn = lsrt_table_get_str(g, name);
+    if (ls_is_nil(fn)) {
+        return LS_NIL;
+    }
+    return lsrt_call_value(fn, args, argc);
+}
+
+/*
  * Вызывает замыкание сгенерированного кода или встроенную функцию.
  * Раскладка аргументов та же, что и у API: args[-1] — количество.
  */

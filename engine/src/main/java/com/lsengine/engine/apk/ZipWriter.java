@@ -103,8 +103,8 @@ public final class ZipWriter {
             writeIntLE(out, raw.length);
             writeShortLE(out, nameBytes.length);
             writeShortLE(out, 0);             // extra length
-            out.write(nameBytes);
-            out.write(payload);
+            out.write(nameBytes, 0, nameBytes.length);
+            out.write(payload, 0, payload.length);
         }
 
         int cdOffset = out.size();
@@ -132,7 +132,7 @@ public final class ZipWriter {
             writeShortLE(out, 0);             // internal attributes
             writeIntLE(out, 0);               // external attributes
             writeIntLE(out, localOffset);
-            out.write(nameBytes);
+            out.write(nameBytes, 0, nameBytes.length);
         }
         int cdSize = out.size() - cdOffset;
         int eocdOffset = out.size();

@@ -115,7 +115,7 @@ public class AotTest {
 
     private static void write(File file, byte[] data) throws IOException {
         try (FileOutputStream out = new FileOutputStream(file)) {
-            out.write(data);
+            out.write(data, 0, data.length);
         }
     }
 }

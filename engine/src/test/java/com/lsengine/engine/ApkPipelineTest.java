@@ -207,7 +207,7 @@ public class ApkPipelineTest {
             for (String s : STRINGS) {
                 byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
                 out.write(s.length());
-                out.write(bytes.length);
+                out.write(bytes.length, 0, bytes.length.length);
                 out.write(bytes, 0, bytes.length);
                 out.write(0);
             }

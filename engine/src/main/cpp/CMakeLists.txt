@@ -28,3 +28,19 @@ target_link_options(lscodec PRIVATE -Wl,--gc-sections)
 
 find_library(log-lib log)
 target_link_libraries(lscodec ${log-lib})
+
+# Нативный рантайм AOT: машинный код сгенерированных библиотек исполняется
+# им напрямую, интерпретатора в рантайме нет.
+add_library(lsrt SHARED
+        lsrt.c
+        lsrt_jni.cpp
+)
+
+target_include_directories(lsrt PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_compile_options(lsrt PRIVATE -O2 -fvisibility=hidden -ffunction-sections -fdata-sections)
+target_link_options(lsrt PRIVATE -Wl,--gc-sections)
+
+target_link_libraries(lsrt ${log-lib} dl)

@@ -331,6 +331,9 @@ double lsrt_check_number(ls_value v, const char *op);
 /* Вызывает значение-функцию (замыкание или встроенную функцию). */
 ls_value lsrt_call_value(ls_value fn, ls_value *args, int argc);
 
+/* Вызывает глобальную функцию программы по имени. */
+ls_value lsrt_call_global(const char *name, ls_value *args, int argc);
+
 /* Сборка мусора. */
 void lsrt_gc(void);
 void lsrt_gc_maybe(void);
