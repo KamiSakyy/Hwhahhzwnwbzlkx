@@ -1,0 +1,7 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_gradient" android:orientation="vertical" android:padding="28dp" android:gravity="center">
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="◆ NOVA" android:textColor="#00E5FF" android:textSize="22sp" android:textStyle="bold"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Введите PIN" style="@style/H1"/>
+<com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" style="@style/Input"><com.google.android.material.textfield.TextInputEditText android:id="@+id/etPin" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="PIN" android:inputType="numberPassword" android:gravity="center" android:textColor="#FFF" android:textSize="22sp"/></com.google.android.material.textfield.TextInputLayout>
+<Button android:id="@+id/btnUnlock" android:layout_width="match_parent" android:layout_height="58dp" android:layout_marginTop="18dp" android:text="Разблокировать" android:backgroundTint="#7C4DFF"/>
+<Button android:id="@+id/btnBio" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="10dp" style="@style/BtnOutline" android:text="👆 По отпечатку / лицу"/>
+</LinearLayout>

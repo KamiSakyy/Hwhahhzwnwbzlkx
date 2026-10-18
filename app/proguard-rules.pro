@@ -1,0 +1,7 @@
+-keep class org.web3j.** { *; }
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**
+-dontwarn org.web3j.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keep class com.novawallet.app.** { *; }
