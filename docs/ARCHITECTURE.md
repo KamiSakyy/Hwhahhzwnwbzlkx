@@ -8,8 +8,9 @@
                                │ использует
 ┌──────────────────────── модуль engine (чистая Java) ───────────────────┐
 │  lang/   Lexer → Parser → Compiler → Chunk → BytecodeFile (LSB1)      │
-│  vm/     Value, Table, Closure, Cell, Vm, Builtins                     │
-│  runtime/LsRuntime  (игровой цикл + API: draw/input/time/ui/sound)     │
+│  vm/     Value, Table, Closure, Cell, Vm, Builtins  (fallback)          │
+│  aot/    AotCompiler, AotX64, AotArm64, AotElf, AotIsa, AotValues      │
+│  runtime/LsRuntime (VM) и AotHost (машинный код) — общий игровой цикл  │
 │  bundle/AppBundle   (метаданные + байт-код + исходники)                │
 │  nativecodec/Codec  (JNI: AES-256 + LZMA; ключи только в native)      │
 │  apk/    ZipWriter, ApkSignerV2, AxmlPatcher, ApkBuilder              │
@@ -20,7 +21,10 @@
    │ native liblscodec.so      │        │ модуль runtime (оболочка APK) │
    │ aes.c  codec.cpp  lzma/   │        │ RuntimeActivity               │
    │ lskeys.h — ключи AES и   │        │ RuntimeSurfaceView            │
-   │ RSA только здесь          │        └───────────────────────────────┘
+   │ RSA только здесь          │        │  ↓ lib/<abi>/liblsapp.so      │
+   │ native liblsrt.so         │        │  ↓ машинный код программы      │
+   │ lsrt.c  lsrt_jni.cpp      │        └───────────────────────────────┘
+   │ (рантайм AOT + JNI)       │
    └──────────────────────────┘
 ```
 
@@ -55,9 +59,59 @@ magic "LSB1" | version | count
 * Общий цикл `for k, v in pairs(t)` реализован опкодами `FOR_PREP/FOR_ITER`.
 * Лимит шагов — 500 млн, чтобы бесконечный цикл не вешал приложение.
 
-## 2. Рантайм
+## 2. AOT: компиляция в машинный код
 
-`runtime/LsRuntime` — мост между VM и платформой:
+Основной путь исполнения — ** Ahead-of-Time компиляция в настоящий машинный код**.
+Интерпретатора в рантайме нет.
+
+| Файл | Ответственность |
+|---|---|
+| `aot/AotIsa.java` | Единый интерфейс бэкенда: регистры, конвенция вызова, раскладка кадра |
+| `aot/AotBackend.java` | Общее поведение: метки, переходы, fixup-и адресов |
+| `aot/AotX64.java` | Бэкенд x86-64 (System V AMD64) |
+| `aot/AotArm64.java` | Бэкенд AArch64 (AAPCS64) |
+| `aot/AotElf.java` | Сборка ELF64: PT_LOAD/PT_DYNAMIC, `.text`, `.rodata`, `.dynsym`, `.dynstr`, `.hash`, `.dynamic`, fixup-и переходов и адресов |
+| `aot/AotCompiler.java` | Трансляция байт-кода LS в машинный код: стек, локалы, upvalues, вызовы, замыкания, переходы |
+| `aot/AotValues.java` | Представление значений: NaN-boxing, строки, таблицы, замыкания |
+| `aot/AotApi.java` | Номера слотов таблицы API (совпадают с `ls_api_table` в C) |
+| `aot/AotModule.java` | Публичный вход: `AotModule.compile(chunk, arm64)` → байты ELF |
+| `aot/AotRuntime.java` | Java-мост: загрузка библиотеки, передача таблицы API, вызов `update`/`draw` |
+| `aot/LsPlatform.java` | Платформа для нативного кода: рисование, ввод, время, кнопки |
+
+### Схема исполнения
+
+```
+Chunk (LSB1)
+   │  AotCompiler: разбор опкодов, стековые слоты, локалы, upvalues
+   ▼
+машинный код (.text)  +  .rodata (строки, числа)  +  таблица API
+   │  AotElf: ELF64, без символов и отладочных секций
+   ▼
+liblsapp.so  ──dlopen──▶  lsrt_init() + ls_register_api(таблица)
+   │
+   └─▶ точка входа: верхний уровень программы, затем update(dt) / draw()
+```
+
+### Соглашения
+
+* Значение — 64 бита: `0x7FF8000000000000 | tag<<48 | payload48`; число — double.
+* Аргументы вызова: `args[-1]` — количество, `args[-2]` — замыкание.
+* Таблица API: 55 записей `ls_value (*)(ls_value *args)`; адреса копируются в
+  таблицу скомпилированной библиотеки сразу после загрузки — ни одного
+  импорта, ни одной зависимости от символов рантайма.
+* Раскладка кадра: x86-64 — `rbp` как база, локалы ниже, исходящая область
+  аргументов выше; AArch64 — `x29` как база, `x19/x20/x21` — календарь/счётчик.
+
+### Проверка в CI
+
+Шаг «AOT: машинный код и сверка с виртуальной машиной» собирает библиотеку
+из тестовой программы, запускает её нативным хостом (`dlopen` + таблица API)
+и сравнивает вывод с выводом виртуальной машины (`diff`). Расхождение —
+провал сборки. Дополнительно печатается дизассемблирование (`objdump -d`).
+
+## 3. Рантайм
+
+`runtime/LsRuntime` — мост между VM и платформой (fallback-путь):
 
 * `Surface` (платформа-independent): `clear/rect/circle/line/text/width/height`.
 * `Host`: `log(String)`, `beep(freq, millis)`.
@@ -66,10 +120,15 @@ magic "LSB1" | version | count
 * Кнопки UI: `ui.button(x, y, w, h, label, callback)` — рисуются и обрабатываются
   вводом внутри движка, без Android-зависимостей.
 
-Именно поэтому один и тот же байт-код одинаково работает в предпросмотре
-(`app`) и в собранном приложении (`runtime`).
+`runtime/AotHost` — такой же мост, но для машинного кода: он реализует
+`LsPlatform` и вызывает глобальные функции программы `update`/`draw` в
+скомпилированной библиотеке.
 
-## 3. Контейнер `.c` и native-кодек
+Именно поэтому один и тот же исходник одинаково работает в предпросмотре
+(`app`) и в собранном приложении (`runtime`) — в обоих случаях это машинный
+код, а различается только способ его загрузки (из памяти или из APK).
+
+## 4. Контейнер `.c` и native-кодек
 
 | Файл | Ответственность |
 |---|---|
@@ -91,17 +150,20 @@ Java-часть `Codec` — тонкий мост: в приложении ра�
 Java-fallback существует исключительно для JVM-тестов (и работает с отдельным
 тестовым ключом, настоящих ключей в Java нет).
 
-## 4. Офлайн-сборщик APK
+## 5. Офлайн-сборщик APK
 
 ```
 sources ──▶ Compiler ──▶ Chunk ──▶ BytecodeFile ──▶ AppBundle(LSB1)
                                                     │
                                     Codec.seal ────┘ (LSC1: LZMA + AES-256)
                                                     │
+                    AotModule.compile ──▶ lib/<abi>/liblsapp.so
+                                                    │
    shell.apk (assets/runtime/shell.apk) ───────────┤
                                                     ▼
                              ApkBuilder: unzip → patch AndroidManifest.xml
                                           → assets/lsapp.c + assets/lsapp.meta
+                                          → lib/<abi>/liblsapp.so (машинный код)
                                           → ZipWriter (deflate, CRC32)
                                           → ApkSignerV2 (RSA-2048, схема v2)
                                                     ▼
@@ -117,9 +179,10 @@ sources ──▶ Compiler ──▶ Chunk ──▶ BytecodeFile ──▶ AppB
 * `AxmlPatcher` — разбор бинарного `AndroidManifest.xml`: строковый пул
   (UTF-8/UTF-16), замена `package` и `label`, `extractNativeLibs = true`.
 
-## 5. Сборка и CI
+## 6. Сборка и CI
 
 * AGP 8.13.0, Gradle 8.14.3, JDK 17, compile/target SDK 36, min SDK 26.
 * Material 1.14.0 (Material 3), NDK 27.0.12077973, CMake 3.22.1, три ABI.
 * `.github/workflows/build-apk.yml`: нативный тест кодека → модульные тесты →
-  сборка → `apksigner verify` → проверка размера → `handoff/`.
+  сверка AOT с виртуальной машиной → сборка → `apksigner verify` → проверка
+  размера → `handoff/`.

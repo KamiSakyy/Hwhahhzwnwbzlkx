@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import com.lsengine.engine.lang.Chunk;
 import com.lsengine.engine.lang.Compiler;
 import com.lsengine.engine.lang.LsError;
+import com.lsengine.engine.vm.Value;
 import com.lsengine.engine.vm.Vm;
 
 import org.junit.Test;
@@ -55,7 +56,8 @@ public class LanguageTest {
         assertTrue(vm.globals().get("b").asNumber() != 0);
         assertTrue(vm.globals().get("c").asNumber() != 0);
         assertTrue(vm.globals().get("d").isNil());
-        assertTrue(vm.globals().get("e").isNumber());
+        // not даёт логическое значение (а не число)
+        assertTrue(vm.globals().get("e").type() == Value.BOOL);
     }
 
     @Test

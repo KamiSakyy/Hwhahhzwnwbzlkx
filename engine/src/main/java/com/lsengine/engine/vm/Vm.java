@@ -407,16 +407,20 @@ public final class Vm {
             case Opcodes.JMP:
                 f.pc += signed16(b) * Opcodes.INSTRUCTION_SIZE;
                 break;
-            case Opcodes.JZ:
-                if (!peek(0).isTruthy()) {
+            case Opcodes.JZ: {
+                boolean truthy = pop().isTruthy();
+                if (!truthy) {
                     f.pc += signed16(b) * Opcodes.INSTRUCTION_SIZE;
                 }
                 break;
-            case Opcodes.JNZ:
-                if (peek(0).isTruthy()) {
+            }
+            case Opcodes.JNZ: {
+                boolean truthy = pop().isTruthy();
+                if (truthy) {
                     f.pc += signed16(b) * Opcodes.INSTRUCTION_SIZE;
                 }
                 break;
+            }
             case Opcodes.CALL: {
                 int argc = a;
                 int calleeIdx = sp - argc - 1;

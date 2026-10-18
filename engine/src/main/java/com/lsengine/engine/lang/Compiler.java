@@ -507,14 +507,14 @@ public final class Compiler {
             for (Ast.Expr arg : call.args) {
                 compileExpr(arg);
             }
-            emit(Opcodes.CALL, 0, call.args.size() + 1);
+            emit(Opcodes.CALL, call.args.size() + 1, 0);
             return;
         }
         compileExpr(call.callee);
         for (Ast.Expr arg : call.args) {
             compileExpr(arg);
         }
-        emit(Opcodes.CALL, 0, call.args.size());
+        emit(Opcodes.CALL, call.args.size(), 0);
     }
 
     private void compileTable(Ast.TableLit table) throws LsError {

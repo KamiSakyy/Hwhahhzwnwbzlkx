@@ -149,7 +149,8 @@ public final class ZipWriter {
     }
 
     private static byte[] deflate(byte[] data) {
-        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+        // nowrap = true: в ZIP нужен «сырой» поток DEFLATE, без zlib-заголовка.
+        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION, true);
         try {
             deflater.setInput(data);
             deflater.finish();

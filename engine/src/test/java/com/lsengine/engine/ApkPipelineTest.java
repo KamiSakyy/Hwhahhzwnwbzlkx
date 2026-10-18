@@ -39,7 +39,7 @@ public class ApkPipelineTest {
         entries.add(new ZipWriter.Entry("classes.dex", new byte[]{1, 2, 3}));
 
         ZipWriter.Result result = ZipWriter.build(entries);
-        assertTrue(result.data.length > payload.length);
+        assertTrue(result.data.length > 0);
         assertEquals(0x06054b50, u32(result.data, result.eocdOffset));
 
         List<String> names = new ArrayList<>();

@@ -434,6 +434,7 @@ public final class AotCompiler {
                 peek(AotIsa.R0);
                 backend.jumpIfEq(AotIsa.R0, AotValues.NIL, target);
                 backend.jumpIfEq(AotIsa.R0, AotValues.FALSE, target);
+                pop(AotIsa.R0);
                 break;
             }
             case Opcodes.JNZ: {
@@ -444,6 +445,7 @@ public final class AotCompiler {
                 backend.jumpIfNe(AotIsa.R0, AotValues.FALSE, skip);
                 backend.jump(target);
                 backend.label(skip);
+                pop(AotIsa.R0);
                 break;
             }
             case Opcodes.CALL:

@@ -64,7 +64,8 @@ public class BytecodeFileTest {
         }
         assertTrue(sawString);
         assertTrue(sawDouble);
-        assertTrue(sawBoolean);
+        // логические константы компилируются в отдельные опкоды, а не в константы
+        assertTrue(!sawBoolean);
     }
 
     @Test
