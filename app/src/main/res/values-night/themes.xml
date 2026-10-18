@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.LsStudio" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#FFA5B4FC</item>
+        <item name="colorOnPrimary">#FF1E1B4B</item>
+        <item name="colorPrimaryContainer">#FF312E81</item>
+        <item name="colorOnPrimaryContainer">#FFE0E7FF</item>
+        <item name="colorSecondary">#FF7DD3FC</item>
+        <item name="colorOnSecondary">#FF082F49</item>
+        <item name="colorSecondaryContainer">#FF0C4A6E</item>
+        <item name="colorOnSecondaryContainer">#FFCFFAFE</item>
+        <item name="colorTertiary">#FF5EEAD4</item>
+        <item name="colorOnTertiary">#FF042F2E</item>
+        <item name="colorTertiaryContainer">#FF115E59</item>
+        <item name="colorOnTertiaryContainer">#FFCCFBF1</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.LsStudio.Dialog</item>
+    </style>
+</resources>

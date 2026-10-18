@@ -1,0 +1,54 @@
+# LS Studio — движок: компилятор языка LS, виртуальная машина, нативный кодекс контейнера .c
+# и офлайн-сборщик APK. Всё работает без сети.
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.lsengine.runtime'
+    compileSdk 36
+    ndkVersion project.findProperty('ls.ndkVersion') ?: '27.0.12077973'
+
+    defaultConfig {
+        applicationId 'com.lsengine.runtime'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=none'
+            }
+        }
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path '../engine/src/main/cpp/CMakeLists.txt'
+            version project.findProperty('ls.cmakeVersion') ?: '3.22.1'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation project(':engine')
+}

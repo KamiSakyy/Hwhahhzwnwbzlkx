@@ -1,0 +1,92 @@
+# LS Studio — редактор/IDE: исходники LS, живой предпросмотр, офлайн-сборщик APK.
+plugins {
+    id 'com.android.application'
+}
+
+// Готовый рантайм (минимальный APK-оболочка) вшивается в ассеты редактора:
+// офлайн-сборщик берёт его за основу и подменяет содержимое зашифрованным байт-кодом.
+def runtimeApkProvider = layout.buildDirectory.dir('generated/runtimeAssets')
+
+tasks.register('copyRuntimeApk', Copy) {
+    dependsOn ':runtime:assembleRelease'
+    from("${rootDir}/runtime/build/outputs/apk/release/runtime-release-unsigned.apk") {
+        rename { 'shell.apk' }
+    }
+    into(runtimeApkProvider.dir('runtime'))
+}
+
+android {
+    namespace 'com.lsengine.studio'
+    compileSdk 36
+    ndkVersion project.findProperty('ls.ndkVersion') ?: '27.0.12077973'
+
+    defaultConfig {
+        applicationId 'com.lsengine.studio'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=none'
+            }
+        }
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path '../engine/src/main/cpp/CMakeLists.txt'
+            version project.findProperty('ls.cmakeVersion') ?: '3.22.1'
+        }
+    }
+
+    sourceSets {
+        main {
+            assets.srcDir(runtimeApkProvider)
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/*.kotlin_module', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE*', 'META-INF/NOTICE*']
+        }
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+tasks.named('preBuild') {
+    dependsOn 'copyRuntimeApk'
+}
+
+dependencies {
+    implementation project(':engine')
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.14.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'androidx.fragment:fragment:1.8.5'
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.8.7'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.dynamicanimation:dynamicanimation:1.0.0'
+}

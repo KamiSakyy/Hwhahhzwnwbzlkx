@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_primary">#FF4F46E5</color>
+    <color name="brand_on_primary">#FFFFFFFF</color>
+    <color name="brand_primary_container">#FFE0E7FF</color>
+    <color name="brand_on_primary_container">#FF1E1B4B</color>
+    <color name="brand_secondary">#FF0EA5E9</color>
+    <color name="brand_on_secondary">#FFFFFFFF</color>
+    <color name="brand_secondary_container">#FFCFFAFE</color>
+    <color name="brand_on_secondary_container">#FF082F49</color>
+    <color name="brand_tertiary">#FF14B8A6</color>
+    <color name="brand_on_tertiary">#FFFFFFFF</color>
+    <color name="brand_tertiary_container">#FFCCFBF1</color>
+    <color name="brand_on_tertiary_container">#FF042F2E</color>
+
+    <color name="surface_light">#FFF7F7FB</color>
+    <color name="surface_dark">#FF0E0E14</color>
+    <color name="surface_container_light">#FFFFFFFF</color>
+    <color name="surface_container_dark">#FF17171F</color>
+    <color name="outline_light">#FFD9D9E3</color>
+    <color name="outline_dark">#FF2E2E3A</color>
+
+    <color name="hero_start">#FF4F46E5</color>
+    <color name="hero_middle">#FF7C3AED</color>
+    <color name="hero_end">#FF0EA5E9</color>
+
+    <color name="code_background">#FF12121A</color>
+    <color name="code_gutter">#FF1B1B26</color>
+    <color name="code_text">#FFE6E6F0</color>
+    <color name="code_keyword">#FFC792EA</color>
+    <color name="code_string">#FFC3E88D</color>
+    <color name="code_number">#FFF78C6C</color>
+    <color name="code_comment">#FF697098</color>
+    <color name="code_function">#FF82AAFF</color>
+    <color name="code_current_line">#1A82AAFF</color>
+
+    <color name="status_ok">#FF10B981</color>
+    <color name="status_error">#FFEF4444</color>
+</resources>

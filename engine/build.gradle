@@ -1,0 +1,44 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.lsengine.engine'
+    compileSdk 36
+    ndkVersion project.findProperty('ls.ndkVersion') ?: '27.0.12077973'
+
+    defaultConfig {
+        minSdk 26
+        targetSdk 36
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    // Нативный кодекс (liblscodec.so) собирается модулями app и runtime:
+    // движок остаётся чистой Java-библиотекой, чтобы не было дублей .so.
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
