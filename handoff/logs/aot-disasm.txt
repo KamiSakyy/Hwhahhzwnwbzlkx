@@ -19,7 +19,7 @@ Disassembly of section .text:
     1034:	00 00 00 
     1037:	48 89 85 38 ff ff ff 	mov    %rax,-0xc8(%rbp)
     103e:	49 8d bd 40 ff ff ff 	lea    -0xc0(%r13),%rdi
-    1045:	4c 8b 15 8c 58 00 00 	mov    0x588c(%rip),%r10        # 68d8 <ls_app_api_table+0xd0>
+    1045:	4c 8b 15 5c 71 00 00 	mov    0x715c(%rip),%r10        # 81a8 <ls_app_api_table+0xd0>
     104c:	49 ff d2             	rex.WB call *%r10
     104f:	49 89 c4             	mov    %rax,%r12
     1052:	48 8b 8d d0 ff ff ff 	mov    -0x30(%rbp),%rcx
@@ -51,7 +51,7 @@ Disassembly of section .text:
     10f5:	00 00 00 
     10f8:	48 89 85 38 ff ff ff 	mov    %rax,-0xc8(%rbp)
     10ff:	49 8d bd 40 ff ff ff 	lea    -0xc0(%r13),%rdi
-    1106:	4c 8b 15 53 58 00 00 	mov    0x5853(%rip),%r10        # 6960 <ls_app_api_table+0x158>
+    1106:	4c 8b 15 23 71 00 00 	mov    0x7123(%rip),%r10        # 8230 <ls_app_api_table+0x158>
     110d:	49 ff d2             	rex.WB call *%r10
     1110:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1117:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -99,7 +99,7 @@ Disassembly of section .text:
     120a:	00 00 00 
     120d:	48 89 85 38 ff ff ff 	mov    %rax,-0xc8(%rbp)
     1214:	49 8d bd 40 ff ff ff 	lea    -0xc0(%r13),%rdi
-    121b:	4c 8b 15 ee 56 00 00 	mov    0x56ee(%rip),%r10        # 6910 <ls_app_api_table+0x108>
+    121b:	4c 8b 15 be 6f 00 00 	mov    0x6fbe(%rip),%r10        # 81e0 <ls_app_api_table+0x108>
     1222:	49 ff d2             	rex.WB call *%r10
     1225:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     122c:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -127,7 +127,7 @@ Disassembly of section .text:
     12aa:	00 00 00 
     12ad:	48 89 85 38 ff ff ff 	mov    %rax,-0xc8(%rbp)
     12b4:	49 8d bd 40 ff ff ff 	lea    -0xc0(%r13),%rdi
-    12bb:	4c 8b 15 f6 56 00 00 	mov    0x56f6(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    12bb:	4c 8b 15 c6 6f 00 00 	mov    0x6fc6(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     12c2:	49 ff d2             	rex.WB call *%r10
     12c5:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     12cc:	00 f8 7f 
@@ -156,7 +156,7 @@ Disassembly of section .text:
     1365:	00 00 00 
     1368:	48 89 85 38 ff ff ff 	mov    %rax,-0xc8(%rbp)
     136f:	49 8d bd 40 ff ff ff 	lea    -0xc0(%r13),%rdi
-    1376:	4c 8b 15 93 55 00 00 	mov    0x5593(%rip),%r10        # 6910 <ls_app_api_table+0x108>
+    1376:	4c 8b 15 63 6e 00 00 	mov    0x6e63(%rip),%r10        # 81e0 <ls_app_api_table+0x108>
     137d:	49 ff d2             	rex.WB call *%r10
     1380:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1387:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -184,7 +184,7 @@ Disassembly of section .text:
     1405:	00 00 00 
     1408:	48 89 85 38 ff ff ff 	mov    %rax,-0xc8(%rbp)
     140f:	49 8d bd 40 ff ff ff 	lea    -0xc0(%r13),%rdi
-    1416:	4c 8b 15 9b 55 00 00 	mov    0x559b(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    1416:	4c 8b 15 6b 6e 00 00 	mov    0x6e6b(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     141d:	49 ff d2             	rex.WB call *%r10
     1420:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     1427:	00 f8 7f 
@@ -200,7 +200,7 @@ Disassembly of section .text:
     1469:	00 00 00 
     146c:	48 89 85 38 ff ff ff 	mov    %rax,-0xc8(%rbp)
     1473:	49 8d bd 40 ff ff ff 	lea    -0xc0(%r13),%rdi
-    147a:	4c 8b 15 87 54 00 00 	mov    0x5487(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    147a:	4c 8b 15 57 6d 00 00 	mov    0x6d57(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     1481:	49 ff d2             	rex.WB call *%r10
     1484:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     148b:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -230,7 +230,7 @@ Disassembly of section .text:
     14e4:	00 00 00 
     14e7:	48 89 85 58 ff ff ff 	mov    %rax,-0xa8(%rbp)
     14ee:	49 8d bd 60 ff ff ff 	lea    -0xa0(%r13),%rdi
-    14f5:	4c 8b 15 dc 53 00 00 	mov    0x53dc(%rip),%r10        # 68d8 <ls_app_api_table+0xd0>
+    14f5:	4c 8b 15 ac 6c 00 00 	mov    0x6cac(%rip),%r10        # 81a8 <ls_app_api_table+0xd0>
     14fc:	49 ff d2             	rex.WB call *%r10
     14ff:	49 89 c4             	mov    %rax,%r12
     1502:	49 8b 85 10 00 00 00 	mov    0x10(%r13),%rax
@@ -253,7 +253,7 @@ Disassembly of section .text:
     1575:	00 00 00 
     1578:	48 89 85 58 ff ff ff 	mov    %rax,-0xa8(%rbp)
     157f:	49 8d bd 60 ff ff ff 	lea    -0xa0(%r13),%rdi
-    1586:	4c 8b 15 7b 53 00 00 	mov    0x537b(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    1586:	4c 8b 15 4b 6c 00 00 	mov    0x6c4b(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     158d:	49 ff d2             	rex.WB call *%r10
     1590:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1597:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -295,7 +295,7 @@ Disassembly of section .text:
     1644:	00 00 00 
     1647:	48 89 85 48 ff ff ff 	mov    %rax,-0xb8(%rbp)
     164e:	49 8d bd 50 ff ff ff 	lea    -0xb0(%r13),%rdi
-    1655:	4c 8b 15 7c 52 00 00 	mov    0x527c(%rip),%r10        # 68d8 <ls_app_api_table+0xd0>
+    1655:	4c 8b 15 4c 6b 00 00 	mov    0x6b4c(%rip),%r10        # 81a8 <ls_app_api_table+0xd0>
     165c:	49 ff d2             	rex.WB call *%r10
     165f:	49 89 c4             	mov    %rax,%r12
     1662:	48 8b 8d c8 ff ff ff 	mov    -0x38(%rbp),%rcx
@@ -322,7 +322,7 @@ Disassembly of section .text:
     16db:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     16e2:	00 f8 7f 
     16e5:	48 89 85 e0 ff ff ff 	mov    %rax,-0x20(%rbp)
-    16ec:	48 8d 0d 3d 50 00 00 	lea    0x503d(%rip),%rcx        # 6730 <ls_app_entry+0x4f1a>
+    16ec:	48 8d 0d 0d 69 00 00 	lea    0x690d(%rip),%rcx        # 8000 <ls_app_entry+0x67ea>
     16f3:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     16fa:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     1701:	00 f8 7f 
@@ -331,7 +331,7 @@ Disassembly of section .text:
     170d:	48 b8 00 00 00 00 00 	movabs $0x0,%rax
     1714:	00 00 00 
     1717:	48 89 85 50 ff ff ff 	mov    %rax,-0xb0(%rbp)
-    171e:	48 8d 05 6b 4f 00 00 	lea    0x4f6b(%rip),%rax        # 6690 <ls_app_entry+0x4e7a>
+    171e:	48 8d 05 db 58 00 00 	lea    0x58db(%rip),%rax        # 7000 <ls_app_entry+0x57ea>
     1725:	48 89 85 58 ff ff ff 	mov    %rax,-0xa8(%rbp)
     172c:	48 b8 03 00 00 00 00 	movabs $0x3,%rax
     1733:	00 00 00 
@@ -340,11 +340,11 @@ Disassembly of section .text:
     1744:	00 00 00 
     1747:	48 89 85 48 ff ff ff 	mov    %rax,-0xb8(%rbp)
     174e:	49 8d bd 50 ff ff ff 	lea    -0xb0(%r13),%rdi
-    1755:	4c 8b 15 4c 52 00 00 	mov    0x524c(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    1755:	4c 8b 15 1c 6b 00 00 	mov    0x6b1c(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     175c:	49 ff d2             	rex.WB call *%r10
-    175f:	48 8d 0d ca 4f 00 00 	lea    0x4fca(%rip),%rcx        # 6730 <ls_app_entry+0x4f1a>
+    175f:	48 8d 0d 9a 68 00 00 	lea    0x689a(%rip),%rcx        # 8000 <ls_app_entry+0x67ea>
     1766:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    176d:	48 8d 0d bc 4f 00 00 	lea    0x4fbc(%rip),%rcx        # 6730 <ls_app_entry+0x4f1a>
+    176d:	48 8d 0d 8c 68 00 00 	lea    0x688c(%rip),%rcx        # 8000 <ls_app_entry+0x67ea>
     1774:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     177b:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1782:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -361,7 +361,7 @@ Disassembly of section .text:
     17cf:	00 00 00 
     17d2:	48 89 85 48 ff ff ff 	mov    %rax,-0xb8(%rbp)
     17d9:	49 8d bd 50 ff ff ff 	lea    -0xb0(%r13),%rdi
-    17e0:	4c 8b 15 51 51 00 00 	mov    0x5151(%rip),%r10        # 6938 <ls_app_api_table+0x130>
+    17e0:	4c 8b 15 21 6a 00 00 	mov    0x6a21(%rip),%r10        # 8208 <ls_app_api_table+0x130>
     17e7:	49 ff d2             	rex.WB call *%r10
     17ea:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     17f1:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -393,7 +393,7 @@ Disassembly of section .text:
     184a:	00 00 00 
     184d:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1854:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    185b:	4c 8b 15 76 50 00 00 	mov    0x5076(%rip),%r10        # 68d8 <ls_app_api_table+0xd0>
+    185b:	4c 8b 15 46 69 00 00 	mov    0x6946(%rip),%r10        # 81a8 <ls_app_api_table+0xd0>
     1862:	49 ff d2             	rex.WB call *%r10
     1865:	49 89 c4             	mov    %rax,%r12
     1868:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
@@ -403,7 +403,7 @@ Disassembly of section .text:
     1880:	00 00 00 
     1883:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     188a:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1891:	4c 8b 15 f0 50 00 00 	mov    0x50f0(%rip),%r10        # 6988 <ls_app_api_table+0x180>
+    1891:	4c 8b 15 c0 69 00 00 	mov    0x69c0(%rip),%r10        # 8258 <ls_app_api_table+0x180>
     1898:	49 ff d2             	rex.WB call *%r10
     189b:	48 89 85 e8 ff ff ff 	mov    %rax,-0x18(%rbp)
     18a2:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
@@ -413,7 +413,7 @@ Disassembly of section .text:
     18ba:	00 00 00 
     18bd:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     18c4:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    18cb:	4c 8b 15 b6 50 00 00 	mov    0x50b6(%rip),%r10        # 6988 <ls_app_api_table+0x180>
+    18cb:	4c 8b 15 86 69 00 00 	mov    0x6986(%rip),%r10        # 8258 <ls_app_api_table+0x180>
     18d2:	49 ff d2             	rex.WB call *%r10
     18d5:	48 89 85 d8 ff ff ff 	mov    %rax,-0x28(%rbp)
     18dc:	48 8d 05 1d f7 ff ff 	lea    -0x8e3(%rip),%rax        # 1000 <ls_app_entry-0x816>
@@ -428,7 +428,7 @@ Disassembly of section .text:
     1913:	00 00 00 
     1916:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     191d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1924:	4c 8b 15 65 50 00 00 	mov    0x5065(%rip),%r10        # 6990 <ls_app_api_table+0x188>
+    1924:	4c 8b 15 35 69 00 00 	mov    0x6935(%rip),%r10        # 8260 <ls_app_api_table+0x188>
     192b:	49 ff d2             	rex.WB call *%r10
     192e:	48 89 c2             	mov    %rax,%rdx
     1931:	48 89 d0             	mov    %rdx,%rax
@@ -442,7 +442,7 @@ Disassembly of section .text:
     1961:	00 00 00 
     1964:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     196b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1972:	4c 8b 15 37 50 00 00 	mov    0x5037(%rip),%r10        # 69b0 <ls_app_api_table+0x1a8>
+    1972:	4c 8b 15 07 69 00 00 	mov    0x6907(%rip),%r10        # 8280 <ls_app_api_table+0x1a8>
     1979:	49 ff d2             	rex.WB call *%r10
     197c:	48 89 d0             	mov    %rdx,%rax
     197f:	49 bc 00 00 00 00 00 	movabs $0x7ffd000000000000,%r12
@@ -454,7 +454,7 @@ Disassembly of section .text:
     19a1:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     19a8:	48 8b 8d e8 ff ff ff 	mov    -0x18(%rbp),%rcx
     19af:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    19b6:	48 8d 0d 7b 4d 00 00 	lea    0x4d7b(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    19b6:	48 8d 0d 4b 66 00 00 	lea    0x664b(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     19bd:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     19c4:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     19cb:	00 f8 7f 
@@ -463,7 +463,7 @@ Disassembly of section .text:
     19d7:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     19de:	00 00 00 
     19e1:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    19e8:	48 8d 05 a5 4c 00 00 	lea    0x4ca5(%rip),%rax        # 6694 <ls_app_entry+0x4e7e>
+    19e8:	48 8d 05 15 56 00 00 	lea    0x5615(%rip),%rax        # 7004 <ls_app_entry+0x57ee>
     19ef:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     19f6:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     19fd:	00 00 00 
@@ -472,11 +472,11 @@ Disassembly of section .text:
     1a0e:	00 00 00 
     1a11:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1a18:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1a1f:	4c 8b 15 82 4f 00 00 	mov    0x4f82(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    1a1f:	4c 8b 15 52 68 00 00 	mov    0x6852(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     1a26:	49 ff d2             	rex.WB call *%r10
-    1a29:	48 8d 0d 08 4d 00 00 	lea    0x4d08(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    1a29:	48 8d 0d d8 65 00 00 	lea    0x65d8(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     1a30:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    1a37:	48 8d 0d fa 4c 00 00 	lea    0x4cfa(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    1a37:	48 8d 0d ca 65 00 00 	lea    0x65ca(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     1a3e:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     1a45:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     1a4c:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -484,11 +484,11 @@ Disassembly of section .text:
     1a5a:	00 00 00 
     1a5d:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1a64:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1a6b:	4c 8b 15 76 4e 00 00 	mov    0x4e76(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    1a6b:	4c 8b 15 46 67 00 00 	mov    0x6746(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     1a72:	49 ff d2             	rex.WB call *%r10
     1a75:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1a7c:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    1a83:	48 8d 0d b6 4c 00 00 	lea    0x4cb6(%rip),%rcx        # 6740 <ls_app_entry+0x4f2a>
+    1a83:	48 8d 0d 86 65 00 00 	lea    0x6586(%rip),%rcx        # 8010 <ls_app_entry+0x67fa>
     1a8a:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     1a91:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     1a98:	00 f8 7f 
@@ -497,7 +497,7 @@ Disassembly of section .text:
     1aa4:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     1aab:	00 00 00 
     1aae:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    1ab5:	48 8d 05 de 4b 00 00 	lea    0x4bde(%rip),%rax        # 669a <ls_app_entry+0x4e84>
+    1ab5:	48 8d 05 4e 55 00 00 	lea    0x554e(%rip),%rax        # 700a <ls_app_entry+0x57f4>
     1abc:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     1ac3:	48 b8 09 00 00 00 00 	movabs $0x9,%rax
     1aca:	00 00 00 
@@ -506,11 +506,11 @@ Disassembly of section .text:
     1adb:	00 00 00 
     1ade:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1ae5:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1aec:	4c 8b 15 b5 4e 00 00 	mov    0x4eb5(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    1aec:	4c 8b 15 85 67 00 00 	mov    0x6785(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     1af3:	49 ff d2             	rex.WB call *%r10
-    1af6:	48 8d 0d 43 4c 00 00 	lea    0x4c43(%rip),%rcx        # 6740 <ls_app_entry+0x4f2a>
+    1af6:	48 8d 0d 13 65 00 00 	lea    0x6513(%rip),%rcx        # 8010 <ls_app_entry+0x67fa>
     1afd:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    1b04:	48 8d 0d 35 4c 00 00 	lea    0x4c35(%rip),%rcx        # 6740 <ls_app_entry+0x4f2a>
+    1b04:	48 8d 0d 05 65 00 00 	lea    0x6505(%rip),%rcx        # 8010 <ls_app_entry+0x67fa>
     1b0b:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     1b12:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1b19:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -546,7 +546,7 @@ Disassembly of section .text:
     1bcb:	00 00 00 
     1bce:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1bd5:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1bdc:	4c 8b 15 d5 4d 00 00 	mov    0x4dd5(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    1bdc:	4c 8b 15 a5 66 00 00 	mov    0x66a5(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     1be3:	49 ff d2             	rex.WB call *%r10
     1be6:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     1bed:	00 f8 7f 
@@ -578,7 +578,7 @@ Disassembly of section .text:
     1c83:	00 00 00 
     1c86:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1c8d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1c94:	4c 8b 15 1d 4d 00 00 	mov    0x4d1d(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    1c94:	4c 8b 15 ed 65 00 00 	mov    0x65ed(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     1c9b:	49 ff d2             	rex.WB call *%r10
     1c9e:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     1ca5:	00 f8 7f 
@@ -590,7 +590,7 @@ Disassembly of section .text:
     1ccb:	00 00 00 
     1cce:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1cd5:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1cdc:	4c 8b 15 fd 4b 00 00 	mov    0x4bfd(%rip),%r10        # 68e0 <ls_app_api_table+0xd8>
+    1cdc:	4c 8b 15 cd 64 00 00 	mov    0x64cd(%rip),%r10        # 81b0 <ls_app_api_table+0xd8>
     1ce3:	49 ff d2             	rex.WB call *%r10
     1ce6:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1ced:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -618,7 +618,7 @@ Disassembly of section .text:
     1d7f:	00 00 00 
     1d82:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1d89:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1d90:	4c 8b 15 69 4b 00 00 	mov    0x4b69(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    1d90:	4c 8b 15 39 64 00 00 	mov    0x6439(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     1d97:	49 ff d2             	rex.WB call *%r10
     1d9a:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     1da1:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
@@ -644,7 +644,7 @@ Disassembly of section .text:
     1e25:	00 00 00 
     1e28:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1e2f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1e36:	4c 8b 15 c3 4a 00 00 	mov    0x4ac3(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    1e36:	4c 8b 15 93 63 00 00 	mov    0x6393(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     1e3d:	49 ff d2             	rex.WB call *%r10
     1e40:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     1e47:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
@@ -670,7 +670,7 @@ Disassembly of section .text:
     1ecb:	00 00 00 
     1ece:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1ed5:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1edc:	4c 8b 15 1d 4a 00 00 	mov    0x4a1d(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    1edc:	4c 8b 15 ed 62 00 00 	mov    0x62ed(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     1ee3:	49 ff d2             	rex.WB call *%r10
     1ee6:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     1eed:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
@@ -678,7 +678,7 @@ Disassembly of section .text:
     1efb:	48 8b 85 e0 ff ff ff 	mov    -0x20(%rbp),%rax
     1f02:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1f09:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    1f10:	48 8d 0d 31 48 00 00 	lea    0x4831(%rip),%rcx        # 6748 <ls_app_entry+0x4f32>
+    1f10:	48 8d 0d 01 61 00 00 	lea    0x6101(%rip),%rcx        # 8018 <ls_app_entry+0x6802>
     1f17:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     1f1e:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     1f25:	00 f8 7f 
@@ -687,7 +687,7 @@ Disassembly of section .text:
     1f31:	48 b8 03 00 00 00 00 	movabs $0x3,%rax
     1f38:	00 00 00 
     1f3b:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    1f42:	48 8d 05 5b 47 00 00 	lea    0x475b(%rip),%rax        # 66a4 <ls_app_entry+0x4e8e>
+    1f42:	48 8d 05 cb 50 00 00 	lea    0x50cb(%rip),%rax        # 7014 <ls_app_entry+0x57fe>
     1f49:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     1f50:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     1f57:	00 00 00 
@@ -696,11 +696,11 @@ Disassembly of section .text:
     1f68:	00 00 00 
     1f6b:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     1f72:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    1f79:	4c 8b 15 28 4a 00 00 	mov    0x4a28(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    1f79:	4c 8b 15 f8 62 00 00 	mov    0x62f8(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     1f80:	49 ff d2             	rex.WB call *%r10
-    1f83:	48 8d 0d be 47 00 00 	lea    0x47be(%rip),%rcx        # 6748 <ls_app_entry+0x4f32>
+    1f83:	48 8d 0d 8e 60 00 00 	lea    0x608e(%rip),%rcx        # 8018 <ls_app_entry+0x6802>
     1f8a:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    1f91:	48 8d 0d b0 47 00 00 	lea    0x47b0(%rip),%rcx        # 6748 <ls_app_entry+0x4f32>
+    1f91:	48 8d 0d 80 60 00 00 	lea    0x6080(%rip),%rcx        # 8018 <ls_app_entry+0x6802>
     1f98:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     1f9f:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     1fa6:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -708,7 +708,7 @@ Disassembly of section .text:
     1fb4:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     1fbb:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     1fc2:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    1fc9:	48 8d 0d 80 47 00 00 	lea    0x4780(%rip),%rcx        # 6750 <ls_app_entry+0x4f3a>
+    1fc9:	48 8d 0d 50 60 00 00 	lea    0x6050(%rip),%rcx        # 8020 <ls_app_entry+0x680a>
     1fd0:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     1fd7:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     1fde:	00 f8 7f 
@@ -717,7 +717,7 @@ Disassembly of section .text:
     1fea:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     1ff1:	00 00 00 
     1ff4:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    1ffb:	48 8d 05 a7 46 00 00 	lea    0x46a7(%rip),%rax        # 66a9 <ls_app_entry+0x4e93>
+    1ffb:	48 8d 05 17 50 00 00 	lea    0x5017(%rip),%rax        # 7019 <ls_app_entry+0x5803>
     2002:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     2009:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     2010:	00 00 00 
@@ -726,11 +726,11 @@ Disassembly of section .text:
     2021:	00 00 00 
     2024:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     202b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2032:	4c 8b 15 6f 49 00 00 	mov    0x496f(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    2032:	4c 8b 15 3f 62 00 00 	mov    0x623f(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     2039:	49 ff d2             	rex.WB call *%r10
-    203c:	48 8d 0d 0d 47 00 00 	lea    0x470d(%rip),%rcx        # 6750 <ls_app_entry+0x4f3a>
+    203c:	48 8d 0d dd 5f 00 00 	lea    0x5fdd(%rip),%rcx        # 8020 <ls_app_entry+0x680a>
     2043:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    204a:	48 8d 0d ff 46 00 00 	lea    0x46ff(%rip),%rcx        # 6750 <ls_app_entry+0x4f3a>
+    204a:	48 8d 0d cf 5f 00 00 	lea    0x5fcf(%rip),%rcx        # 8020 <ls_app_entry+0x680a>
     2051:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     2058:	48 89 8d 30 fe ff ff 	mov    %rcx,-0x1d0(%rbp)
     205f:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -739,9 +739,9 @@ Disassembly of section .text:
     2074:	00 00 00 
     2077:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     207e:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2085:	4c 8b 15 74 48 00 00 	mov    0x4874(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    2085:	4c 8b 15 44 61 00 00 	mov    0x6144(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     208c:	49 ff d2             	rex.WB call *%r10
-    208f:	48 8d 0d a2 46 00 00 	lea    0x46a2(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    208f:	48 8d 0d 72 5f 00 00 	lea    0x5f72(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     2096:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     209d:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     20a4:	00 f8 7f 
@@ -750,7 +750,7 @@ Disassembly of section .text:
     20b0:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     20b7:	00 00 00 
     20ba:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    20c1:	48 8d 05 e1 45 00 00 	lea    0x45e1(%rip),%rax        # 66a9 <ls_app_entry+0x4e93>
+    20c1:	48 8d 05 51 4f 00 00 	lea    0x4f51(%rip),%rax        # 7019 <ls_app_entry+0x5803>
     20c8:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     20cf:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     20d6:	00 00 00 
@@ -759,11 +759,11 @@ Disassembly of section .text:
     20e7:	00 00 00 
     20ea:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     20f1:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    20f8:	4c 8b 15 a9 48 00 00 	mov    0x48a9(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    20f8:	4c 8b 15 79 61 00 00 	mov    0x6179(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     20ff:	49 ff d2             	rex.WB call *%r10
-    2102:	48 8d 0d 2f 46 00 00 	lea    0x462f(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    2102:	48 8d 0d ff 5e 00 00 	lea    0x5eff(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     2109:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    2110:	48 8d 0d 21 46 00 00 	lea    0x4621(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    2110:	48 8d 0d f1 5e 00 00 	lea    0x5ef1(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     2117:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     211e:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     2125:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -771,14 +771,14 @@ Disassembly of section .text:
     2133:	00 00 00 
     2136:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     213d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2144:	4c 8b 15 9d 47 00 00 	mov    0x479d(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    2144:	4c 8b 15 6d 60 00 00 	mov    0x606d(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     214b:	49 ff d2             	rex.WB call *%r10
     214e:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2155:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     215c:	48 8b 85 e0 ff ff ff 	mov    -0x20(%rbp),%rax
     2163:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     216a:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    2171:	48 8d 0d d8 45 00 00 	lea    0x45d8(%rip),%rcx        # 6750 <ls_app_entry+0x4f3a>
+    2171:	48 8d 0d a8 5e 00 00 	lea    0x5ea8(%rip),%rcx        # 8020 <ls_app_entry+0x680a>
     2178:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     217f:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     2186:	00 f8 7f 
@@ -787,7 +787,7 @@ Disassembly of section .text:
     2192:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     2199:	00 00 00 
     219c:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    21a3:	48 8d 05 ff 44 00 00 	lea    0x44ff(%rip),%rax        # 66a9 <ls_app_entry+0x4e93>
+    21a3:	48 8d 05 6f 4e 00 00 	lea    0x4e6f(%rip),%rax        # 7019 <ls_app_entry+0x5803>
     21aa:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     21b1:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     21b8:	00 00 00 
@@ -796,11 +796,11 @@ Disassembly of section .text:
     21c9:	00 00 00 
     21cc:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     21d3:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    21da:	4c 8b 15 c7 47 00 00 	mov    0x47c7(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    21da:	4c 8b 15 97 60 00 00 	mov    0x6097(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     21e1:	49 ff d2             	rex.WB call *%r10
-    21e4:	48 8d 0d 65 45 00 00 	lea    0x4565(%rip),%rcx        # 6750 <ls_app_entry+0x4f3a>
+    21e4:	48 8d 0d 35 5e 00 00 	lea    0x5e35(%rip),%rcx        # 8020 <ls_app_entry+0x680a>
     21eb:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    21f2:	48 8d 0d 57 45 00 00 	lea    0x4557(%rip),%rcx        # 6750 <ls_app_entry+0x4f3a>
+    21f2:	48 8d 0d 27 5e 00 00 	lea    0x5e27(%rip),%rcx        # 8020 <ls_app_entry+0x680a>
     21f9:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     2200:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     2207:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
@@ -810,7 +810,7 @@ Disassembly of section .text:
     2223:	00 00 00 
     2226:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     222d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2234:	4c 8b 15 bd 46 00 00 	mov    0x46bd(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    2234:	4c 8b 15 8d 5f 00 00 	mov    0x5f8d(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     223b:	49 ff d2             	rex.WB call *%r10
     223e:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2245:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -824,7 +824,7 @@ Disassembly of section .text:
     227d:	00 00 00 
     2280:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2287:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    228e:	4c 8b 15 ab 46 00 00 	mov    0x46ab(%rip),%r10        # 6940 <ls_app_api_table+0x138>
+    228e:	4c 8b 15 7b 5f 00 00 	mov    0x5f7b(%rip),%r10        # 8210 <ls_app_api_table+0x138>
     2295:	49 ff d2             	rex.WB call *%r10
     2298:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     229f:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -854,7 +854,7 @@ Disassembly of section .text:
     232b:	00 00 00 
     232e:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2335:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    233c:	4c 8b 15 75 46 00 00 	mov    0x4675(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    233c:	4c 8b 15 45 5f 00 00 	mov    0x5f45(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     2343:	49 ff d2             	rex.WB call *%r10
     2346:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     234d:	00 f8 7f 
@@ -882,7 +882,7 @@ Disassembly of section .text:
     23d7:	00 00 00 
     23da:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     23e1:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    23e8:	4c 8b 15 a1 45 00 00 	mov    0x45a1(%rip),%r10        # 6990 <ls_app_api_table+0x188>
+    23e8:	4c 8b 15 71 5e 00 00 	mov    0x5e71(%rip),%r10        # 8260 <ls_app_api_table+0x188>
     23ef:	49 ff d2             	rex.WB call *%r10
     23f2:	48 89 c2             	mov    %rax,%rdx
     23f5:	48 89 d0             	mov    %rdx,%rax
@@ -896,7 +896,7 @@ Disassembly of section .text:
     2425:	00 00 00 
     2428:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     242f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2436:	4c 8b 15 73 45 00 00 	mov    0x4573(%rip),%r10        # 69b0 <ls_app_api_table+0x1a8>
+    2436:	4c 8b 15 43 5e 00 00 	mov    0x5e43(%rip),%r10        # 8280 <ls_app_api_table+0x1a8>
     243d:	49 ff d2             	rex.WB call *%r10
     2440:	48 89 d0             	mov    %rdx,%rax
     2443:	49 bc 00 00 00 00 00 	movabs $0x7ffd000000000000,%r12
@@ -932,7 +932,7 @@ Disassembly of section .text:
     24f1:	00 00 00 
     24f4:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     24fb:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2502:	4c 8b 15 af 44 00 00 	mov    0x44af(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    2502:	4c 8b 15 7f 5d 00 00 	mov    0x5d7f(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     2509:	49 ff d2             	rex.WB call *%r10
     250c:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     2513:	00 f8 7f 
@@ -940,7 +940,7 @@ Disassembly of section .text:
     251d:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     2524:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     252b:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    2532:	48 8d 0d ff 41 00 00 	lea    0x41ff(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    2532:	48 8d 0d cf 5a 00 00 	lea    0x5acf(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     2539:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     2540:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     2547:	00 f8 7f 
@@ -949,7 +949,7 @@ Disassembly of section .text:
     2553:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     255a:	00 00 00 
     255d:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    2564:	48 8d 05 3e 41 00 00 	lea    0x413e(%rip),%rax        # 66a9 <ls_app_entry+0x4e93>
+    2564:	48 8d 05 ae 4a 00 00 	lea    0x4aae(%rip),%rax        # 7019 <ls_app_entry+0x5803>
     256b:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     2572:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     2579:	00 00 00 
@@ -958,11 +958,11 @@ Disassembly of section .text:
     258a:	00 00 00 
     258d:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2594:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    259b:	4c 8b 15 06 44 00 00 	mov    0x4406(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    259b:	4c 8b 15 d6 5c 00 00 	mov    0x5cd6(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     25a2:	49 ff d2             	rex.WB call *%r10
-    25a5:	48 8d 0d 8c 41 00 00 	lea    0x418c(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    25a5:	48 8d 0d 5c 5a 00 00 	lea    0x5a5c(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     25ac:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    25b3:	48 8d 0d 7e 41 00 00 	lea    0x417e(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    25b3:	48 8d 0d 4e 5a 00 00 	lea    0x5a4e(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     25ba:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     25c1:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     25c8:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -970,11 +970,11 @@ Disassembly of section .text:
     25d6:	00 00 00 
     25d9:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     25e0:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    25e7:	4c 8b 15 fa 42 00 00 	mov    0x42fa(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    25e7:	4c 8b 15 ca 5b 00 00 	mov    0x5bca(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     25ee:	49 ff d2             	rex.WB call *%r10
     25f1:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     25f8:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    25ff:	48 8d 0d 52 41 00 00 	lea    0x4152(%rip),%rcx        # 6758 <ls_app_entry+0x4f42>
+    25ff:	48 8d 0d 22 5a 00 00 	lea    0x5a22(%rip),%rcx        # 8028 <ls_app_entry+0x6812>
     2606:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     260d:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     2614:	00 f8 7f 
@@ -983,7 +983,7 @@ Disassembly of section .text:
     2620:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     2627:	00 00 00 
     262a:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    2631:	48 8d 05 76 40 00 00 	lea    0x4076(%rip),%rax        # 66ae <ls_app_entry+0x4e98>
+    2631:	48 8d 05 e6 49 00 00 	lea    0x49e6(%rip),%rax        # 701e <ls_app_entry+0x5808>
     2638:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     263f:	48 b8 09 00 00 00 00 	movabs $0x9,%rax
     2646:	00 00 00 
@@ -992,11 +992,11 @@ Disassembly of section .text:
     2657:	00 00 00 
     265a:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2661:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2668:	4c 8b 15 39 43 00 00 	mov    0x4339(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    2668:	4c 8b 15 09 5c 00 00 	mov    0x5c09(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     266f:	49 ff d2             	rex.WB call *%r10
-    2672:	48 8d 0d df 40 00 00 	lea    0x40df(%rip),%rcx        # 6758 <ls_app_entry+0x4f42>
+    2672:	48 8d 0d af 59 00 00 	lea    0x59af(%rip),%rcx        # 8028 <ls_app_entry+0x6812>
     2679:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    2680:	48 8d 0d d1 40 00 00 	lea    0x40d1(%rip),%rcx        # 6758 <ls_app_entry+0x4f42>
+    2680:	48 8d 0d a1 59 00 00 	lea    0x59a1(%rip),%rcx        # 8028 <ls_app_entry+0x6812>
     2687:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     268e:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2695:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1025,7 +1025,7 @@ Disassembly of section .text:
     271a:	00 00 00 
     271d:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2724:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    272b:	4c 8b 15 86 42 00 00 	mov    0x4286(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    272b:	4c 8b 15 56 5b 00 00 	mov    0x5b56(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     2732:	49 ff d2             	rex.WB call *%r10
     2735:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     273c:	00 f8 7f 
@@ -1057,7 +1057,7 @@ Disassembly of section .text:
     27d2:	00 00 00 
     27d5:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     27dc:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    27e3:	4c 8b 15 ce 41 00 00 	mov    0x41ce(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    27e3:	4c 8b 15 9e 5a 00 00 	mov    0x5a9e(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     27ea:	49 ff d2             	rex.WB call *%r10
     27ed:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     27f4:	00 f8 7f 
@@ -1110,7 +1110,7 @@ Disassembly of section .text:
     2925:	00 00 00 
     2928:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     292f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2936:	4c 8b 15 2b 40 00 00 	mov    0x402b(%rip),%r10        # 6968 <ls_app_api_table+0x160>
+    2936:	4c 8b 15 fb 58 00 00 	mov    0x58fb(%rip),%r10        # 8238 <ls_app_api_table+0x160>
     293d:	49 ff d2             	rex.WB call *%r10
     2940:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2947:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1146,7 +1146,7 @@ Disassembly of section .text:
     2a07:	00 00 00 
     2a0a:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2a11:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2a18:	4c 8b 15 49 3f 00 00 	mov    0x3f49(%rip),%r10        # 6968 <ls_app_api_table+0x160>
+    2a18:	4c 8b 15 19 58 00 00 	mov    0x5819(%rip),%r10        # 8238 <ls_app_api_table+0x160>
     2a1f:	49 ff d2             	rex.WB call *%r10
     2a22:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2a29:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1170,7 +1170,7 @@ Disassembly of section .text:
     2aa1:	00 00 00 
     2aa4:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2aab:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2ab2:	4c 8b 15 a7 3e 00 00 	mov    0x3ea7(%rip),%r10        # 6960 <ls_app_api_table+0x158>
+    2ab2:	4c 8b 15 77 57 00 00 	mov    0x5777(%rip),%r10        # 8230 <ls_app_api_table+0x158>
     2ab9:	49 ff d2             	rex.WB call *%r10
     2abc:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2ac3:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1206,7 +1206,7 @@ Disassembly of section .text:
     2b83:	00 00 00 
     2b86:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2b8d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2b94:	4c 8b 15 cd 3d 00 00 	mov    0x3dcd(%rip),%r10        # 6968 <ls_app_api_table+0x160>
+    2b94:	4c 8b 15 9d 56 00 00 	mov    0x569d(%rip),%r10        # 8238 <ls_app_api_table+0x160>
     2b9b:	49 ff d2             	rex.WB call *%r10
     2b9e:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2ba5:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1245,7 +1245,7 @@ Disassembly of section .text:
     2c70:	00 00 00 
     2c73:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2c7a:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2c81:	4c 8b 15 a0 3c 00 00 	mov    0x3ca0(%rip),%r10        # 6928 <ls_app_api_table+0x120>
+    2c81:	4c 8b 15 70 55 00 00 	mov    0x5570(%rip),%r10        # 81f8 <ls_app_api_table+0x120>
     2c88:	49 ff d2             	rex.WB call *%r10
     2c8b:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2c92:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1263,7 +1263,7 @@ Disassembly of section .text:
     2ce2:	00 00 00 
     2ce5:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2cec:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2cf3:	4c 8b 15 5e 3c 00 00 	mov    0x3c5e(%rip),%r10        # 6958 <ls_app_api_table+0x150>
+    2cf3:	4c 8b 15 2e 55 00 00 	mov    0x552e(%rip),%r10        # 8228 <ls_app_api_table+0x150>
     2cfa:	49 ff d2             	rex.WB call *%r10
     2cfd:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2d04:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1294,7 +1294,7 @@ Disassembly of section .text:
     2da1:	00 00 00 
     2da4:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2dab:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2db2:	4c 8b 15 4f 3b 00 00 	mov    0x3b4f(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    2db2:	4c 8b 15 1f 54 00 00 	mov    0x541f(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     2db9:	49 ff d2             	rex.WB call *%r10
     2dbc:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2dc3:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1318,7 +1318,7 @@ Disassembly of section .text:
     2e3f:	00 00 00 
     2e42:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2e49:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2e50:	4c 8b 15 b1 3a 00 00 	mov    0x3ab1(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    2e50:	4c 8b 15 81 53 00 00 	mov    0x5381(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     2e57:	49 ff d2             	rex.WB call *%r10
     2e5a:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2e61:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1326,7 +1326,7 @@ Disassembly of section .text:
     2e6f:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     2e76:	48 89 85 c0 ff ff ff 	mov    %rax,-0x40(%rbp)
     2e7d:	e9 7e e1 ff ff       	jmp    1000 <ls_app_entry-0x816>
-    2e82:	48 8d 0d af 38 00 00 	lea    0x38af(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    2e82:	48 8d 0d 7f 51 00 00 	lea    0x517f(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     2e89:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     2e90:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     2e97:	00 f8 7f 
@@ -1335,7 +1335,7 @@ Disassembly of section .text:
     2ea3:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     2eaa:	00 00 00 
     2ead:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    2eb4:	48 8d 05 f3 37 00 00 	lea    0x37f3(%rip),%rax        # 66ae <ls_app_entry+0x4e98>
+    2eb4:	48 8d 05 63 41 00 00 	lea    0x4163(%rip),%rax        # 701e <ls_app_entry+0x5808>
     2ebb:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     2ec2:	48 b8 09 00 00 00 00 	movabs $0x9,%rax
     2ec9:	00 00 00 
@@ -1344,11 +1344,11 @@ Disassembly of section .text:
     2eda:	00 00 00 
     2edd:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2ee4:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2eeb:	4c 8b 15 b6 3a 00 00 	mov    0x3ab6(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    2eeb:	4c 8b 15 86 53 00 00 	mov    0x5386(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     2ef2:	49 ff d2             	rex.WB call *%r10
-    2ef5:	48 8d 0d 3c 38 00 00 	lea    0x383c(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    2ef5:	48 8d 0d 0c 51 00 00 	lea    0x510c(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     2efc:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    2f03:	48 8d 0d 2e 38 00 00 	lea    0x382e(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    2f03:	48 8d 0d fe 50 00 00 	lea    0x50fe(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     2f0a:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     2f11:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     2f18:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -1356,11 +1356,11 @@ Disassembly of section .text:
     2f26:	00 00 00 
     2f29:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2f30:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2f37:	4c 8b 15 aa 39 00 00 	mov    0x39aa(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    2f37:	4c 8b 15 7a 52 00 00 	mov    0x527a(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     2f3e:	49 ff d2             	rex.WB call *%r10
     2f41:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2f48:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    2f4f:	48 8d 0d 0a 38 00 00 	lea    0x380a(%rip),%rcx        # 6760 <ls_app_entry+0x4f4a>
+    2f4f:	48 8d 0d da 50 00 00 	lea    0x50da(%rip),%rcx        # 8030 <ls_app_entry+0x681a>
     2f56:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     2f5d:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     2f64:	00 f8 7f 
@@ -1369,7 +1369,7 @@ Disassembly of section .text:
     2f70:	48 b8 06 00 00 00 00 	movabs $0x6,%rax
     2f77:	00 00 00 
     2f7a:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    2f81:	48 8d 05 30 37 00 00 	lea    0x3730(%rip),%rax        # 66b8 <ls_app_entry+0x4ea2>
+    2f81:	48 8d 05 a0 40 00 00 	lea    0x40a0(%rip),%rax        # 7028 <ls_app_entry+0x5812>
     2f88:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     2f8f:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     2f96:	00 00 00 
@@ -1378,11 +1378,11 @@ Disassembly of section .text:
     2fa7:	00 00 00 
     2faa:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     2fb1:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    2fb8:	4c 8b 15 e9 39 00 00 	mov    0x39e9(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    2fb8:	4c 8b 15 b9 52 00 00 	mov    0x52b9(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     2fbf:	49 ff d2             	rex.WB call *%r10
-    2fc2:	48 8d 0d 97 37 00 00 	lea    0x3797(%rip),%rcx        # 6760 <ls_app_entry+0x4f4a>
+    2fc2:	48 8d 0d 67 50 00 00 	lea    0x5067(%rip),%rcx        # 8030 <ls_app_entry+0x681a>
     2fc9:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    2fd0:	48 8d 0d 89 37 00 00 	lea    0x3789(%rip),%rcx        # 6760 <ls_app_entry+0x4f4a>
+    2fd0:	48 8d 0d 59 50 00 00 	lea    0x5059(%rip),%rcx        # 8030 <ls_app_entry+0x681a>
     2fd7:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     2fde:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     2fe5:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1415,7 +1415,7 @@ Disassembly of section .text:
     3086:	00 00 00 
     3089:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3090:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3097:	4c 8b 15 1a 39 00 00 	mov    0x391a(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    3097:	4c 8b 15 ea 51 00 00 	mov    0x51ea(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     309e:	49 ff d2             	rex.WB call *%r10
     30a1:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     30a8:	00 f8 7f 
@@ -1447,7 +1447,7 @@ Disassembly of section .text:
     3152:	00 00 00 
     3155:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     315c:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3163:	4c 8b 15 f6 37 00 00 	mov    0x37f6(%rip),%r10        # 6960 <ls_app_api_table+0x158>
+    3163:	4c 8b 15 c6 50 00 00 	mov    0x50c6(%rip),%r10        # 8230 <ls_app_api_table+0x158>
     316a:	49 ff d2             	rex.WB call *%r10
     316d:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3174:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1479,7 +1479,7 @@ Disassembly of section .text:
     3214:	00 00 00 
     3217:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     321e:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3225:	4c 8b 15 dc 36 00 00 	mov    0x36dc(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    3225:	4c 8b 15 ac 4f 00 00 	mov    0x4fac(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     322c:	49 ff d2             	rex.WB call *%r10
     322f:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3236:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1487,7 +1487,7 @@ Disassembly of section .text:
     3244:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     324b:	48 89 85 a8 ff ff ff 	mov    %rax,-0x58(%rbp)
     3252:	e9 a9 dd ff ff       	jmp    1000 <ls_app_entry-0x816>
-    3257:	48 8d 0d da 34 00 00 	lea    0x34da(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3257:	48 8d 0d aa 4d 00 00 	lea    0x4daa(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     325e:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3265:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     326c:	00 f8 7f 
@@ -1496,7 +1496,7 @@ Disassembly of section .text:
     3278:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     327f:	00 00 00 
     3282:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3289:	48 8d 05 28 34 00 00 	lea    0x3428(%rip),%rax        # 66b8 <ls_app_entry+0x4ea2>
+    3289:	48 8d 05 98 3d 00 00 	lea    0x3d98(%rip),%rax        # 7028 <ls_app_entry+0x5812>
     3290:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     3297:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     329e:	00 00 00 
@@ -1505,11 +1505,11 @@ Disassembly of section .text:
     32af:	00 00 00 
     32b2:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     32b9:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    32c0:	4c 8b 15 e1 36 00 00 	mov    0x36e1(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    32c0:	4c 8b 15 b1 4f 00 00 	mov    0x4fb1(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     32c7:	49 ff d2             	rex.WB call *%r10
-    32ca:	48 8d 0d 67 34 00 00 	lea    0x3467(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    32ca:	48 8d 0d 37 4d 00 00 	lea    0x4d37(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     32d1:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    32d8:	48 8d 0d 59 34 00 00 	lea    0x3459(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    32d8:	48 8d 0d 29 4d 00 00 	lea    0x4d29(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     32df:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     32e6:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     32ed:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -1517,11 +1517,11 @@ Disassembly of section .text:
     32fb:	00 00 00 
     32fe:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3305:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    330c:	4c 8b 15 d5 35 00 00 	mov    0x35d5(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    330c:	4c 8b 15 a5 4e 00 00 	mov    0x4ea5(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     3313:	49 ff d2             	rex.WB call *%r10
     3316:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     331d:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    3324:	48 8d 0d 3d 34 00 00 	lea    0x343d(%rip),%rcx        # 6768 <ls_app_entry+0x4f52>
+    3324:	48 8d 0d 0d 4d 00 00 	lea    0x4d0d(%rip),%rcx        # 8038 <ls_app_entry+0x6822>
     332b:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3332:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3339:	00 f8 7f 
@@ -1530,7 +1530,7 @@ Disassembly of section .text:
     3345:	48 b8 07 00 00 00 00 	movabs $0x7,%rax
     334c:	00 00 00 
     334f:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3356:	48 8d 05 61 33 00 00 	lea    0x3361(%rip),%rax        # 66be <ls_app_entry+0x4ea8>
+    3356:	48 8d 05 d1 3c 00 00 	lea    0x3cd1(%rip),%rax        # 702e <ls_app_entry+0x5818>
     335d:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     3364:	48 b8 07 00 00 00 00 	movabs $0x7,%rax
     336b:	00 00 00 
@@ -1539,11 +1539,11 @@ Disassembly of section .text:
     337c:	00 00 00 
     337f:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3386:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    338d:	4c 8b 15 14 36 00 00 	mov    0x3614(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    338d:	4c 8b 15 e4 4e 00 00 	mov    0x4ee4(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     3394:	49 ff d2             	rex.WB call *%r10
-    3397:	48 8d 0d ca 33 00 00 	lea    0x33ca(%rip),%rcx        # 6768 <ls_app_entry+0x4f52>
+    3397:	48 8d 0d 9a 4c 00 00 	lea    0x4c9a(%rip),%rcx        # 8038 <ls_app_entry+0x6822>
     339e:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    33a5:	48 8d 0d bc 33 00 00 	lea    0x33bc(%rip),%rcx        # 6768 <ls_app_entry+0x4f52>
+    33a5:	48 8d 0d 8c 4c 00 00 	lea    0x4c8c(%rip),%rcx        # 8038 <ls_app_entry+0x6822>
     33ac:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     33b3:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     33ba:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1576,7 +1576,7 @@ Disassembly of section .text:
     345b:	00 00 00 
     345e:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3465:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    346c:	4c 8b 15 45 35 00 00 	mov    0x3545(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    346c:	4c 8b 15 15 4e 00 00 	mov    0x4e15(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     3473:	49 ff d2             	rex.WB call *%r10
     3476:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     347d:	00 f8 7f 
@@ -1608,7 +1608,7 @@ Disassembly of section .text:
     3527:	00 00 00 
     352a:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3531:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3538:	4c 8b 15 29 34 00 00 	mov    0x3429(%rip),%r10        # 6968 <ls_app_api_table+0x160>
+    3538:	4c 8b 15 f9 4c 00 00 	mov    0x4cf9(%rip),%r10        # 8238 <ls_app_api_table+0x160>
     353f:	49 ff d2             	rex.WB call *%r10
     3542:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3549:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1619,7 +1619,7 @@ Disassembly of section .text:
     356c:	00 00 00 
     356f:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3576:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    357d:	4c 8b 15 cc 33 00 00 	mov    0x33cc(%rip),%r10        # 6950 <ls_app_api_table+0x148>
+    357d:	4c 8b 15 9c 4c 00 00 	mov    0x4c9c(%rip),%r10        # 8220 <ls_app_api_table+0x148>
     3584:	49 ff d2             	rex.WB call *%r10
     3587:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     358e:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1651,7 +1651,7 @@ Disassembly of section .text:
     362e:	00 00 00 
     3631:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3638:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    363f:	4c 8b 15 c2 32 00 00 	mov    0x32c2(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    363f:	4c 8b 15 92 4b 00 00 	mov    0x4b92(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     3646:	49 ff d2             	rex.WB call *%r10
     3649:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3650:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1659,7 +1659,7 @@ Disassembly of section .text:
     365e:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     3665:	48 89 85 a0 ff ff ff 	mov    %rax,-0x60(%rbp)
     366c:	e9 8f d9 ff ff       	jmp    1000 <ls_app_entry-0x816>
-    3671:	48 8d 0d c0 30 00 00 	lea    0x30c0(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3671:	48 8d 0d 90 49 00 00 	lea    0x4990(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     3678:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     367f:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3686:	00 f8 7f 
@@ -1668,7 +1668,7 @@ Disassembly of section .text:
     3692:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     3699:	00 00 00 
     369c:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    36a3:	48 8d 05 14 30 00 00 	lea    0x3014(%rip),%rax        # 66be <ls_app_entry+0x4ea8>
+    36a3:	48 8d 05 84 39 00 00 	lea    0x3984(%rip),%rax        # 702e <ls_app_entry+0x5818>
     36aa:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     36b1:	48 b8 07 00 00 00 00 	movabs $0x7,%rax
     36b8:	00 00 00 
@@ -1677,11 +1677,11 @@ Disassembly of section .text:
     36c9:	00 00 00 
     36cc:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     36d3:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    36da:	4c 8b 15 c7 32 00 00 	mov    0x32c7(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    36da:	4c 8b 15 97 4b 00 00 	mov    0x4b97(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     36e1:	49 ff d2             	rex.WB call *%r10
-    36e4:	48 8d 0d 4d 30 00 00 	lea    0x304d(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    36e4:	48 8d 0d 1d 49 00 00 	lea    0x491d(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     36eb:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    36f2:	48 8d 0d 3f 30 00 00 	lea    0x303f(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    36f2:	48 8d 0d 0f 49 00 00 	lea    0x490f(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     36f9:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3700:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     3707:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -1689,11 +1689,11 @@ Disassembly of section .text:
     3715:	00 00 00 
     3718:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     371f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3726:	4c 8b 15 bb 31 00 00 	mov    0x31bb(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    3726:	4c 8b 15 8b 4a 00 00 	mov    0x4a8b(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     372d:	49 ff d2             	rex.WB call *%r10
     3730:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3737:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    373e:	48 8d 0d 2b 30 00 00 	lea    0x302b(%rip),%rcx        # 6770 <ls_app_entry+0x4f5a>
+    373e:	48 8d 0d fb 48 00 00 	lea    0x48fb(%rip),%rcx        # 8040 <ls_app_entry+0x682a>
     3745:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     374c:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3753:	00 f8 7f 
@@ -1702,7 +1702,7 @@ Disassembly of section .text:
     375f:	48 b8 08 00 00 00 00 	movabs $0x8,%rax
     3766:	00 00 00 
     3769:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3770:	48 8d 05 4f 2f 00 00 	lea    0x2f4f(%rip),%rax        # 66c6 <ls_app_entry+0x4eb0>
+    3770:	48 8d 05 bf 38 00 00 	lea    0x38bf(%rip),%rax        # 7036 <ls_app_entry+0x5820>
     3777:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     377e:	48 b8 08 00 00 00 00 	movabs $0x8,%rax
     3785:	00 00 00 
@@ -1711,11 +1711,11 @@ Disassembly of section .text:
     3796:	00 00 00 
     3799:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     37a0:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    37a7:	4c 8b 15 fa 31 00 00 	mov    0x31fa(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    37a7:	4c 8b 15 ca 4a 00 00 	mov    0x4aca(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     37ae:	49 ff d2             	rex.WB call *%r10
-    37b1:	48 8d 0d b8 2f 00 00 	lea    0x2fb8(%rip),%rcx        # 6770 <ls_app_entry+0x4f5a>
+    37b1:	48 8d 0d 88 48 00 00 	lea    0x4888(%rip),%rcx        # 8040 <ls_app_entry+0x682a>
     37b8:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    37bf:	48 8d 0d aa 2f 00 00 	lea    0x2faa(%rip),%rcx        # 6770 <ls_app_entry+0x4f5a>
+    37bf:	48 8d 0d 7a 48 00 00 	lea    0x487a(%rip),%rcx        # 8040 <ls_app_entry+0x682a>
     37c6:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     37cd:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     37d4:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1748,7 +1748,7 @@ Disassembly of section .text:
     3875:	00 00 00 
     3878:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     387f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3886:	4c 8b 15 2b 31 00 00 	mov    0x312b(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    3886:	4c 8b 15 fb 49 00 00 	mov    0x49fb(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     388d:	49 ff d2             	rex.WB call *%r10
     3890:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     3897:	00 f8 7f 
@@ -1760,7 +1760,7 @@ Disassembly of section .text:
     38bd:	00 00 00 
     38c0:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     38c7:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    38ce:	4c 8b 15 0b 30 00 00 	mov    0x300b(%rip),%r10        # 68e0 <ls_app_api_table+0xd8>
+    38ce:	4c 8b 15 db 48 00 00 	mov    0x48db(%rip),%r10        # 81b0 <ls_app_api_table+0xd8>
     38d5:	49 ff d2             	rex.WB call *%r10
     38d8:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     38df:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1779,7 +1779,7 @@ Disassembly of section .text:
     3932:	00 00 00 
     3935:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     393c:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3943:	4c 8b 15 46 30 00 00 	mov    0x3046(%rip),%r10        # 6990 <ls_app_api_table+0x188>
+    3943:	4c 8b 15 16 49 00 00 	mov    0x4916(%rip),%r10        # 8260 <ls_app_api_table+0x188>
     394a:	49 ff d2             	rex.WB call *%r10
     394d:	48 89 c2             	mov    %rax,%rdx
     3950:	48 89 d0             	mov    %rdx,%rax
@@ -1792,7 +1792,7 @@ Disassembly of section .text:
     3975:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     397c:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     3983:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    398a:	48 8d 0d e7 2d 00 00 	lea    0x2de7(%rip),%rcx        # 6778 <ls_app_entry+0x4f62>
+    398a:	48 8d 0d b7 46 00 00 	lea    0x46b7(%rip),%rcx        # 8048 <ls_app_entry+0x6832>
     3991:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3998:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     399f:	00 f8 7f 
@@ -1801,7 +1801,7 @@ Disassembly of section .text:
     39ab:	48 b8 09 00 00 00 00 	movabs $0x9,%rax
     39b2:	00 00 00 
     39b5:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    39bc:	48 8d 05 0c 2d 00 00 	lea    0x2d0c(%rip),%rax        # 66cf <ls_app_entry+0x4eb9>
+    39bc:	48 8d 05 7c 36 00 00 	lea    0x367c(%rip),%rax        # 703f <ls_app_entry+0x5829>
     39c3:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     39ca:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     39d1:	00 00 00 
@@ -1810,11 +1810,11 @@ Disassembly of section .text:
     39e2:	00 00 00 
     39e5:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     39ec:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    39f3:	4c 8b 15 ae 2f 00 00 	mov    0x2fae(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    39f3:	4c 8b 15 7e 48 00 00 	mov    0x487e(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     39fa:	49 ff d2             	rex.WB call *%r10
-    39fd:	48 8d 0d 74 2d 00 00 	lea    0x2d74(%rip),%rcx        # 6778 <ls_app_entry+0x4f62>
+    39fd:	48 8d 0d 44 46 00 00 	lea    0x4644(%rip),%rcx        # 8048 <ls_app_entry+0x6832>
     3a04:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    3a0b:	48 8d 0d 66 2d 00 00 	lea    0x2d66(%rip),%rcx        # 6778 <ls_app_entry+0x4f62>
+    3a0b:	48 8d 0d 36 46 00 00 	lea    0x4636(%rip),%rcx        # 8048 <ls_app_entry+0x6832>
     3a12:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3a19:	48 89 8d 30 fe ff ff 	mov    %rcx,-0x1d0(%rbp)
     3a20:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -1823,12 +1823,12 @@ Disassembly of section .text:
     3a35:	00 00 00 
     3a38:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3a3f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3a46:	4c 8b 15 b3 2e 00 00 	mov    0x2eb3(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    3a46:	4c 8b 15 83 47 00 00 	mov    0x4783(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     3a4d:	49 ff d2             	rex.WB call *%r10
     3a50:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     3a57:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     3a5e:	48 89 85 98 ff ff ff 	mov    %rax,-0x68(%rbp)
-    3a65:	48 8d 0d cc 2c 00 00 	lea    0x2ccc(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3a65:	48 8d 0d 9c 45 00 00 	lea    0x459c(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     3a6c:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3a73:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3a7a:	00 f8 7f 
@@ -1837,7 +1837,7 @@ Disassembly of section .text:
     3a86:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     3a8d:	00 00 00 
     3a90:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3a97:	48 8d 05 31 2c 00 00 	lea    0x2c31(%rip),%rax        # 66cf <ls_app_entry+0x4eb9>
+    3a97:	48 8d 05 a1 35 00 00 	lea    0x35a1(%rip),%rax        # 703f <ls_app_entry+0x5829>
     3a9e:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     3aa5:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     3aac:	00 00 00 
@@ -1846,11 +1846,11 @@ Disassembly of section .text:
     3abd:	00 00 00 
     3ac0:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3ac7:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3ace:	4c 8b 15 d3 2e 00 00 	mov    0x2ed3(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    3ace:	4c 8b 15 a3 47 00 00 	mov    0x47a3(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     3ad5:	49 ff d2             	rex.WB call *%r10
-    3ad8:	48 8d 0d 59 2c 00 00 	lea    0x2c59(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3ad8:	48 8d 0d 29 45 00 00 	lea    0x4529(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     3adf:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    3ae6:	48 8d 0d 4b 2c 00 00 	lea    0x2c4b(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3ae6:	48 8d 0d 1b 45 00 00 	lea    0x451b(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     3aed:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3af4:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     3afb:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -1858,14 +1858,14 @@ Disassembly of section .text:
     3b09:	00 00 00 
     3b0c:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3b13:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3b1a:	4c 8b 15 c7 2d 00 00 	mov    0x2dc7(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    3b1a:	4c 8b 15 97 46 00 00 	mov    0x4697(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     3b21:	49 ff d2             	rex.WB call *%r10
     3b24:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3b2b:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     3b32:	48 8b 85 98 ff ff ff 	mov    -0x68(%rbp),%rax
     3b39:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3b40:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    3b47:	48 8d 0d 2a 2c 00 00 	lea    0x2c2a(%rip),%rcx        # 6778 <ls_app_entry+0x4f62>
+    3b47:	48 8d 0d fa 44 00 00 	lea    0x44fa(%rip),%rcx        # 8048 <ls_app_entry+0x6832>
     3b4e:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3b55:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3b5c:	00 f8 7f 
@@ -1874,7 +1874,7 @@ Disassembly of section .text:
     3b68:	48 b8 09 00 00 00 00 	movabs $0x9,%rax
     3b6f:	00 00 00 
     3b72:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3b79:	48 8d 05 4f 2b 00 00 	lea    0x2b4f(%rip),%rax        # 66cf <ls_app_entry+0x4eb9>
+    3b79:	48 8d 05 bf 34 00 00 	lea    0x34bf(%rip),%rax        # 703f <ls_app_entry+0x5829>
     3b80:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     3b87:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     3b8e:	00 00 00 
@@ -1883,11 +1883,11 @@ Disassembly of section .text:
     3b9f:	00 00 00 
     3ba2:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3ba9:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3bb0:	4c 8b 15 f1 2d 00 00 	mov    0x2df1(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    3bb0:	4c 8b 15 c1 46 00 00 	mov    0x46c1(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     3bb7:	49 ff d2             	rex.WB call *%r10
-    3bba:	48 8d 0d b7 2b 00 00 	lea    0x2bb7(%rip),%rcx        # 6778 <ls_app_entry+0x4f62>
+    3bba:	48 8d 0d 87 44 00 00 	lea    0x4487(%rip),%rcx        # 8048 <ls_app_entry+0x6832>
     3bc1:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    3bc8:	48 8d 0d a9 2b 00 00 	lea    0x2ba9(%rip),%rcx        # 6778 <ls_app_entry+0x4f62>
+    3bc8:	48 8d 0d 79 44 00 00 	lea    0x4479(%rip),%rcx        # 8048 <ls_app_entry+0x6832>
     3bcf:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3bd6:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     3bdd:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
@@ -1897,14 +1897,14 @@ Disassembly of section .text:
     3bf9:	00 00 00 
     3bfc:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3c03:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3c0a:	4c 8b 15 e7 2c 00 00 	mov    0x2ce7(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    3c0a:	4c 8b 15 b7 45 00 00 	mov    0x45b7(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     3c11:	49 ff d2             	rex.WB call *%r10
     3c14:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3c1b:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     3c22:	48 8b 85 98 ff ff ff 	mov    -0x68(%rbp),%rax
     3c29:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3c30:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    3c37:	48 8d 0d 42 2b 00 00 	lea    0x2b42(%rip),%rcx        # 6780 <ls_app_entry+0x4f6a>
+    3c37:	48 8d 0d 12 44 00 00 	lea    0x4412(%rip),%rcx        # 8050 <ls_app_entry+0x683a>
     3c3e:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3c45:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3c4c:	00 f8 7f 
@@ -1913,7 +1913,7 @@ Disassembly of section .text:
     3c58:	48 b8 0a 00 00 00 00 	movabs $0xa,%rax
     3c5f:	00 00 00 
     3c62:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3c69:	48 8d 05 65 2a 00 00 	lea    0x2a65(%rip),%rax        # 66d5 <ls_app_entry+0x4ebf>
+    3c69:	48 8d 05 d5 33 00 00 	lea    0x33d5(%rip),%rax        # 7045 <ls_app_entry+0x582f>
     3c70:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     3c77:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     3c7e:	00 00 00 
@@ -1922,11 +1922,11 @@ Disassembly of section .text:
     3c8f:	00 00 00 
     3c92:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3c99:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3ca0:	4c 8b 15 01 2d 00 00 	mov    0x2d01(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    3ca0:	4c 8b 15 d1 45 00 00 	mov    0x45d1(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     3ca7:	49 ff d2             	rex.WB call *%r10
-    3caa:	48 8d 0d cf 2a 00 00 	lea    0x2acf(%rip),%rcx        # 6780 <ls_app_entry+0x4f6a>
+    3caa:	48 8d 0d 9f 43 00 00 	lea    0x439f(%rip),%rcx        # 8050 <ls_app_entry+0x683a>
     3cb1:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    3cb8:	48 8d 0d c1 2a 00 00 	lea    0x2ac1(%rip),%rcx        # 6780 <ls_app_entry+0x4f6a>
+    3cb8:	48 8d 0d 91 43 00 00 	lea    0x4391(%rip),%rcx        # 8050 <ls_app_entry+0x683a>
     3cbf:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3cc6:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3ccd:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -1956,7 +1956,7 @@ Disassembly of section .text:
     3d59:	00 00 00 
     3d5c:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3d63:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3d6a:	4c 8b 15 47 2c 00 00 	mov    0x2c47(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    3d6a:	4c 8b 15 17 45 00 00 	mov    0x4517(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     3d71:	49 ff d2             	rex.WB call *%r10
     3d74:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     3d7b:	00 f8 7f 
@@ -1986,7 +1986,7 @@ Disassembly of section .text:
     3e03:	00 00 00 
     3e06:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3e0d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3e14:	4c 8b 15 9d 2b 00 00 	mov    0x2b9d(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    3e14:	4c 8b 15 6d 44 00 00 	mov    0x446d(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     3e1b:	49 ff d2             	rex.WB call *%r10
     3e1e:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     3e25:	00 f8 7f 
@@ -1994,7 +1994,7 @@ Disassembly of section .text:
     3e2f:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     3e36:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     3e3d:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    3e44:	48 8d 0d ed 28 00 00 	lea    0x28ed(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3e44:	48 8d 0d bd 41 00 00 	lea    0x41bd(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     3e4b:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3e52:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3e59:	00 f8 7f 
@@ -2003,7 +2003,7 @@ Disassembly of section .text:
     3e65:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     3e6c:	00 00 00 
     3e6f:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3e76:	48 8d 05 58 28 00 00 	lea    0x2858(%rip),%rax        # 66d5 <ls_app_entry+0x4ebf>
+    3e76:	48 8d 05 c8 31 00 00 	lea    0x31c8(%rip),%rax        # 7045 <ls_app_entry+0x582f>
     3e7d:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     3e84:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     3e8b:	00 00 00 
@@ -2012,11 +2012,11 @@ Disassembly of section .text:
     3e9c:	00 00 00 
     3e9f:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3ea6:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3ead:	4c 8b 15 f4 2a 00 00 	mov    0x2af4(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    3ead:	4c 8b 15 c4 43 00 00 	mov    0x43c4(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     3eb4:	49 ff d2             	rex.WB call *%r10
-    3eb7:	48 8d 0d 7a 28 00 00 	lea    0x287a(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3eb7:	48 8d 0d 4a 41 00 00 	lea    0x414a(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     3ebe:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    3ec5:	48 8d 0d 6c 28 00 00 	lea    0x286c(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    3ec5:	48 8d 0d 3c 41 00 00 	lea    0x413c(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     3ecc:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3ed3:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     3eda:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2024,11 +2024,11 @@ Disassembly of section .text:
     3ee8:	00 00 00 
     3eeb:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3ef2:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3ef9:	4c 8b 15 e8 29 00 00 	mov    0x29e8(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    3ef9:	4c 8b 15 b8 42 00 00 	mov    0x42b8(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     3f00:	49 ff d2             	rex.WB call *%r10
     3f03:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3f0a:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    3f11:	48 8d 0d 70 28 00 00 	lea    0x2870(%rip),%rcx        # 6788 <ls_app_entry+0x4f72>
+    3f11:	48 8d 0d 40 41 00 00 	lea    0x4140(%rip),%rcx        # 8058 <ls_app_entry+0x6842>
     3f18:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3f1f:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3f26:	00 f8 7f 
@@ -2037,7 +2037,7 @@ Disassembly of section .text:
     3f32:	48 b8 0b 00 00 00 00 	movabs $0xb,%rax
     3f39:	00 00 00 
     3f3c:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    3f43:	48 8d 05 91 27 00 00 	lea    0x2791(%rip),%rax        # 66db <ls_app_entry+0x4ec5>
+    3f43:	48 8d 05 01 31 00 00 	lea    0x3101(%rip),%rax        # 704b <ls_app_entry+0x5835>
     3f4a:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     3f51:	48 b8 06 00 00 00 00 	movabs $0x6,%rax
     3f58:	00 00 00 
@@ -2046,11 +2046,11 @@ Disassembly of section .text:
     3f69:	00 00 00 
     3f6c:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3f73:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3f7a:	4c 8b 15 27 2a 00 00 	mov    0x2a27(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    3f7a:	4c 8b 15 f7 42 00 00 	mov    0x42f7(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     3f81:	49 ff d2             	rex.WB call *%r10
-    3f84:	48 8d 0d fd 27 00 00 	lea    0x27fd(%rip),%rcx        # 6788 <ls_app_entry+0x4f72>
+    3f84:	48 8d 0d cd 40 00 00 	lea    0x40cd(%rip),%rcx        # 8058 <ls_app_entry+0x6842>
     3f8b:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    3f92:	48 8d 0d ef 27 00 00 	lea    0x27ef(%rip),%rcx        # 6788 <ls_app_entry+0x4f72>
+    3f92:	48 8d 0d bf 40 00 00 	lea    0x40bf(%rip),%rcx        # 8058 <ls_app_entry+0x6842>
     3f99:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3fa0:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     3fa7:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2058,11 +2058,11 @@ Disassembly of section .text:
     3fb5:	00 00 00 
     3fb8:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     3fbf:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    3fc6:	4c 8b 15 1b 29 00 00 	mov    0x291b(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    3fc6:	4c 8b 15 eb 41 00 00 	mov    0x41eb(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     3fcd:	49 ff d2             	rex.WB call *%r10
     3fd0:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     3fd7:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    3fde:	48 8d 0d ab 27 00 00 	lea    0x27ab(%rip),%rcx        # 6790 <ls_app_entry+0x4f7a>
+    3fde:	48 8d 0d 7b 40 00 00 	lea    0x407b(%rip),%rcx        # 8060 <ls_app_entry+0x684a>
     3fe5:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     3fec:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     3ff3:	00 f8 7f 
@@ -2071,7 +2071,7 @@ Disassembly of section .text:
     3fff:	48 b8 0c 00 00 00 00 	movabs $0xc,%rax
     4006:	00 00 00 
     4009:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4010:	48 8d 05 cb 26 00 00 	lea    0x26cb(%rip),%rax        # 66e2 <ls_app_entry+0x4ecc>
+    4010:	48 8d 05 3b 30 00 00 	lea    0x303b(%rip),%rax        # 7052 <ls_app_entry+0x583c>
     4017:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     401e:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     4025:	00 00 00 
@@ -2080,11 +2080,11 @@ Disassembly of section .text:
     4036:	00 00 00 
     4039:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4040:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4047:	4c 8b 15 5a 29 00 00 	mov    0x295a(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4047:	4c 8b 15 2a 42 00 00 	mov    0x422a(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     404e:	49 ff d2             	rex.WB call *%r10
-    4051:	48 8d 0d 38 27 00 00 	lea    0x2738(%rip),%rcx        # 6790 <ls_app_entry+0x4f7a>
+    4051:	48 8d 0d 08 40 00 00 	lea    0x4008(%rip),%rcx        # 8060 <ls_app_entry+0x684a>
     4058:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    405f:	48 8d 0d 2a 27 00 00 	lea    0x272a(%rip),%rcx        # 6790 <ls_app_entry+0x4f7a>
+    405f:	48 8d 0d fa 3f 00 00 	lea    0x3ffa(%rip),%rcx        # 8060 <ls_app_entry+0x684a>
     4066:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     406d:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     4074:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
@@ -2094,11 +2094,11 @@ Disassembly of section .text:
     4090:	00 00 00 
     4093:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     409a:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    40a1:	4c 8b 15 50 28 00 00 	mov    0x2850(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    40a1:	4c 8b 15 20 41 00 00 	mov    0x4120(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     40a8:	49 ff d2             	rex.WB call *%r10
     40ab:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     40b2:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    40b9:	48 8d 0d d8 26 00 00 	lea    0x26d8(%rip),%rcx        # 6798 <ls_app_entry+0x4f82>
+    40b9:	48 8d 0d a8 3f 00 00 	lea    0x3fa8(%rip),%rcx        # 8068 <ls_app_entry+0x6852>
     40c0:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     40c7:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     40ce:	00 f8 7f 
@@ -2107,7 +2107,7 @@ Disassembly of section .text:
     40da:	48 b8 0d 00 00 00 00 	movabs $0xd,%rax
     40e1:	00 00 00 
     40e4:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    40eb:	48 8d 05 f6 25 00 00 	lea    0x25f6(%rip),%rax        # 66e8 <ls_app_entry+0x4ed2>
+    40eb:	48 8d 05 66 2f 00 00 	lea    0x2f66(%rip),%rax        # 7058 <ls_app_entry+0x5842>
     40f2:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     40f9:	48 b8 03 00 00 00 00 	movabs $0x3,%rax
     4100:	00 00 00 
@@ -2116,11 +2116,11 @@ Disassembly of section .text:
     4111:	00 00 00 
     4114:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     411b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4122:	4c 8b 15 7f 28 00 00 	mov    0x287f(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4122:	4c 8b 15 4f 41 00 00 	mov    0x414f(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4129:	49 ff d2             	rex.WB call *%r10
-    412c:	48 8d 0d 65 26 00 00 	lea    0x2665(%rip),%rcx        # 6798 <ls_app_entry+0x4f82>
+    412c:	48 8d 0d 35 3f 00 00 	lea    0x3f35(%rip),%rcx        # 8068 <ls_app_entry+0x6852>
     4133:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    413a:	48 8d 0d 57 26 00 00 	lea    0x2657(%rip),%rcx        # 6798 <ls_app_entry+0x4f82>
+    413a:	48 8d 0d 27 3f 00 00 	lea    0x3f27(%rip),%rcx        # 8068 <ls_app_entry+0x6852>
     4141:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4148:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     414f:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2148,13 +2148,13 @@ Disassembly of section .text:
     41cd:	00 00 00 
     41d0:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     41d7:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    41de:	4c 8b 15 d3 27 00 00 	mov    0x27d3(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    41de:	4c 8b 15 a3 40 00 00 	mov    0x40a3(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     41e5:	49 ff d2             	rex.WB call *%r10
     41e8:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     41ef:	00 f8 7f 
     41f2:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     41f9:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    4200:	48 8d 0d 81 25 00 00 	lea    0x2581(%rip),%rcx        # 6788 <ls_app_entry+0x4f72>
+    4200:	48 8d 0d 51 3e 00 00 	lea    0x3e51(%rip),%rcx        # 8058 <ls_app_entry+0x6842>
     4207:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     420e:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     4215:	00 f8 7f 
@@ -2163,7 +2163,7 @@ Disassembly of section .text:
     4221:	48 b8 0b 00 00 00 00 	movabs $0xb,%rax
     4228:	00 00 00 
     422b:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4232:	48 8d 05 af 24 00 00 	lea    0x24af(%rip),%rax        # 66e8 <ls_app_entry+0x4ed2>
+    4232:	48 8d 05 1f 2e 00 00 	lea    0x2e1f(%rip),%rax        # 7058 <ls_app_entry+0x5842>
     4239:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     4240:	48 b8 03 00 00 00 00 	movabs $0x3,%rax
     4247:	00 00 00 
@@ -2172,11 +2172,11 @@ Disassembly of section .text:
     4258:	00 00 00 
     425b:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4262:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4269:	4c 8b 15 38 27 00 00 	mov    0x2738(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4269:	4c 8b 15 08 40 00 00 	mov    0x4008(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4270:	49 ff d2             	rex.WB call *%r10
-    4273:	48 8d 0d 0e 25 00 00 	lea    0x250e(%rip),%rcx        # 6788 <ls_app_entry+0x4f72>
+    4273:	48 8d 0d de 3d 00 00 	lea    0x3dde(%rip),%rcx        # 8058 <ls_app_entry+0x6842>
     427a:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4281:	48 8d 0d 00 25 00 00 	lea    0x2500(%rip),%rcx        # 6788 <ls_app_entry+0x4f72>
+    4281:	48 8d 0d d0 3d 00 00 	lea    0x3dd0(%rip),%rcx        # 8058 <ls_app_entry+0x6842>
     4288:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     428f:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     4296:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2184,11 +2184,11 @@ Disassembly of section .text:
     42a4:	00 00 00 
     42a7:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     42ae:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    42b5:	4c 8b 15 2c 26 00 00 	mov    0x262c(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    42b5:	4c 8b 15 fc 3e 00 00 	mov    0x3efc(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     42bc:	49 ff d2             	rex.WB call *%r10
     42bf:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     42c6:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    42cd:	48 8d 0d cc 24 00 00 	lea    0x24cc(%rip),%rcx        # 67a0 <ls_app_entry+0x4f8a>
+    42cd:	48 8d 0d 9c 3d 00 00 	lea    0x3d9c(%rip),%rcx        # 8070 <ls_app_entry+0x685a>
     42d4:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     42db:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     42e2:	00 f8 7f 
@@ -2197,7 +2197,7 @@ Disassembly of section .text:
     42ee:	48 b8 0e 00 00 00 00 	movabs $0xe,%rax
     42f5:	00 00 00 
     42f8:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    42ff:	48 8d 05 e6 23 00 00 	lea    0x23e6(%rip),%rax        # 66ec <ls_app_entry+0x4ed6>
+    42ff:	48 8d 05 56 2d 00 00 	lea    0x2d56(%rip),%rax        # 705c <ls_app_entry+0x5846>
     4306:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     430d:	48 b8 03 00 00 00 00 	movabs $0x3,%rax
     4314:	00 00 00 
@@ -2206,11 +2206,11 @@ Disassembly of section .text:
     4325:	00 00 00 
     4328:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     432f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4336:	4c 8b 15 6b 26 00 00 	mov    0x266b(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4336:	4c 8b 15 3b 3f 00 00 	mov    0x3f3b(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     433d:	49 ff d2             	rex.WB call *%r10
-    4340:	48 8d 0d 59 24 00 00 	lea    0x2459(%rip),%rcx        # 67a0 <ls_app_entry+0x4f8a>
+    4340:	48 8d 0d 29 3d 00 00 	lea    0x3d29(%rip),%rcx        # 8070 <ls_app_entry+0x685a>
     4347:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    434e:	48 8d 0d 4b 24 00 00 	lea    0x244b(%rip),%rcx        # 67a0 <ls_app_entry+0x4f8a>
+    434e:	48 8d 0d 1b 3d 00 00 	lea    0x3d1b(%rip),%rcx        # 8070 <ls_app_entry+0x685a>
     4355:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     435c:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     4363:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
@@ -2220,11 +2220,11 @@ Disassembly of section .text:
     437f:	00 00 00 
     4382:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4389:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4390:	4c 8b 15 61 25 00 00 	mov    0x2561(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    4390:	4c 8b 15 31 3e 00 00 	mov    0x3e31(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     4397:	49 ff d2             	rex.WB call *%r10
     439a:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     43a1:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    43a8:	48 8d 0d f9 23 00 00 	lea    0x23f9(%rip),%rcx        # 67a8 <ls_app_entry+0x4f92>
+    43a8:	48 8d 0d c9 3c 00 00 	lea    0x3cc9(%rip),%rcx        # 8078 <ls_app_entry+0x6862>
     43af:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     43b6:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     43bd:	00 f8 7f 
@@ -2233,7 +2233,7 @@ Disassembly of section .text:
     43c9:	48 b8 0f 00 00 00 00 	movabs $0xf,%rax
     43d0:	00 00 00 
     43d3:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    43da:	48 8d 05 0f 23 00 00 	lea    0x230f(%rip),%rax        # 66f0 <ls_app_entry+0x4eda>
+    43da:	48 8d 05 7f 2c 00 00 	lea    0x2c7f(%rip),%rax        # 7060 <ls_app_entry+0x584a>
     43e1:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     43e8:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     43ef:	00 00 00 
@@ -2242,11 +2242,11 @@ Disassembly of section .text:
     4400:	00 00 00 
     4403:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     440a:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4411:	4c 8b 15 90 25 00 00 	mov    0x2590(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4411:	4c 8b 15 60 3e 00 00 	mov    0x3e60(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4418:	49 ff d2             	rex.WB call *%r10
-    441b:	48 8d 0d 86 23 00 00 	lea    0x2386(%rip),%rcx        # 67a8 <ls_app_entry+0x4f92>
+    441b:	48 8d 0d 56 3c 00 00 	lea    0x3c56(%rip),%rcx        # 8078 <ls_app_entry+0x6862>
     4422:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4429:	48 8d 0d 78 23 00 00 	lea    0x2378(%rip),%rcx        # 67a8 <ls_app_entry+0x4f92>
+    4429:	48 8d 0d 48 3c 00 00 	lea    0x3c48(%rip),%rcx        # 8078 <ls_app_entry+0x6862>
     4430:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4437:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     443e:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2274,7 +2274,7 @@ Disassembly of section .text:
     44bc:	00 00 00 
     44bf:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     44c6:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    44cd:	4c 8b 15 e4 24 00 00 	mov    0x24e4(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    44cd:	4c 8b 15 b4 3d 00 00 	mov    0x3db4(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     44d4:	49 ff d2             	rex.WB call *%r10
     44d7:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     44de:	00 f8 7f 
@@ -2306,7 +2306,7 @@ Disassembly of section .text:
     4574:	00 00 00 
     4577:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     457e:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4585:	4c 8b 15 2c 24 00 00 	mov    0x242c(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    4585:	4c 8b 15 fc 3c 00 00 	mov    0x3cfc(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     458c:	49 ff d2             	rex.WB call *%r10
     458f:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     4596:	00 f8 7f 
@@ -2314,7 +2314,7 @@ Disassembly of section .text:
     45a0:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     45a7:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     45ae:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    45b5:	48 8d 0d 7c 21 00 00 	lea    0x217c(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    45b5:	48 8d 0d 4c 3a 00 00 	lea    0x3a4c(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     45bc:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     45c3:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     45ca:	00 f8 7f 
@@ -2323,7 +2323,7 @@ Disassembly of section .text:
     45d6:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     45dd:	00 00 00 
     45e0:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    45e7:	48 8d 05 02 21 00 00 	lea    0x2102(%rip),%rax        # 66f0 <ls_app_entry+0x4eda>
+    45e7:	48 8d 05 72 2a 00 00 	lea    0x2a72(%rip),%rax        # 7060 <ls_app_entry+0x584a>
     45ee:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     45f5:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     45fc:	00 00 00 
@@ -2332,11 +2332,11 @@ Disassembly of section .text:
     460d:	00 00 00 
     4610:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4617:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    461e:	4c 8b 15 83 23 00 00 	mov    0x2383(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    461e:	4c 8b 15 53 3c 00 00 	mov    0x3c53(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4625:	49 ff d2             	rex.WB call *%r10
-    4628:	48 8d 0d 09 21 00 00 	lea    0x2109(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    4628:	48 8d 0d d9 39 00 00 	lea    0x39d9(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     462f:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4636:	48 8d 0d fb 20 00 00 	lea    0x20fb(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    4636:	48 8d 0d cb 39 00 00 	lea    0x39cb(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     463d:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4644:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     464b:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2344,11 +2344,11 @@ Disassembly of section .text:
     4659:	00 00 00 
     465c:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4663:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    466a:	4c 8b 15 77 22 00 00 	mov    0x2277(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    466a:	4c 8b 15 47 3b 00 00 	mov    0x3b47(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     4671:	49 ff d2             	rex.WB call *%r10
     4674:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     467b:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    4682:	48 8d 0d 27 21 00 00 	lea    0x2127(%rip),%rcx        # 67b0 <ls_app_entry+0x4f9a>
+    4682:	48 8d 0d f7 39 00 00 	lea    0x39f7(%rip),%rcx        # 8080 <ls_app_entry+0x686a>
     4689:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4690:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     4697:	00 f8 7f 
@@ -2357,7 +2357,7 @@ Disassembly of section .text:
     46a3:	48 b8 10 00 00 00 00 	movabs $0x10,%rax
     46aa:	00 00 00 
     46ad:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    46b4:	48 8d 05 3b 20 00 00 	lea    0x203b(%rip),%rax        # 66f6 <ls_app_entry+0x4ee0>
+    46b4:	48 8d 05 ab 29 00 00 	lea    0x29ab(%rip),%rax        # 7066 <ls_app_entry+0x5850>
     46bb:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     46c2:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     46c9:	00 00 00 
@@ -2366,11 +2366,11 @@ Disassembly of section .text:
     46da:	00 00 00 
     46dd:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     46e4:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    46eb:	4c 8b 15 b6 22 00 00 	mov    0x22b6(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    46eb:	4c 8b 15 86 3b 00 00 	mov    0x3b86(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     46f2:	49 ff d2             	rex.WB call *%r10
-    46f5:	48 8d 0d b4 20 00 00 	lea    0x20b4(%rip),%rcx        # 67b0 <ls_app_entry+0x4f9a>
+    46f5:	48 8d 0d 84 39 00 00 	lea    0x3984(%rip),%rcx        # 8080 <ls_app_entry+0x686a>
     46fc:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4703:	48 8d 0d a6 20 00 00 	lea    0x20a6(%rip),%rcx        # 67b0 <ls_app_entry+0x4f9a>
+    4703:	48 8d 0d 76 39 00 00 	lea    0x3976(%rip),%rcx        # 8080 <ls_app_entry+0x686a>
     470a:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4711:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     4718:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2378,11 +2378,11 @@ Disassembly of section .text:
     4726:	00 00 00 
     4729:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4730:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4737:	4c 8b 15 aa 21 00 00 	mov    0x21aa(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    4737:	4c 8b 15 7a 3a 00 00 	mov    0x3a7a(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     473e:	49 ff d2             	rex.WB call *%r10
     4741:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     4748:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    474f:	48 8d 0d 62 20 00 00 	lea    0x2062(%rip),%rcx        # 67b8 <ls_app_entry+0x4fa2>
+    474f:	48 8d 0d 32 39 00 00 	lea    0x3932(%rip),%rcx        # 8088 <ls_app_entry+0x6872>
     4756:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     475d:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     4764:	00 f8 7f 
@@ -2391,7 +2391,7 @@ Disassembly of section .text:
     4770:	48 b8 11 00 00 00 00 	movabs $0x11,%rax
     4777:	00 00 00 
     477a:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4781:	48 8d 05 73 1f 00 00 	lea    0x1f73(%rip),%rax        # 66fb <ls_app_entry+0x4ee5>
+    4781:	48 8d 05 e3 28 00 00 	lea    0x28e3(%rip),%rax        # 706b <ls_app_entry+0x5855>
     4788:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     478f:	48 b8 03 00 00 00 00 	movabs $0x3,%rax
     4796:	00 00 00 
@@ -2400,11 +2400,11 @@ Disassembly of section .text:
     47a7:	00 00 00 
     47aa:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     47b1:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    47b8:	4c 8b 15 e9 21 00 00 	mov    0x21e9(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    47b8:	4c 8b 15 b9 3a 00 00 	mov    0x3ab9(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     47bf:	49 ff d2             	rex.WB call *%r10
-    47c2:	48 8d 0d ef 1f 00 00 	lea    0x1fef(%rip),%rcx        # 67b8 <ls_app_entry+0x4fa2>
+    47c2:	48 8d 0d bf 38 00 00 	lea    0x38bf(%rip),%rcx        # 8088 <ls_app_entry+0x6872>
     47c9:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    47d0:	48 8d 0d e1 1f 00 00 	lea    0x1fe1(%rip),%rcx        # 67b8 <ls_app_entry+0x4fa2>
+    47d0:	48 8d 0d b1 38 00 00 	lea    0x38b1(%rip),%rcx        # 8088 <ls_app_entry+0x6872>
     47d7:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     47de:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     47e5:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
@@ -2414,7 +2414,7 @@ Disassembly of section .text:
     4801:	00 00 00 
     4804:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     480b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4812:	4c 8b 15 df 20 00 00 	mov    0x20df(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    4812:	4c 8b 15 af 39 00 00 	mov    0x39af(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     4819:	49 ff d2             	rex.WB call *%r10
     481c:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     4823:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2452,13 +2452,13 @@ Disassembly of section .text:
     48df:	00 00 00 
     48e2:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     48e9:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    48f0:	4c 8b 15 c1 20 00 00 	mov    0x20c1(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    48f0:	4c 8b 15 91 39 00 00 	mov    0x3991(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     48f7:	49 ff d2             	rex.WB call *%r10
     48fa:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     4901:	00 f8 7f 
     4904:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     490b:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    4912:	48 8d 0d 97 1e 00 00 	lea    0x1e97(%rip),%rcx        # 67b0 <ls_app_entry+0x4f9a>
+    4912:	48 8d 0d 67 37 00 00 	lea    0x3767(%rip),%rcx        # 8080 <ls_app_entry+0x686a>
     4919:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4920:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     4927:	00 f8 7f 
@@ -2467,7 +2467,7 @@ Disassembly of section .text:
     4933:	48 b8 10 00 00 00 00 	movabs $0x10,%rax
     493a:	00 00 00 
     493d:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4944:	48 8d 05 b0 1d 00 00 	lea    0x1db0(%rip),%rax        # 66fb <ls_app_entry+0x4ee5>
+    4944:	48 8d 05 20 27 00 00 	lea    0x2720(%rip),%rax        # 706b <ls_app_entry+0x5855>
     494b:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     4952:	48 b8 03 00 00 00 00 	movabs $0x3,%rax
     4959:	00 00 00 
@@ -2476,11 +2476,11 @@ Disassembly of section .text:
     496a:	00 00 00 
     496d:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4974:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    497b:	4c 8b 15 26 20 00 00 	mov    0x2026(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    497b:	4c 8b 15 f6 38 00 00 	mov    0x38f6(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4982:	49 ff d2             	rex.WB call *%r10
-    4985:	48 8d 0d 24 1e 00 00 	lea    0x1e24(%rip),%rcx        # 67b0 <ls_app_entry+0x4f9a>
+    4985:	48 8d 0d f4 36 00 00 	lea    0x36f4(%rip),%rcx        # 8080 <ls_app_entry+0x686a>
     498c:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4993:	48 8d 0d 16 1e 00 00 	lea    0x1e16(%rip),%rcx        # 67b0 <ls_app_entry+0x4f9a>
+    4993:	48 8d 0d e6 36 00 00 	lea    0x36e6(%rip),%rcx        # 8080 <ls_app_entry+0x686a>
     499a:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     49a1:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     49a8:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2488,11 +2488,11 @@ Disassembly of section .text:
     49b6:	00 00 00 
     49b9:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     49c0:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    49c7:	4c 8b 15 1a 1f 00 00 	mov    0x1f1a(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    49c7:	4c 8b 15 ea 37 00 00 	mov    0x37ea(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     49ce:	49 ff d2             	rex.WB call *%r10
     49d1:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     49d8:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    49df:	48 8d 0d da 1d 00 00 	lea    0x1dda(%rip),%rcx        # 67c0 <ls_app_entry+0x4faa>
+    49df:	48 8d 0d aa 36 00 00 	lea    0x36aa(%rip),%rcx        # 8090 <ls_app_entry+0x687a>
     49e6:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     49ed:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     49f4:	00 f8 7f 
@@ -2501,7 +2501,7 @@ Disassembly of section .text:
     4a00:	48 b8 12 00 00 00 00 	movabs $0x12,%rax
     4a07:	00 00 00 
     4a0a:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4a11:	48 8d 05 e7 1c 00 00 	lea    0x1ce7(%rip),%rax        # 66ff <ls_app_entry+0x4ee9>
+    4a11:	48 8d 05 57 26 00 00 	lea    0x2657(%rip),%rax        # 706f <ls_app_entry+0x5859>
     4a18:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     4a1f:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     4a26:	00 00 00 
@@ -2510,11 +2510,11 @@ Disassembly of section .text:
     4a37:	00 00 00 
     4a3a:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4a41:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4a48:	4c 8b 15 59 1f 00 00 	mov    0x1f59(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4a48:	4c 8b 15 29 38 00 00 	mov    0x3829(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4a4f:	49 ff d2             	rex.WB call *%r10
-    4a52:	48 8d 0d 67 1d 00 00 	lea    0x1d67(%rip),%rcx        # 67c0 <ls_app_entry+0x4faa>
+    4a52:	48 8d 0d 37 36 00 00 	lea    0x3637(%rip),%rcx        # 8090 <ls_app_entry+0x687a>
     4a59:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4a60:	48 8d 0d 59 1d 00 00 	lea    0x1d59(%rip),%rcx        # 67c0 <ls_app_entry+0x4faa>
+    4a60:	48 8d 0d 29 36 00 00 	lea    0x3629(%rip),%rcx        # 8090 <ls_app_entry+0x687a>
     4a67:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4a6e:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     4a75:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
@@ -2524,7 +2524,7 @@ Disassembly of section .text:
     4a91:	00 00 00 
     4a94:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4a9b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4aa2:	4c 8b 15 4f 1e 00 00 	mov    0x1e4f(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    4aa2:	4c 8b 15 1f 37 00 00 	mov    0x371f(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     4aa9:	49 ff d2             	rex.WB call *%r10
     4aac:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     4ab3:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2556,7 +2556,7 @@ Disassembly of section .text:
     4b49:	00 00 00 
     4b4c:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4b53:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4b5a:	4c 8b 15 57 1e 00 00 	mov    0x1e57(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    4b5a:	4c 8b 15 27 37 00 00 	mov    0x3727(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     4b61:	49 ff d2             	rex.WB call *%r10
     4b64:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     4b6b:	00 f8 7f 
@@ -2588,7 +2588,7 @@ Disassembly of section .text:
     4c01:	00 00 00 
     4c04:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4c0b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4c12:	4c 8b 15 9f 1d 00 00 	mov    0x1d9f(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    4c12:	4c 8b 15 6f 36 00 00 	mov    0x366f(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     4c19:	49 ff d2             	rex.WB call *%r10
     4c1c:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     4c23:	00 f8 7f 
@@ -2603,7 +2603,7 @@ Disassembly of section .text:
     4c5a:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     4c61:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     4c68:	48 89 85 90 ff ff ff 	mov    %rax,-0x70(%rbp)
-    4c6f:	48 8d 0d 52 1b 00 00 	lea    0x1b52(%rip),%rcx        # 67c8 <ls_app_entry+0x4fb2>
+    4c6f:	48 8d 0d 22 34 00 00 	lea    0x3422(%rip),%rcx        # 8098 <ls_app_entry+0x6882>
     4c76:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4c7d:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     4c84:	00 f8 7f 
@@ -2612,7 +2612,7 @@ Disassembly of section .text:
     4c90:	48 b8 13 00 00 00 00 	movabs $0x13,%rax
     4c97:	00 00 00 
     4c9a:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4ca1:	48 8d 05 5d 1a 00 00 	lea    0x1a5d(%rip),%rax        # 6705 <ls_app_entry+0x4eef>
+    4ca1:	48 8d 05 cd 23 00 00 	lea    0x23cd(%rip),%rax        # 7075 <ls_app_entry+0x585f>
     4ca8:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     4caf:	48 b8 05 00 00 00 00 	movabs $0x5,%rax
     4cb6:	00 00 00 
@@ -2621,11 +2621,11 @@ Disassembly of section .text:
     4cc7:	00 00 00 
     4cca:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4cd1:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4cd8:	4c 8b 15 c9 1c 00 00 	mov    0x1cc9(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4cd8:	4c 8b 15 99 35 00 00 	mov    0x3599(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4cdf:	49 ff d2             	rex.WB call *%r10
-    4ce2:	48 8d 0d df 1a 00 00 	lea    0x1adf(%rip),%rcx        # 67c8 <ls_app_entry+0x4fb2>
+    4ce2:	48 8d 0d af 33 00 00 	lea    0x33af(%rip),%rcx        # 8098 <ls_app_entry+0x6882>
     4ce9:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4cf0:	48 8d 0d d1 1a 00 00 	lea    0x1ad1(%rip),%rcx        # 67c8 <ls_app_entry+0x4fb2>
+    4cf0:	48 8d 0d a1 33 00 00 	lea    0x33a1(%rip),%rcx        # 8098 <ls_app_entry+0x6882>
     4cf7:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4cfe:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     4d05:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2633,7 +2633,7 @@ Disassembly of section .text:
     4d13:	00 00 00 
     4d16:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4d1d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4d24:	4c 8b 15 bd 1b 00 00 	mov    0x1bbd(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    4d24:	4c 8b 15 8d 34 00 00 	mov    0x348d(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     4d2b:	49 ff d2             	rex.WB call *%r10
     4d2e:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     4d35:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2641,7 +2641,7 @@ Disassembly of section .text:
     4d43:	00 00 00 
     4d46:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4d4d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4d54:	4c 8b 15 85 1b 00 00 	mov    0x1b85(%rip),%r10        # 68e0 <ls_app_api_table+0xd8>
+    4d54:	4c 8b 15 55 34 00 00 	mov    0x3455(%rip),%r10        # 81b0 <ls_app_api_table+0xd8>
     4d5b:	49 ff d2             	rex.WB call *%r10
     4d5e:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     4d65:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2656,7 +2656,7 @@ Disassembly of section .text:
     4da0:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     4da7:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     4dae:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    4db5:	48 8d 0d 14 1a 00 00 	lea    0x1a14(%rip),%rcx        # 67d0 <ls_app_entry+0x4fba>
+    4db5:	48 8d 0d e4 32 00 00 	lea    0x32e4(%rip),%rcx        # 80a0 <ls_app_entry+0x688a>
     4dbc:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4dc3:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     4dca:	00 f8 7f 
@@ -2665,7 +2665,7 @@ Disassembly of section .text:
     4dd6:	48 b8 14 00 00 00 00 	movabs $0x14,%rax
     4ddd:	00 00 00 
     4de0:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4de7:	48 8d 05 1d 19 00 00 	lea    0x191d(%rip),%rax        # 670b <ls_app_entry+0x4ef5>
+    4de7:	48 8d 05 8d 22 00 00 	lea    0x228d(%rip),%rax        # 707b <ls_app_entry+0x5865>
     4dee:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     4df5:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     4dfc:	00 00 00 
@@ -2674,11 +2674,11 @@ Disassembly of section .text:
     4e0d:	00 00 00 
     4e10:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4e17:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4e1e:	4c 8b 15 83 1b 00 00 	mov    0x1b83(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4e1e:	4c 8b 15 53 34 00 00 	mov    0x3453(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4e25:	49 ff d2             	rex.WB call *%r10
-    4e28:	48 8d 0d a1 19 00 00 	lea    0x19a1(%rip),%rcx        # 67d0 <ls_app_entry+0x4fba>
+    4e28:	48 8d 0d 71 32 00 00 	lea    0x3271(%rip),%rcx        # 80a0 <ls_app_entry+0x688a>
     4e2f:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4e36:	48 8d 0d 93 19 00 00 	lea    0x1993(%rip),%rcx        # 67d0 <ls_app_entry+0x4fba>
+    4e36:	48 8d 0d 63 32 00 00 	lea    0x3263(%rip),%rcx        # 80a0 <ls_app_entry+0x688a>
     4e3d:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4e44:	48 89 8d 30 fe ff ff 	mov    %rcx,-0x1d0(%rbp)
     4e4b:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2687,7 +2687,7 @@ Disassembly of section .text:
     4e60:	00 00 00 
     4e63:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4e6a:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4e71:	4c 8b 15 88 1a 00 00 	mov    0x1a88(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    4e71:	4c 8b 15 58 33 00 00 	mov    0x3358(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     4e78:	49 ff d2             	rex.WB call *%r10
     4e7b:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     4e82:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
@@ -2700,7 +2700,7 @@ Disassembly of section .text:
     4eaf:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     4eb6:	48 8b 8b f8 ff ff ff 	mov    -0x8(%rbx),%rcx
     4ebd:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    4ec4:	48 8d 0d 0d 19 00 00 	lea    0x190d(%rip),%rcx        # 67d8 <ls_app_entry+0x4fc2>
+    4ec4:	48 8d 0d dd 31 00 00 	lea    0x31dd(%rip),%rcx        # 80a8 <ls_app_entry+0x6892>
     4ecb:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4ed2:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     4ed9:	00 f8 7f 
@@ -2709,7 +2709,7 @@ Disassembly of section .text:
     4ee5:	48 b8 15 00 00 00 00 	movabs $0x15,%rax
     4eec:	00 00 00 
     4eef:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    4ef6:	48 8d 05 10 18 00 00 	lea    0x1810(%rip),%rax        # 670d <ls_app_entry+0x4ef7>
+    4ef6:	48 8d 05 80 21 00 00 	lea    0x2180(%rip),%rax        # 707d <ls_app_entry+0x5867>
     4efd:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     4f04:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     4f0b:	00 00 00 
@@ -2718,11 +2718,11 @@ Disassembly of section .text:
     4f1c:	00 00 00 
     4f1f:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4f26:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4f2d:	4c 8b 15 74 1a 00 00 	mov    0x1a74(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    4f2d:	4c 8b 15 44 33 00 00 	mov    0x3344(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     4f34:	49 ff d2             	rex.WB call *%r10
-    4f37:	48 8d 0d 9a 18 00 00 	lea    0x189a(%rip),%rcx        # 67d8 <ls_app_entry+0x4fc2>
+    4f37:	48 8d 0d 6a 31 00 00 	lea    0x316a(%rip),%rcx        # 80a8 <ls_app_entry+0x6892>
     4f3e:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    4f45:	48 8d 0d 8c 18 00 00 	lea    0x188c(%rip),%rcx        # 67d8 <ls_app_entry+0x4fc2>
+    4f45:	48 8d 0d 5c 31 00 00 	lea    0x315c(%rip),%rcx        # 80a8 <ls_app_entry+0x6892>
     4f4c:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     4f53:	48 89 8d 30 fe ff ff 	mov    %rcx,-0x1d0(%rbp)
     4f5a:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2731,7 +2731,7 @@ Disassembly of section .text:
     4f6f:	00 00 00 
     4f72:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     4f79:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    4f80:	4c 8b 15 79 19 00 00 	mov    0x1979(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    4f80:	4c 8b 15 49 32 00 00 	mov    0x3249(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     4f87:	49 ff d2             	rex.WB call *%r10
     4f8a:	48 8b 83 f0 ff ff ff 	mov    -0x10(%rbx),%rax
     4f91:	49 bc ff ff ff ff ff 	movabs $0xffffffffffff,%r12
@@ -2757,7 +2757,7 @@ Disassembly of section .text:
     5001:	00 00 00 
     5004:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     500b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5012:	4c 8b 15 9f 19 00 00 	mov    0x199f(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    5012:	4c 8b 15 6f 32 00 00 	mov    0x326f(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     5019:	49 ff d2             	rex.WB call *%r10
     501c:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     5023:	00 f8 7f 
@@ -2770,7 +2770,7 @@ Disassembly of section .text:
     5050:	00 00 00 
     5053:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     505a:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5061:	4c 8b 15 10 19 00 00 	mov    0x1910(%rip),%r10        # 6978 <ls_app_api_table+0x170>
+    5061:	4c 8b 15 e0 31 00 00 	mov    0x31e0(%rip),%r10        # 8248 <ls_app_api_table+0x170>
     5068:	49 ff d2             	rex.WB call *%r10
     506b:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5072:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2790,7 +2790,7 @@ Disassembly of section .text:
     50d0:	00 00 00 
     50d3:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     50da:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    50e1:	4c 8b 15 98 18 00 00 	mov    0x1898(%rip),%r10        # 6980 <ls_app_api_table+0x178>
+    50e1:	4c 8b 15 68 31 00 00 	mov    0x3168(%rip),%r10        # 8250 <ls_app_api_table+0x178>
     50e8:	49 ff d2             	rex.WB call *%r10
     50eb:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     50f2:	00 f8 7f 
@@ -2824,7 +2824,7 @@ Disassembly of section .text:
     51ad:	00 00 00 
     51b0:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     51b7:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    51be:	4c 8b 15 43 17 00 00 	mov    0x1743(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    51be:	4c 8b 15 13 30 00 00 	mov    0x3013(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     51c5:	49 ff d2             	rex.WB call *%r10
     51c8:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     51cf:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2838,7 +2838,7 @@ Disassembly of section .text:
     5205:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     520c:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     5213:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    521a:	48 8d 0d 17 15 00 00 	lea    0x1517(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    521a:	48 8d 0d e7 2d 00 00 	lea    0x2de7(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5221:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5228:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     522f:	00 f8 7f 
@@ -2847,7 +2847,7 @@ Disassembly of section .text:
     523b:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     5242:	00 00 00 
     5245:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    524c:	48 8d 05 ba 14 00 00 	lea    0x14ba(%rip),%rax        # 670d <ls_app_entry+0x4ef7>
+    524c:	48 8d 05 2a 1e 00 00 	lea    0x1e2a(%rip),%rax        # 707d <ls_app_entry+0x5867>
     5253:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     525a:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     5261:	00 00 00 
@@ -2856,11 +2856,11 @@ Disassembly of section .text:
     5272:	00 00 00 
     5275:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     527c:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5283:	4c 8b 15 1e 17 00 00 	mov    0x171e(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    5283:	4c 8b 15 ee 2f 00 00 	mov    0x2fee(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     528a:	49 ff d2             	rex.WB call *%r10
-    528d:	48 8d 0d a4 14 00 00 	lea    0x14a4(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    528d:	48 8d 0d 74 2d 00 00 	lea    0x2d74(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5294:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    529b:	48 8d 0d 96 14 00 00 	lea    0x1496(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    529b:	48 8d 0d 66 2d 00 00 	lea    0x2d66(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     52a2:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     52a9:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     52b0:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -2868,11 +2868,11 @@ Disassembly of section .text:
     52be:	00 00 00 
     52c1:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     52c8:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    52cf:	4c 8b 15 12 16 00 00 	mov    0x1612(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    52cf:	4c 8b 15 e2 2e 00 00 	mov    0x2ee2(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     52d6:	49 ff d2             	rex.WB call *%r10
     52d9:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     52e0:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    52e7:	48 8d 0d f2 14 00 00 	lea    0x14f2(%rip),%rcx        # 67e0 <ls_app_entry+0x4fca>
+    52e7:	48 8d 0d c2 2d 00 00 	lea    0x2dc2(%rip),%rcx        # 80b0 <ls_app_entry+0x689a>
     52ee:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     52f5:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     52fc:	00 f8 7f 
@@ -2881,7 +2881,7 @@ Disassembly of section .text:
     5308:	48 b8 16 00 00 00 00 	movabs $0x16,%rax
     530f:	00 00 00 
     5312:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    5319:	48 8d 05 ef 13 00 00 	lea    0x13ef(%rip),%rax        # 670f <ls_app_entry+0x4ef9>
+    5319:	48 8d 05 5f 1d 00 00 	lea    0x1d5f(%rip),%rax        # 707f <ls_app_entry+0x5869>
     5320:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     5327:	48 b8 07 00 00 00 00 	movabs $0x7,%rax
     532e:	00 00 00 
@@ -2890,11 +2890,11 @@ Disassembly of section .text:
     533f:	00 00 00 
     5342:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5349:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5350:	4c 8b 15 51 16 00 00 	mov    0x1651(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    5350:	4c 8b 15 21 2f 00 00 	mov    0x2f21(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     5357:	49 ff d2             	rex.WB call *%r10
-    535a:	48 8d 0d 7f 14 00 00 	lea    0x147f(%rip),%rcx        # 67e0 <ls_app_entry+0x4fca>
+    535a:	48 8d 0d 4f 2d 00 00 	lea    0x2d4f(%rip),%rcx        # 80b0 <ls_app_entry+0x689a>
     5361:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    5368:	48 8d 0d 71 14 00 00 	lea    0x1471(%rip),%rcx        # 67e0 <ls_app_entry+0x4fca>
+    5368:	48 8d 0d 41 2d 00 00 	lea    0x2d41(%rip),%rcx        # 80b0 <ls_app_entry+0x689a>
     536f:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5376:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     537d:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2927,7 +2927,7 @@ Disassembly of section .text:
     541e:	00 00 00 
     5421:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5428:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    542f:	4c 8b 15 82 15 00 00 	mov    0x1582(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    542f:	4c 8b 15 52 2e 00 00 	mov    0x2e52(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     5436:	49 ff d2             	rex.WB call *%r10
     5439:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     5440:	00 f8 7f 
@@ -2939,7 +2939,7 @@ Disassembly of section .text:
     5466:	00 00 00 
     5469:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5470:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5477:	4c 8b 15 62 14 00 00 	mov    0x1462(%rip),%r10        # 68e0 <ls_app_api_table+0xd8>
+    5477:	4c 8b 15 32 2d 00 00 	mov    0x2d32(%rip),%r10        # 81b0 <ls_app_api_table+0xd8>
     547e:	49 ff d2             	rex.WB call *%r10
     5481:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5488:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -2984,7 +2984,7 @@ Disassembly of section .text:
     5589:	00 00 00 
     558c:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5593:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    559a:	4c 8b 15 c7 13 00 00 	mov    0x13c7(%rip),%r10        # 6968 <ls_app_api_table+0x160>
+    559a:	4c 8b 15 97 2c 00 00 	mov    0x2c97(%rip),%r10        # 8238 <ls_app_api_table+0x160>
     55a1:	49 ff d2             	rex.WB call *%r10
     55a4:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     55ab:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3020,7 +3020,7 @@ Disassembly of section .text:
     566b:	00 00 00 
     566e:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5675:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    567c:	4c 8b 15 e5 12 00 00 	mov    0x12e5(%rip),%r10        # 6968 <ls_app_api_table+0x160>
+    567c:	4c 8b 15 b5 2b 00 00 	mov    0x2bb5(%rip),%r10        # 8238 <ls_app_api_table+0x160>
     5683:	49 ff d2             	rex.WB call *%r10
     5686:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     568d:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3044,7 +3044,7 @@ Disassembly of section .text:
     5705:	00 00 00 
     5708:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     570f:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5716:	4c 8b 15 43 12 00 00 	mov    0x1243(%rip),%r10        # 6960 <ls_app_api_table+0x158>
+    5716:	4c 8b 15 13 2b 00 00 	mov    0x2b13(%rip),%r10        # 8230 <ls_app_api_table+0x158>
     571d:	49 ff d2             	rex.WB call *%r10
     5720:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5727:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3080,7 +3080,7 @@ Disassembly of section .text:
     57e7:	00 00 00 
     57ea:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     57f1:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    57f8:	4c 8b 15 69 11 00 00 	mov    0x1169(%rip),%r10        # 6968 <ls_app_api_table+0x160>
+    57f8:	4c 8b 15 39 2a 00 00 	mov    0x2a39(%rip),%r10        # 8238 <ls_app_api_table+0x160>
     57ff:	49 ff d2             	rex.WB call *%r10
     5802:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5809:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3124,7 +3124,7 @@ Disassembly of section .text:
     58fb:	00 00 00 
     58fe:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5905:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    590c:	4c 8b 15 05 10 00 00 	mov    0x1005(%rip),%r10        # 6918 <ls_app_api_table+0x110>
+    590c:	4c 8b 15 d5 28 00 00 	mov    0x28d5(%rip),%r10        # 81e8 <ls_app_api_table+0x110>
     5913:	49 ff d2             	rex.WB call *%r10
     5916:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     591d:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3141,7 +3141,7 @@ Disassembly of section .text:
     596a:	00 00 00 
     596d:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5974:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    597b:	4c 8b 15 7e 0f 00 00 	mov    0xf7e(%rip),%r10        # 6900 <ls_app_api_table+0xf8>
+    597b:	4c 8b 15 4e 28 00 00 	mov    0x284e(%rip),%r10        # 81d0 <ls_app_api_table+0xf8>
     5982:	49 ff d2             	rex.WB call *%r10
     5985:	48 8b 85 70 ff ff ff 	mov    -0x90(%rbp),%rax
     598c:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
@@ -3159,7 +3159,7 @@ Disassembly of section .text:
     59e0:	00 00 00 
     59e3:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     59ea:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    59f1:	4c 8b 15 10 0f 00 00 	mov    0xf10(%rip),%r10        # 6908 <ls_app_api_table+0x100>
+    59f1:	4c 8b 15 e0 27 00 00 	mov    0x27e0(%rip),%r10        # 81d8 <ls_app_api_table+0x100>
     59f8:	49 ff d2             	rex.WB call *%r10
     59fb:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5a02:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3167,7 +3167,7 @@ Disassembly of section .text:
     5a10:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
     5a17:	48 89 85 70 ff ff ff 	mov    %rax,-0x90(%rbp)
     5a1e:	e9 dd b5 ff ff       	jmp    1000 <ls_app_entry-0x816>
-    5a23:	48 8d 0d 0e 0d 00 00 	lea    0xd0e(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    5a23:	48 8d 0d de 25 00 00 	lea    0x25de(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5a2a:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5a31:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     5a38:	00 f8 7f 
@@ -3176,7 +3176,7 @@ Disassembly of section .text:
     5a44:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     5a4b:	00 00 00 
     5a4e:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    5a55:	48 8d 05 b3 0c 00 00 	lea    0xcb3(%rip),%rax        # 670f <ls_app_entry+0x4ef9>
+    5a55:	48 8d 05 23 16 00 00 	lea    0x1623(%rip),%rax        # 707f <ls_app_entry+0x5869>
     5a5c:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     5a63:	48 b8 07 00 00 00 00 	movabs $0x7,%rax
     5a6a:	00 00 00 
@@ -3185,11 +3185,11 @@ Disassembly of section .text:
     5a7b:	00 00 00 
     5a7e:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5a85:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5a8c:	4c 8b 15 15 0f 00 00 	mov    0xf15(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    5a8c:	4c 8b 15 e5 27 00 00 	mov    0x27e5(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     5a93:	49 ff d2             	rex.WB call *%r10
-    5a96:	48 8d 0d 9b 0c 00 00 	lea    0xc9b(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    5a96:	48 8d 0d 6b 25 00 00 	lea    0x256b(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5a9d:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    5aa4:	48 8d 0d 8d 0c 00 00 	lea    0xc8d(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    5aa4:	48 8d 0d 5d 25 00 00 	lea    0x255d(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5aab:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5ab2:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     5ab9:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -3197,11 +3197,11 @@ Disassembly of section .text:
     5ac7:	00 00 00 
     5aca:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5ad1:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5ad8:	4c 8b 15 09 0e 00 00 	mov    0xe09(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    5ad8:	4c 8b 15 d9 26 00 00 	mov    0x26d9(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     5adf:	49 ff d2             	rex.WB call *%r10
     5ae2:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5ae9:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    5af0:	48 8d 0d f1 0c 00 00 	lea    0xcf1(%rip),%rcx        # 67e8 <ls_app_entry+0x4fd2>
+    5af0:	48 8d 0d c1 25 00 00 	lea    0x25c1(%rip),%rcx        # 80b8 <ls_app_entry+0x68a2>
     5af7:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5afe:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     5b05:	00 f8 7f 
@@ -3210,7 +3210,7 @@ Disassembly of section .text:
     5b11:	48 b8 17 00 00 00 00 	movabs $0x17,%rax
     5b18:	00 00 00 
     5b1b:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    5b22:	48 8d 05 ee 0b 00 00 	lea    0xbee(%rip),%rax        # 6717 <ls_app_entry+0x4f01>
+    5b22:	48 8d 05 5e 15 00 00 	lea    0x155e(%rip),%rax        # 7087 <ls_app_entry+0x5871>
     5b29:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     5b30:	48 b8 06 00 00 00 00 	movabs $0x6,%rax
     5b37:	00 00 00 
@@ -3219,11 +3219,11 @@ Disassembly of section .text:
     5b48:	00 00 00 
     5b4b:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5b52:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5b59:	4c 8b 15 48 0e 00 00 	mov    0xe48(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    5b59:	4c 8b 15 18 27 00 00 	mov    0x2718(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     5b60:	49 ff d2             	rex.WB call *%r10
-    5b63:	48 8d 0d 7e 0c 00 00 	lea    0xc7e(%rip),%rcx        # 67e8 <ls_app_entry+0x4fd2>
+    5b63:	48 8d 0d 4e 25 00 00 	lea    0x254e(%rip),%rcx        # 80b8 <ls_app_entry+0x68a2>
     5b6a:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    5b71:	48 8d 0d 70 0c 00 00 	lea    0xc70(%rip),%rcx        # 67e8 <ls_app_entry+0x4fd2>
+    5b71:	48 8d 0d 40 25 00 00 	lea    0x2540(%rip),%rcx        # 80b8 <ls_app_entry+0x68a2>
     5b78:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5b7f:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5b86:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3244,7 +3244,7 @@ Disassembly of section .text:
     5beb:	00 00 00 
     5bee:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5bf5:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5bfc:	4c 8b 15 f5 0c 00 00 	mov    0xcf5(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    5bfc:	4c 8b 15 c5 25 00 00 	mov    0x25c5(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     5c03:	49 ff d2             	rex.WB call *%r10
     5c06:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5c0d:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3265,7 +3265,7 @@ Disassembly of section .text:
     5c72:	00 00 00 
     5c75:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5c7c:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5c83:	4c 8b 15 6e 0c 00 00 	mov    0xc6e(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    5c83:	4c 8b 15 3e 25 00 00 	mov    0x253e(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     5c8a:	49 ff d2             	rex.WB call *%r10
     5c8d:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5c94:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3286,7 +3286,7 @@ Disassembly of section .text:
     5cf9:	00 00 00 
     5cfc:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5d03:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5d0a:	4c 8b 15 e7 0b 00 00 	mov    0xbe7(%rip),%r10        # 68f8 <ls_app_api_table+0xf0>
+    5d0a:	4c 8b 15 b7 24 00 00 	mov    0x24b7(%rip),%r10        # 81c8 <ls_app_api_table+0xf0>
     5d11:	49 ff d2             	rex.WB call *%r10
     5d14:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5d1b:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3320,7 +3320,7 @@ Disassembly of section .text:
     5dc3:	00 00 00 
     5dc6:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5dcd:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5dd4:	4c 8b 15 dd 0b 00 00 	mov    0xbdd(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    5dd4:	4c 8b 15 ad 24 00 00 	mov    0x24ad(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     5ddb:	49 ff d2             	rex.WB call *%r10
     5dde:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     5de5:	00 f8 7f 
@@ -3328,7 +3328,7 @@ Disassembly of section .text:
     5def:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     5df6:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     5dfd:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    5e04:	48 8d 0d 2d 09 00 00 	lea    0x92d(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    5e04:	48 8d 0d fd 21 00 00 	lea    0x21fd(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5e0b:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5e12:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     5e19:	00 f8 7f 
@@ -3337,7 +3337,7 @@ Disassembly of section .text:
     5e25:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     5e2c:	00 00 00 
     5e2f:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    5e36:	48 8d 05 da 08 00 00 	lea    0x8da(%rip),%rax        # 6717 <ls_app_entry+0x4f01>
+    5e36:	48 8d 05 4a 12 00 00 	lea    0x124a(%rip),%rax        # 7087 <ls_app_entry+0x5871>
     5e3d:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     5e44:	48 b8 06 00 00 00 00 	movabs $0x6,%rax
     5e4b:	00 00 00 
@@ -3346,11 +3346,11 @@ Disassembly of section .text:
     5e5c:	00 00 00 
     5e5f:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5e66:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5e6d:	4c 8b 15 34 0b 00 00 	mov    0xb34(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    5e6d:	4c 8b 15 04 24 00 00 	mov    0x2404(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     5e74:	49 ff d2             	rex.WB call *%r10
-    5e77:	48 8d 0d ba 08 00 00 	lea    0x8ba(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    5e77:	48 8d 0d 8a 21 00 00 	lea    0x218a(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5e7e:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    5e85:	48 8d 0d ac 08 00 00 	lea    0x8ac(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    5e85:	48 8d 0d 7c 21 00 00 	lea    0x217c(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     5e8c:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5e93:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     5e9a:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -3358,11 +3358,11 @@ Disassembly of section .text:
     5ea8:	00 00 00 
     5eab:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5eb2:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5eb9:	4c 8b 15 28 0a 00 00 	mov    0xa28(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    5eb9:	4c 8b 15 f8 22 00 00 	mov    0x22f8(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     5ec0:	49 ff d2             	rex.WB call *%r10
     5ec3:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5eca:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    5ed1:	48 8d 0d 18 09 00 00 	lea    0x918(%rip),%rcx        # 67f0 <ls_app_entry+0x4fda>
+    5ed1:	48 8d 0d e8 21 00 00 	lea    0x21e8(%rip),%rcx        # 80c0 <ls_app_entry+0x68aa>
     5ed8:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5edf:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     5ee6:	00 f8 7f 
@@ -3371,7 +3371,7 @@ Disassembly of section .text:
     5ef2:	48 b8 18 00 00 00 00 	movabs $0x18,%rax
     5ef9:	00 00 00 
     5efc:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    5f03:	48 8d 05 14 08 00 00 	lea    0x814(%rip),%rax        # 671e <ls_app_entry+0x4f08>
+    5f03:	48 8d 05 84 11 00 00 	lea    0x1184(%rip),%rax        # 708e <ls_app_entry+0x5878>
     5f0a:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     5f11:	48 b8 08 00 00 00 00 	movabs $0x8,%rax
     5f18:	00 00 00 
@@ -3380,15 +3380,15 @@ Disassembly of section .text:
     5f29:	00 00 00 
     5f2c:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5f33:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5f3a:	4c 8b 15 67 0a 00 00 	mov    0xa67(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    5f3a:	4c 8b 15 37 23 00 00 	mov    0x2337(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     5f41:	49 ff d2             	rex.WB call *%r10
-    5f44:	48 8d 0d a5 08 00 00 	lea    0x8a5(%rip),%rcx        # 67f0 <ls_app_entry+0x4fda>
+    5f44:	48 8d 0d 75 21 00 00 	lea    0x2175(%rip),%rcx        # 80c0 <ls_app_entry+0x68aa>
     5f4b:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    5f52:	48 8d 0d 97 08 00 00 	lea    0x897(%rip),%rcx        # 67f0 <ls_app_entry+0x4fda>
+    5f52:	48 8d 0d 67 21 00 00 	lea    0x2167(%rip),%rcx        # 80c0 <ls_app_entry+0x68aa>
     5f59:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5f60:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     5f67:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    5f6e:	48 8d 0d 5b 08 00 00 	lea    0x85b(%rip),%rcx        # 67d0 <ls_app_entry+0x4fba>
+    5f6e:	48 8d 0d 2b 21 00 00 	lea    0x212b(%rip),%rcx        # 80a0 <ls_app_entry+0x688a>
     5f75:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5f7c:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     5f83:	00 f8 7f 
@@ -3397,7 +3397,7 @@ Disassembly of section .text:
     5f8f:	48 b8 14 00 00 00 00 	movabs $0x14,%rax
     5f96:	00 00 00 
     5f99:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    5fa0:	48 8d 05 77 07 00 00 	lea    0x777(%rip),%rax        # 671e <ls_app_entry+0x4f08>
+    5fa0:	48 8d 05 e7 10 00 00 	lea    0x10e7(%rip),%rax        # 708e <ls_app_entry+0x5878>
     5fa7:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     5fae:	48 b8 08 00 00 00 00 	movabs $0x8,%rax
     5fb5:	00 00 00 
@@ -3406,15 +3406,15 @@ Disassembly of section .text:
     5fc6:	00 00 00 
     5fc9:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     5fd0:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    5fd7:	4c 8b 15 ca 09 00 00 	mov    0x9ca(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    5fd7:	4c 8b 15 9a 22 00 00 	mov    0x229a(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     5fde:	49 ff d2             	rex.WB call *%r10
-    5fe1:	48 8d 0d e8 07 00 00 	lea    0x7e8(%rip),%rcx        # 67d0 <ls_app_entry+0x4fba>
+    5fe1:	48 8d 0d b8 20 00 00 	lea    0x20b8(%rip),%rcx        # 80a0 <ls_app_entry+0x688a>
     5fe8:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    5fef:	48 8d 0d da 07 00 00 	lea    0x7da(%rip),%rcx        # 67d0 <ls_app_entry+0x4fba>
+    5fef:	48 8d 0d aa 20 00 00 	lea    0x20aa(%rip),%rcx        # 80a0 <ls_app_entry+0x688a>
     5ff6:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     5ffd:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     6004:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    600b:	48 8d 0d c6 07 00 00 	lea    0x7c6(%rip),%rcx        # 67d8 <ls_app_entry+0x4fc2>
+    600b:	48 8d 0d 96 20 00 00 	lea    0x2096(%rip),%rcx        # 80a8 <ls_app_entry+0x6892>
     6012:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     6019:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     6020:	00 f8 7f 
@@ -3423,7 +3423,7 @@ Disassembly of section .text:
     602c:	48 b8 15 00 00 00 00 	movabs $0x15,%rax
     6033:	00 00 00 
     6036:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    603d:	48 8d 05 da 06 00 00 	lea    0x6da(%rip),%rax        # 671e <ls_app_entry+0x4f08>
+    603d:	48 8d 05 4a 10 00 00 	lea    0x104a(%rip),%rax        # 708e <ls_app_entry+0x5878>
     6044:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     604b:	48 b8 08 00 00 00 00 	movabs $0x8,%rax
     6052:	00 00 00 
@@ -3432,15 +3432,15 @@ Disassembly of section .text:
     6063:	00 00 00 
     6066:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     606d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    6074:	4c 8b 15 2d 09 00 00 	mov    0x92d(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    6074:	4c 8b 15 fd 21 00 00 	mov    0x21fd(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     607b:	49 ff d2             	rex.WB call *%r10
-    607e:	48 8d 0d 53 07 00 00 	lea    0x753(%rip),%rcx        # 67d8 <ls_app_entry+0x4fc2>
+    607e:	48 8d 0d 23 20 00 00 	lea    0x2023(%rip),%rcx        # 80a8 <ls_app_entry+0x6892>
     6085:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    608c:	48 8d 0d 45 07 00 00 	lea    0x745(%rip),%rcx        # 67d8 <ls_app_entry+0x4fc2>
+    608c:	48 8d 0d 15 20 00 00 	lea    0x2015(%rip),%rcx        # 80a8 <ls_app_entry+0x6892>
     6093:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     609a:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     60a1:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    60a8:	48 8d 0d 49 07 00 00 	lea    0x749(%rip),%rcx        # 67f8 <ls_app_entry+0x4fe2>
+    60a8:	48 8d 0d 19 20 00 00 	lea    0x2019(%rip),%rcx        # 80c8 <ls_app_entry+0x68b2>
     60af:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     60b6:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     60bd:	00 f8 7f 
@@ -3449,7 +3449,7 @@ Disassembly of section .text:
     60c9:	48 b8 19 00 00 00 00 	movabs $0x19,%rax
     60d0:	00 00 00 
     60d3:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    60da:	48 8d 05 46 06 00 00 	lea    0x646(%rip),%rax        # 6727 <ls_app_entry+0x4f11>
+    60da:	48 8d 05 b6 0f 00 00 	lea    0xfb6(%rip),%rax        # 7097 <ls_app_entry+0x5881>
     60e1:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     60e8:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     60ef:	00 00 00 
@@ -3458,11 +3458,11 @@ Disassembly of section .text:
     6100:	00 00 00 
     6103:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     610a:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    6111:	4c 8b 15 90 08 00 00 	mov    0x890(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    6111:	4c 8b 15 60 21 00 00 	mov    0x2160(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     6118:	49 ff d2             	rex.WB call *%r10
-    611b:	48 8d 0d d6 06 00 00 	lea    0x6d6(%rip),%rcx        # 67f8 <ls_app_entry+0x4fe2>
+    611b:	48 8d 0d a6 1f 00 00 	lea    0x1fa6(%rip),%rcx        # 80c8 <ls_app_entry+0x68b2>
     6122:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    6129:	48 8d 0d c8 06 00 00 	lea    0x6c8(%rip),%rcx        # 67f8 <ls_app_entry+0x4fe2>
+    6129:	48 8d 0d 98 1f 00 00 	lea    0x1f98(%rip),%rcx        # 80c8 <ls_app_entry+0x68b2>
     6130:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     6137:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     613e:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3476,7 +3476,7 @@ Disassembly of section .text:
     6176:	00 00 00 
     6179:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     6180:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    6187:	4c 8b 15 aa 07 00 00 	mov    0x7aa(%rip),%r10        # 6938 <ls_app_api_table+0x130>
+    6187:	4c 8b 15 7a 20 00 00 	mov    0x207a(%rip),%r10        # 8208 <ls_app_api_table+0x130>
     618e:	49 ff d2             	rex.WB call *%r10
     6191:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     6198:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3490,7 +3490,7 @@ Disassembly of section .text:
     61d0:	00 00 00 
     61d3:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     61da:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    61e1:	4c 8b 15 50 07 00 00 	mov    0x750(%rip),%r10        # 6938 <ls_app_api_table+0x130>
+    61e1:	4c 8b 15 20 20 00 00 	mov    0x2020(%rip),%r10        # 8208 <ls_app_api_table+0x130>
     61e8:	49 ff d2             	rex.WB call *%r10
     61eb:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     61f2:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3520,7 +3520,7 @@ Disassembly of section .text:
     627e:	00 00 00 
     6281:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     6288:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    628f:	4c 8b 15 22 07 00 00 	mov    0x722(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    628f:	4c 8b 15 f2 1f 00 00 	mov    0x1ff2(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     6296:	49 ff d2             	rex.WB call *%r10
     6299:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     62a0:	00 f8 7f 
@@ -3528,7 +3528,7 @@ Disassembly of section .text:
     62aa:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     62b1:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     62b8:	4c 81 c3 08 00 00 00 	rex.WR add $0x8,%rbx
-    62bf:	48 8d 0d 72 04 00 00 	lea    0x472(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    62bf:	48 8d 0d 42 1d 00 00 	lea    0x1d42(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     62c6:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     62cd:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     62d4:	00 f8 7f 
@@ -3537,7 +3537,7 @@ Disassembly of section .text:
     62e0:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     62e7:	00 00 00 
     62ea:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    62f1:	48 8d 05 2f 04 00 00 	lea    0x42f(%rip),%rax        # 6727 <ls_app_entry+0x4f11>
+    62f1:	48 8d 05 9f 0d 00 00 	lea    0xd9f(%rip),%rax        # 7097 <ls_app_entry+0x5881>
     62f8:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     62ff:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     6306:	00 00 00 
@@ -3546,11 +3546,11 @@ Disassembly of section .text:
     6317:	00 00 00 
     631a:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     6321:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    6328:	4c 8b 15 79 06 00 00 	mov    0x679(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    6328:	4c 8b 15 49 1f 00 00 	mov    0x1f49(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     632f:	49 ff d2             	rex.WB call *%r10
-    6332:	48 8d 0d ff 03 00 00 	lea    0x3ff(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    6332:	48 8d 0d cf 1c 00 00 	lea    0x1ccf(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     6339:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    6340:	48 8d 0d f1 03 00 00 	lea    0x3f1(%rip),%rcx        # 6738 <ls_app_entry+0x4f22>
+    6340:	48 8d 0d c1 1c 00 00 	lea    0x1cc1(%rip),%rcx        # 8008 <ls_app_entry+0x67f2>
     6347:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     634e:	4c 89 a5 30 fe ff ff 	mov    %r12,-0x1d0(%rbp)
     6355:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
@@ -3558,11 +3558,11 @@ Disassembly of section .text:
     6363:	00 00 00 
     6366:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     636d:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    6374:	4c 8b 15 6d 05 00 00 	mov    0x56d(%rip),%r10        # 68e8 <ls_app_api_table+0xe0>
+    6374:	4c 8b 15 3d 1e 00 00 	mov    0x1e3d(%rip),%r10        # 81b8 <ls_app_api_table+0xe0>
     637b:	49 ff d2             	rex.WB call *%r10
     637e:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     6385:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    638c:	48 8d 0d 6d 04 00 00 	lea    0x46d(%rip),%rcx        # 6800 <ls_app_entry+0x4fea>
+    638c:	48 8d 0d 3d 1d 00 00 	lea    0x1d3d(%rip),%rcx        # 80d0 <ls_app_entry+0x68ba>
     6393:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     639a:	49 bd 00 00 00 00 00 	movabs $0x7ff8000000000000,%r13
     63a1:	00 f8 7f 
@@ -3571,7 +3571,7 @@ Disassembly of section .text:
     63ad:	48 b8 1a 00 00 00 00 	movabs $0x1a,%rax
     63b4:	00 00 00 
     63b7:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
-    63be:	48 8d 05 64 03 00 00 	lea    0x364(%rip),%rax        # 6729 <ls_app_entry+0x4f13>
+    63be:	48 8d 05 d4 0c 00 00 	lea    0xcd4(%rip),%rax        # 7099 <ls_app_entry+0x5883>
     63c5:	48 89 85 38 fe ff ff 	mov    %rax,-0x1c8(%rbp)
     63cc:	48 b8 06 00 00 00 00 	movabs $0x6,%rax
     63d3:	00 00 00 
@@ -3580,11 +3580,11 @@ Disassembly of section .text:
     63e4:	00 00 00 
     63e7:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     63ee:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    63f5:	4c 8b 15 ac 05 00 00 	mov    0x5ac(%rip),%r10        # 69a8 <ls_app_api_table+0x1a0>
+    63f5:	4c 8b 15 7c 1e 00 00 	mov    0x1e7c(%rip),%r10        # 8278 <ls_app_api_table+0x1a0>
     63fc:	49 ff d2             	rex.WB call *%r10
-    63ff:	48 8d 0d fa 03 00 00 	lea    0x3fa(%rip),%rcx        # 6800 <ls_app_entry+0x4fea>
+    63ff:	48 8d 0d ca 1c 00 00 	lea    0x1cca(%rip),%rcx        # 80d0 <ls_app_entry+0x68ba>
     6406:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    640d:	48 8d 0d ec 03 00 00 	lea    0x3ec(%rip),%rcx        # 6800 <ls_app_entry+0x4fea>
+    640d:	48 8d 0d bc 1c 00 00 	lea    0x1cbc(%rip),%rcx        # 80d0 <ls_app_entry+0x68ba>
     6414:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     641b:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     6422:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3606,7 +3606,7 @@ Disassembly of section .text:
     648a:	00 00 00 
     648d:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     6494:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    649b:	4c 8b 15 be 04 00 00 	mov    0x4be(%rip),%r10        # 6960 <ls_app_api_table+0x158>
+    649b:	4c 8b 15 8e 1d 00 00 	mov    0x1d8e(%rip),%r10        # 8230 <ls_app_api_table+0x158>
     64a2:	49 ff d2             	rex.WB call *%r10
     64a5:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     64ac:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3628,7 +3628,7 @@ Disassembly of section .text:
     6514:	00 00 00 
     6517:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     651e:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    6525:	4c 8b 15 2c 04 00 00 	mov    0x42c(%rip),%r10        # 6958 <ls_app_api_table+0x150>
+    6525:	4c 8b 15 fc 1c 00 00 	mov    0x1cfc(%rip),%r10        # 8228 <ls_app_api_table+0x150>
     652c:	49 ff d2             	rex.WB call *%r10
     652f:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     6536:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3643,7 +3643,7 @@ Disassembly of section .text:
     6571:	00 00 00 
     6574:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     657b:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    6582:	4c 8b 15 c7 03 00 00 	mov    0x3c7(%rip),%r10        # 6950 <ls_app_api_table+0x148>
+    6582:	4c 8b 15 97 1c 00 00 	mov    0x1c97(%rip),%r10        # 8220 <ls_app_api_table+0x148>
     6589:	49 ff d2             	rex.WB call *%r10
     658c:	4c 81 eb 08 00 00 00 	rex.WR sub $0x8,%rbx
     6593:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
@@ -3677,7 +3677,7 @@ Disassembly of section .text:
     663b:	00 00 00 
     663e:	48 89 85 28 fe ff ff 	mov    %rax,-0x1d8(%rbp)
     6645:	49 8d bd 30 fe ff ff 	lea    -0x1d0(%r13),%rdi
-    664c:	4c 8b 15 65 03 00 00 	mov    0x365(%rip),%r10        # 69b8 <ls_app_api_table+0x1b0>
+    664c:	4c 8b 15 35 1c 00 00 	mov    0x1c35(%rip),%r10        # 8288 <ls_app_api_table+0x1b0>
     6653:	49 ff d2             	rex.WB call *%r10
     6656:	48 b8 00 00 00 00 00 	movabs $0x7ff8000000000000,%rax
     665d:	00 f8 7f 
