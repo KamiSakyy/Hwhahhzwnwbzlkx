@@ -106,7 +106,11 @@ public final class Compiler {
     }
 
     private void patchJump(int pos) {
-        int target = current.code.size();
+        patchJumpTo(pos, current.code.size());
+    }
+
+    /** Записывает переход на указанный адрес (в байтах кода). */
+    private void patchJumpTo(int pos, int target) {
         // Смещение отсчитывается от инструкции ПОСЛЕ перехода, поэтому -1.
         int delta = (target - pos) / Opcodes.INSTRUCTION_SIZE - 1;
         byte[] code = current.code.data;
@@ -244,7 +248,7 @@ public final class Compiler {
             compileBlock(node.body);
             loops.remove(loops.size() - 1);
             int backJump = emitJump(Opcodes.JMP);
-            patchJump(backJump);
+            patchJumpTo(backJump, start);
             patchJump(exitJump);
             patchBreaks(start);
         } else if (stat instanceof Ast.DoStat) {
@@ -410,7 +414,7 @@ public final class Compiler {
         emit(Opcodes.STORE_LOCAL, 0, varSlot);
 
         int backJump = emitJump(Opcodes.JMP);
-        patchJump(backJump);
+        patchJumpTo(backJump, start);
         patchJump(exitJump);
         patchBreaks(start);
         loops.remove(loops.size() - 1);
@@ -443,7 +447,7 @@ public final class Compiler {
         compileBlock(node.body);
 
         int backJump = emitJump(Opcodes.JMP);
-        patchJump(backJump);
+        patchJumpTo(backJump, start);
         // Метка выхода: сюда попадают и FOR_ITER, и break — здесь чистим f, s, ctrl.
         int exitPos = current.code.size();
         patchJump(iterJump);

@@ -591,6 +591,13 @@ public final class Vm {
         if (target.isTable()) {
             return target.asTable().get(key);
         }
+        if (target.isString() && key.isString()) {
+            // Методы строк: s:upper() → string.upper(s)
+            Value lib = globals.get("string");
+            if (lib.isTable()) {
+                return lib.asTable().get(key);
+            }
+        }
         if (target.isString()) {
             String s = target.asString();
             if (key.isNumber()) {
