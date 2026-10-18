@@ -14,16 +14,30 @@ import java.util.List;
  */
 public final class AotElf {
 
+    /** Режим записи исправления адреса. */
+    public static final int MODE_DISP32 = 0;   // 32-битное смещение (x86-64, RIP-relative)
+    public static final int MODE_ADR = 1;       // ADR (AArch64)
+    public static final int MODE_BRANCH = 2;    // B (AArch64)
+    public static final int MODE_BCOND = 3;     // B.cond (AArch64)
+
     /** Исправление адреса в машинном коде. */
     public static final class Fixup {
+        /** Смещение исправляемого поля (либо начала инструкции). */
         public final int offset;
         public final int kind;
         public final int index;
+        /** Режим записи. */
+        public final int mode;
 
         public Fixup(int offset, int kind, int index) {
+            this(offset, kind, index, MODE_DISP32);
+        }
+
+        public Fixup(int offset, int kind, int index, int mode) {
             this.offset = offset;
             this.kind = kind;
             this.index = index;
+            this.mode = mode;
         }
     }
 
@@ -51,7 +65,8 @@ public final class AotElf {
         public int[] rodataOffsets = new int[0];
         public final List<Fixup> fixups = new ArrayList<>();
         /** Переходы: {смещение disp, метка}. */
-        public final List<int[]> jumps = new ArrayList<>();
+        /** Переходы: то же описание исправления, но адрес — метка. */
+        public final List<Fixup> jumps = new ArrayList<>();
         /** Смещения меток в .text. */
         public int[] labelOffsets = new int[0];
         public final List<Export> exported = new ArrayList<>();
@@ -161,31 +176,12 @@ public final class AotElf {
         // --- патчи машинного кода ---
         byte[] code = module.code.clone();
         for (Fixup fixup : module.fixups) {
-            long target;
-            switch (fixup.kind) {
-                case AotIsa.FIX_POOL:
-                    target = dataAddr + module.poolOffset + 8L * fixup.index;
-                    break;
-                case AotIsa.FIX_RODATA:
-                    target = rodataAddr + module.rodataOffsets[fixup.index];
-                    break;
-                case AotIsa.FIX_API:
-                    target = apiTableAddr + 8L * fixup.index;
-                    break;
-                case AotIsa.FIX_FUNCTION:
-                    target = textAddr + module.functionOffsets[fixup.index];
-                    break;
-                default:
-                    target = 0;
-                    break;
-            }
-            long disp = target - (textAddr + fixup.offset + 4);
-            putInt(code, fixup.offset, (int) disp);
+            long target = fixupTarget(module, fixup, textAddr, dataAddr, rodataAddr, apiTableAddr);
+            applyFixup(code, fixup, target, textAddr);
         }
-        for (int[] jump : module.jumps) {
-            long target = textAddr + module.labelOffsets[jump[1]];
-            long disp = target - (textAddr + jump[0] + 4);
-            putInt(code, jump[0], (int) disp);
+        for (Fixup jump : module.jumps) {
+            long target = textAddr + module.labelOffsets[jump.index];
+            applyFixup(code, jump, target, textAddr);
         }
 
         // --- итоговый файл ---
@@ -375,6 +371,61 @@ public final class AotElf {
         }
         out.write(shstrBytes, 0, shstrBytes.length);
         return out.toByteArray();
+    }
+
+    private static long fixupTarget(Module module, Fixup fixup, long textAddr, long dataAddr,
+                                    long rodataAddr, long apiTableAddr) {
+        switch (fixup.kind) {
+            case AotIsa.FIX_POOL:
+                return dataAddr + module.poolOffset + 8L * fixup.index;
+            case AotIsa.FIX_RODATA:
+                return rodataAddr + module.rodataOffsets[fixup.index];
+            case AotIsa.FIX_API:
+                return apiTableAddr + 8L * fixup.index;
+            case AotIsa.FIX_FUNCTION:
+                return textAddr + module.functionOffsets[fixup.index];
+            default:
+                return 0;
+        }
+    }
+
+    private static void applyFixup(byte[] code, Fixup fixup, long target, long textAddr) {
+        switch (fixup.mode) {
+            case MODE_ADR: {
+                long off = target - (textAddr + fixup.offset);
+                int word = getInt(code, fixup.offset);
+                int immlo = (int) (off & 3);
+                int immhi = (int) ((off >> 2) & 0x7FFFF);
+                putInt(code, fixup.offset, word | (immlo << 29) | (immhi << 5));
+                break;
+            }
+            case MODE_BRANCH: {
+                long off = target - (textAddr + fixup.offset);
+                int word = getInt(code, fixup.offset);
+                int imm26 = (int) ((off >> 2) & 0x3FFFFFF);
+                putInt(code, fixup.offset, word | imm26);
+                break;
+            }
+            case MODE_BCOND: {
+                long off = target - (textAddr + fixup.offset);
+                int word = getInt(code, fixup.offset);
+                int imm19 = (int) ((off >> 2) & 0x7FFFF);
+                putInt(code, fixup.offset, word | (imm19 << 5));
+                break;
+            }
+            default: {
+                long disp = target - (textAddr + fixup.offset + 4);
+                putInt(code, fixup.offset, (int) disp);
+                break;
+            }
+        }
+    }
+
+    private static int getInt(byte[] data, int offset) {
+        return (data[offset] & 0xFF)
+                | ((data[offset + 1] & 0xFF) << 8)
+                | ((data[offset + 2] & 0xFF) << 16)
+                | ((data[offset + 3] & 0xFF) << 24);
     }
 
     private static void putInt(byte[] data, int offset, int value) {

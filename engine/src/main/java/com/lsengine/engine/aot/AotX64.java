@@ -1,8 +1,5 @@
 package com.lsengine.engine.aot;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * AOT-бэкенд для x86-64 (System V, Linux/Android).
  *
@@ -414,6 +411,36 @@ public final class AotX64 extends AotBackend {
         u8(0x8D);
         int at = modrmRip(x86(reg));
         fixups.add(new AotElf.Fixup(at, FIX_API, index));
+    }
+
+    @Override
+    public int frameBase() {
+        return -16;   // push rbx, push r12
+    }
+
+    @Override
+    public int localOffset(int slot) {
+        return AotFrame.localOffset(slot);
+    }
+
+    @Override
+    public int closureSlotOffset(int localCount) {
+        return AotFrame.closureOffset(localCount);
+    }
+
+    @Override
+    public int scratchSlotOffset(int localCount) {
+        return AotFrame.scratchOffset(localCount);
+    }
+
+    @Override
+    public int stackTopOffset(int localCount) {
+        return AotFrame.stackTop(localCount);
+    }
+
+    @Override
+    public int frameSize(int localCount, int maxStack, int maxArgs) {
+        return AotFrame.frameSize(localCount, maxStack, maxArgs);
     }
 
     @Override

@@ -203,16 +203,16 @@ public final class AotCompiler {
             }
         }
         maxArgs = Math.max(maxArgs, 4);
-        frameSize = AotFrame.frameSize(localCount, maxStack, maxArgs);
-        callBase = AotFrame.callAreaBase(frameSize);
+        frameSize = backend.frameSize(localCount, maxStack, maxArgs);
+        callBase = backend.frameBase() - frameSize;
         argsDisp = callBase + 16;
 
         backend.prologue(frameSize);
-        backend.lea(AotIsa.SP, AotIsa.FP, AotFrame.stackTop(localCount));
+        backend.lea(AotIsa.SP, AotIsa.FP, backend.stackTopOffset(localCount));
 
         // Указатель на замыкание: в кадре (корень GC) и в регистре.
         backend.load(AotIsa.R0, AotIsa.FP, 8);
-        backend.store(AotIsa.FP, AotFrame.closureOffset(localCount), AotIsa.R0);
+        backend.store(AotIsa.FP, backend.closureSlotOffset(localCount), AotIsa.R0);
         backend.movReg(AotIsa.CL, AotIsa.R0);
 
         // Таблица глобальных переменных.
@@ -226,7 +226,7 @@ public final class AotCompiler {
             backend.movImm(AotIsa.R0, 1);
             backend.store(AotIsa.FP, callBase + 8, AotIsa.R0);
             backend.callApi(AotApi.NEW_CELL, argsDisp);
-            backend.store(AotIsa.FP, AotFrame.localOffset(slot), AotIsa.R0);
+            backend.store(AotIsa.FP, backend.localOffset(slot), AotIsa.R0);
         }
 
         // Параметры: недостающие — nil.
@@ -241,10 +241,10 @@ public final class AotCompiler {
             backend.movImm(AotIsa.R0, AotValues.NIL);
             backend.label(lblStore);
             if (i < captured.length && captured[i]) {
-                backend.load(AotIsa.R1, AotIsa.FP, AotFrame.localOffset(i));
+                backend.load(AotIsa.R1, AotIsa.FP, backend.localOffset(i));
                 backend.store(AotIsa.R1, 0, AotIsa.R0);
             } else {
-                backend.store(AotIsa.FP, AotFrame.localOffset(i), AotIsa.R0);
+                backend.store(AotIsa.FP, backend.localOffset(i), AotIsa.R0);
             }
         }
 
@@ -295,7 +295,7 @@ public final class AotCompiler {
                 push(AotIsa.R0);
                 break;
             case Opcodes.LOAD_LOCAL: {
-                backend.load(AotIsa.R0, AotIsa.FP, AotFrame.localOffset(b));
+                backend.load(AotIsa.R0, AotIsa.FP, backend.localOffset(b));
                 if (b < captured.length && captured[b]) {
                     backend.load(AotIsa.R0, AotIsa.R0, 0);
                 }
@@ -305,10 +305,10 @@ public final class AotCompiler {
             case Opcodes.STORE_LOCAL: {
                 pop(AotIsa.R0);
                 if (b < captured.length && captured[b]) {
-                    backend.load(AotIsa.R1, AotIsa.FP, AotFrame.localOffset(b));
+                    backend.load(AotIsa.R1, AotIsa.FP, backend.localOffset(b));
                     backend.store(AotIsa.R1, 0, AotIsa.R0);
                 } else {
-                    backend.store(AotIsa.FP, AotFrame.localOffset(b), AotIsa.R0);
+                    backend.store(AotIsa.FP, backend.localOffset(b), AotIsa.R0);
                 }
                 break;
             }
@@ -500,7 +500,7 @@ public final class AotCompiler {
                 backend.load(AotIsa.R1, AotIsa.SP, -8);
                 backend.store(AotIsa.FP, argsDisp, AotIsa.R0);
                 backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R1);
-                backend.lea(AotIsa.R0, AotIsa.FP, AotFrame.scratchOffset(localCount));
+                backend.lea(AotIsa.R0, AotIsa.FP, backend.scratchSlotOffset(localCount));
                 backend.store(AotIsa.FP, argsDisp + 16, AotIsa.R0);
                 backend.movImm(AotIsa.R0, 3);
                 backend.store(AotIsa.FP, callBase + 8, AotIsa.R0);
@@ -508,7 +508,7 @@ public final class AotCompiler {
                 backend.jumpIfEq(AotIsa.R0, AotValues.NIL, target);
                 backend.store(AotIsa.SP, -8, AotIsa.R0);
                 push(AotIsa.R0);
-                backend.load(AotIsa.R1, AotIsa.FP, AotFrame.scratchOffset(localCount));
+                backend.load(AotIsa.R1, AotIsa.FP, backend.scratchSlotOffset(localCount));
                 push(AotIsa.R1);
                 backend.label(done);
                 break;
@@ -581,7 +581,7 @@ public final class AotCompiler {
             backend.movImm(AotIsa.R0, i);
             backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R0);
             if (u.fromParentLocal) {
-                backend.load(AotIsa.R1, AotIsa.FP, AotFrame.localOffset(u.index));
+                backend.load(AotIsa.R1, AotIsa.FP, backend.localOffset(u.index));
             } else {
                 backend.load(AotIsa.R1, AotIsa.CL, 16);
                 backend.addImm(AotIsa.R1, 8 * u.index);

@@ -37,9 +37,4 @@ public final class AotFrame {
         int callArea = align16(16 + 8 * maxArgs);
         return align16(24 + 8 * localCount + 8 * maxStack + callArea);
     }
-
-    /** Смещение исходящей области вызова относительно FP. */
-    public static int callAreaBase(int frameSize) {
-        return -(16 + frameSize);
-    }
 }

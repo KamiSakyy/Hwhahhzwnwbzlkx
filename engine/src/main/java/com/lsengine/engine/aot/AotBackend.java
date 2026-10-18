@@ -13,7 +13,7 @@ public abstract class AotBackend implements AotIsa {
 
     protected final ByteArrayOutputStream out = new ByteArrayOutputStream(4096);
     protected final List<AotElf.Fixup> fixups = new ArrayList<>();
-    protected final List<int[]> jumps = new ArrayList<>();
+    protected final List<AotElf.Fixup> jumps = new ArrayList<>();
     protected final Map<Integer, Integer> labels = new LinkedHashMap<>();
 
     protected void u8(int v) {
@@ -33,9 +33,9 @@ public abstract class AotBackend implements AotIsa {
         }
     }
 
-    /** Записывает rel32 и запоминает место для исправления. */
+    /** Записывает rel32 и запоминает место для исправления (x86-64). */
     protected void emitRel32(int labelId) {
-        jumps.add(new int[]{out.size(), labelId});
+        jumps.add(new AotElf.Fixup(out.size(), 0, labelId, AotElf.MODE_DISP32));
         u32(0);
     }
 
@@ -57,7 +57,7 @@ public abstract class AotBackend implements AotIsa {
         return fixups;
     }
 
-    public List<int[]> jumps() {
+    public List<AotElf.Fixup> jumps() {
         return jumps;
     }
 

@@ -170,4 +170,25 @@ public interface AotIsa {
 
     /** Текущий размер сгенерированного кода. */
     int codeSize();
+
+    /**
+     * Смещение низа кадра относительно FP: столько байт занимают
+     * сохранённые регистры (включая обратный адрес).
+     */
+    int frameBase();
+
+    /** Смещение локальной переменной относительно FP. */
+    int localOffset(int slot);
+
+    /** Смещение слота с указателем на замыкание. */
+    int closureSlotOffset(int localCount);
+
+    /** Смещение вспомогательного слота. */
+    int scratchSlotOffset(int localCount);
+
+    /** Начальное значение указателя стека значений. */
+    int stackTopOffset(int localCount);
+
+    /** Размер кадра в байтах. */
+    int frameSize(int localCount, int maxStack, int maxArgs);
 }
