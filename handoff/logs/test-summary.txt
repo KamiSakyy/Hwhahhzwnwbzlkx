@@ -17,15 +17,15 @@ com.lsengine.engine.BytecodeFileTest                         tests=3 failures=0 
 com.lsengine.engine.CodecTest                                tests=4 failures=0 errors=0 skipped=0
 com.lsengine.engine.LanguageTest                             tests=12 failures=1 errors=0 skipped=0
   [FAILURE] compoundAssignmentAndTernary
-      com.lsengine.engine.vm.VmException: переполнение стека (внутренняя ошибка VM)
-      	at app//com.lsengine.engine.vm.Vm.pop(Vm.java:157)
-      	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:298)
-      	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
-      	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
-      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:34)
-      	at app//com.lsengine.engine.LanguageTest.compoundAssignmentAndTernary(LanguageTest.java:115)
-      	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base@17.0.20.1/java.lang.reflect.Method.invoke(Method.java:569)
-      	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+      java.lang.AssertionError: expected:<4.0> but was:<1.0>
+      	at org.junit.Assert.fail(Assert.java:89)
+      	at org.junit.Assert.failNotEquals(Assert.java:835)
+      	at org.junit.Assert.assertEquals(Assert.java:555)
+      	at org.junit.Assert.assertEquals(Assert.java:685)
+      	at com.lsengine.engine.LanguageTest.compoundAssignmentAndTernary(LanguageTest.java:126)
+      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+      	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+      	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+      	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
