@@ -325,7 +325,7 @@ public final class AotArm64 extends AotBackend {
         int r = reg(reg);
         if (imm >= 0 && imm <= 4095) {
             // subs xzr, xN, #imm
-            insn(0xF100001F | (imm << 10) | (r << 5));
+            insn(0xF100001F | ((int) imm << 10) | (r << 5));
             return;
         }
         movImm(TMP, imm);
