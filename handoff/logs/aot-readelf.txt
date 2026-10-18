@@ -18,31 +18,26 @@ ELF Header:
   Size of section headers:           64 (bytes)
   Number of section headers:         9
   Section header string table index: 8
-readelf: Error: Section 4 has invalid sh_entsize of 0
-readelf: Error: (Using the expected size of 18 for the rest of this dump)
 
 Section Headers:
   [Nr] Name              Type             Address           Offset
        Size              EntSize          Flags  Link  Info  Align
   [ 0]                   NULL             0000000000000000  00000000
-       0000000000000000  0000000000000000           0     0     1
+       0000000000000000  0000000000000000           0     0     0
   [ 1] .text             PROGBITS         0000000000001000  00001000
-       0000000000005645  0000000000000000  AX       0     0     1
+       0000000000005645  0000000000000000  AX       0     0     16
   [ 2] .rodata           PROGBITS         0000000000006650  00006650
-       00000000000000a0  0000000000000000   A       0     0     1
+       00000000000000a0  0000000000000000   A       0     0     8
   [ 3] .data             PROGBITS         00000000000066f0  000066f0
-       0000000000000290  0000000000000000  WA       0     0     1
-readelf: Warning: [ 4]: Link field (0) should index a string section.
+       0000000000000290  0000000000000000  WA       0     0     8
   [ 4] .dynsym           DYNSYM           00000000000069ab  000069ab
-       0000000000000048  0000000000000018   A       0     0     1
+       0000000000000048  0000000000000018   A       5     0     8
   [ 5] .dynstr           STRTAB           0000000000006980  00006980
        000000000000002b  0000000000000000   A       0     0     1
-readelf: Warning: [ 6]: Link field (0) should index a symtab section.
   [ 6] .hash             HASH             00000000000069f8  000069f8
-       0000000000000034  0000000000000000   A       0     0     1
-readelf: Warning: [ 7]: Link field (0) should index a string section.
+       0000000000000034  0000000000000004   A       4     0     8
   [ 7] .dynamic          DYNAMIC          0000000000006a2c  00006a2c
-       0000000000000080  0000000000000000   A       0     0     1
+       0000000000000080  0000000000000010   A       5     0     8
   [ 8] .shstrtab         STRTAB           0000000000006cf0  00006cf0
        000000000000003e  0000000000000000   A       0     0     1
 Key to Flags:
