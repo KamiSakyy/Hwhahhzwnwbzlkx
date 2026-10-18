@@ -87,6 +87,22 @@ jobs:
           echo '--- дизассемблирование (фрагмент) ---'
           objdump -d --section=.text build/aot/liblsapp.so | head -120 | tee build/aot/disasm.txt
 
+      - name: "AOT ARM64: сборка и запуск под эмулятором qemu"
+        if: always()
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gcc-aarch64-linux-gnu qemu-user-static
+          aarch64-linux-gnu-gcc -std=c11 -O2 -I engine/src/main/cpp \
+            engine/src/main/cpp/lsrt.c tools/aot_host_test.c \
+            -o build/aot/aot_host_arm64 -ldl -lm
+          qemu-aarch64-static -L /usr/aarch64-linux-gnu \
+            build/aot/aot_host_arm64 build/aot/liblsapp-arm64.so \
+            > build/aot/actual-arm64.txt
+          echo '--- вывод машинного кода ARM64 ---'
+          cat build/aot/actual-arm64.txt
+          diff -u build/aot/expected.txt build/aot/actual-arm64.txt
+
       - name: Сборка runtime и studio
         run: |
           set -o pipefail
@@ -137,6 +153,7 @@ jobs:
             aot-build.log
             build/aot/actual.txt
             build/aot/expected.txt
+            build/aot/actual-arm64.txt
             build/aot/readelf.txt
             build/aot/disasm-full.txt
             engine/build/reports/tests/
@@ -166,6 +183,7 @@ jobs:
           cp -f build/aot/actual.txt handoff/logs/aot-actual.txt 2>/dev/null || true
           cp -f build/aot/expected.txt handoff/logs/aot-expected.txt 2>/dev/null || true
           cp -f build/aot/readelf.txt handoff/logs/aot-readelf.txt 2>/dev/null || true
+          cp -f build/aot/actual-arm64.txt handoff/logs/aot-actual-arm64.txt 2>/dev/null || true
           cp -f build/aot/disasm-full.txt handoff/logs/aot-disasm.txt 2>/dev/null || true
           python3 - <<'PY' > handoff/logs/test-summary.txt 2>/dev/null || true
           import glob, re, xml.etree.ElementTree as ET
