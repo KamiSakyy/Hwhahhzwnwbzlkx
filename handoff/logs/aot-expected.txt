@@ -1,0 +1,13 @@
+fib(12) =	144
+demo	3
+counter =	2
+sum =	0
+while =	1
+repeat =	2
+hi world
+ABC	5
+7	3
+pairs =	1
+list =	1	nil	nil
+concat =	abc
+bool =	true	true	true
