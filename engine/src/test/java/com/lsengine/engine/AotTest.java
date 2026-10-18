@@ -155,7 +155,7 @@ public class AotTest {
         for (int i = 0; i < shnum; i++) {
             int base = shoff + i * shentsize;
             int nameOff = readInt(elf, base);
-            if (nameOff < 0 || strOff + nameOff >= strSize) {
+            if (nameOff < 0 || nameOff >= strSize) {
                 continue;
             }
             StringBuilder sb = new StringBuilder();
