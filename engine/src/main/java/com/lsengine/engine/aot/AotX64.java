@@ -87,9 +87,9 @@ public final class AotX64 extends AotBackend {
     @Override
     public void prologue(int frameSize) {
         u8(0x55);                       // push rbp
-        rex(true, RAX, RBP);
+        rex(true, RSP, RBP);
         u8(0x89);
-        modrmReg(RAX, RBP);             // mov rbp, rsp
+        modrmReg(RSP, RBP);             // mov rbp, rsp (89 /r: reg — источник)
         u8(0x53);                       // push rbx
         u8(0x41);
         u8(0x54);                       // push r12
@@ -104,9 +104,9 @@ public final class AotX64 extends AotBackend {
         u8(0x41);
         u8(0x5C);                       // pop r12
         u8(0x5B);                       // pop rbx
-        rex(true, RAX, RBP);
+        rex(true, RBP, RSP);
         u8(0x89);
-        modrmReg(RSP, RBP);             // mov rsp, rbp
+        modrmReg(RBP, RSP);             // mov rsp, rbp (89 /r: reg — источник)
         u8(0x5D);                       // pop rbp
         u8(0xC3);                       // ret
     }
