@@ -113,11 +113,13 @@ public class AotTest {
         // Библиотека не должна содержать символьной таблицы и отладочных секций:
         // декомпилировать такой машинный код заметно сложнее.
         List<String> sections = sectionNames(elf);
-        assertFalse("символьная таблица не должна попадать в библиотеку",
+        assertFalse("символьная таблица не должна попадать в библиотеку: " + sections,
                 sections.contains(".symtab"));
-        assertFalse("отладочных секций быть не должно", sections.contains(".debug_info"));
-        assertTrue("должна быть секция кода", sections.contains(".text"));
-        assertTrue("должна быть динамическая символьная таблица", sections.contains(".dynsym"));
+        assertFalse("отладочных секций быть не должно: " + sections,
+                sections.contains(".debug_info"));
+        assertTrue("должна быть секция кода: " + sections, sections.contains(".text"));
+        assertTrue("должна быть динамическая символьная таблица: " + sections,
+                sections.contains(".dynsym"));
 
         // ARM64: та же программа, но машинный код для AArch64.
         byte[] arm = AotModule.compileArm64(chunk);
