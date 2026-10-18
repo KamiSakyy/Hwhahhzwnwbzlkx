@@ -220,31 +220,36 @@ public final class AotElf {
         u16(out, shnum);
         u16(out, 8);          // индекс .shstrtab
 
-        // Заголовки программ
+        // Заголовки программ: p_type, p_flags, p_offset, p_vaddr, p_paddr,
+        // p_filesz, p_memsz, p_align (ровно 56 байт каждый).
         u32(out, 1);
         u32(out, 5);          // PF_R | PF_X
         u64(out, textOffset);
         u64(out, textAddr);
+        u64(out, textAddr);
         u64(out, textSize);
-        u64(out, textSize);
+        u64(out, align(textSize, PAGE));
         u64(out, PAGE);
         u32(out, 1);
         u32(out, 4);          // PF_R
         u64(out, rodataOffset);
         u64(out, rodataAddr);
+        u64(out, rodataAddr);
         u64(out, rodataSize);
-        u64(out, rodataSize);
+        u64(out, align(rodataSize, PAGE));
         u64(out, PAGE);
         u32(out, 1);
         u32(out, 6);          // PF_R | PF_W
         u64(out, dataOffset);
         u64(out, dataAddr);
+        u64(out, dataAddr);
         u64(out, dataSegmentSize);
-        u64(out, dataSegmentSize);
+        u64(out, align(dataSegmentSize, PAGE));
         u64(out, PAGE);
         u32(out, 2);          // PT_DYNAMIC
         u32(out, 6);
         u64(out, dynamicOffsetInSeg + dataOffset);
+        u64(out, dynamicAddr);
         u64(out, dynamicAddr);
         u64(out, dynamicSize);
         u64(out, dynamicSize);
