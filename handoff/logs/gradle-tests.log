@@ -38,31 +38,14 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:parseDebugLocalResources
 > Task :engine:generateDebugRFile
 > Task :engine:compileDebugJavaWithJavac
-> Task :engine:bundleLibRuntimeToJarDebug
 > Task :engine:bundleLibCompileToJarDebug
+> Task :engine:bundleLibRuntimeToJarDebug
 > Task :engine:generateDebugUnitTestStubRFile
 > Task :engine:compileDebugUnitTestJavaWithJavac
-
 > Task :engine:testDebugUnitTest
-
-AotTest > compilesProgramIntoNativeLibrary FAILED
-    java.lang.AssertionError at AotTest.java:132
-
-24 tests completed, 1 failed
-
-> Task :engine:testDebugUnitTest FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792360841732.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792360967629.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':engine:testDebugUnitTest'.
-> There were failing tests. See the report at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/build/reports/tests/testDebugUnitTest/index.html
-
-* Try:
-> Run with --scan to get full insights.
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
 
@@ -70,5 +53,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 1m 1s
+BUILD SUCCESSFUL in 1m 1s
 14 actionable tasks: 14 executed
