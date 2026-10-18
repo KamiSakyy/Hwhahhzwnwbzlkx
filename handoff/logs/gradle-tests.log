@@ -14,29 +14,144 @@ For more details see https://docs.gradle.org/8.14.3/release-notes.html
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792355870069.json
+
+> Configure project :app
+Checking the license for package NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/licenses
+License for package NDK (Side by side) 27.0.12077973 accepted.
+Preparing "Install NDK (Side by side) 27.0.12077973 v.27.0.12077973".
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" ready.
+Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27.0.12077973
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" complete.
+"Install NDK (Side by side) 27.0.12077973 v.27.0.12077973" finished.
+
+> Task :engine:preBuild UP-TO-DATE
+> Task :engine:preDebugBuild UP-TO-DATE
+> Task :engine:generateDebugResValues
+> Task :engine:generateDebugResources
+> Task :engine:packageDebugResources
+> Task :engine:processDebugNavigationResources
+> Task :engine:preDebugUnitTestBuild UP-TO-DATE
+> Task :engine:javaPreCompileDebug
+> Task :engine:javaPreCompileDebugUnitTest
+> Task :engine:processDebugJavaRes NO-SOURCE
+> Task :engine:processDebugUnitTestJavaRes NO-SOURCE
+> Task :engine:parseDebugLocalResources
+> Task :engine:generateDebugRFile
+
+> Task :engine:compileDebugJavaWithJavac
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ^
+  symbol:   class ByteArrayOutputStream
+  location: class Codec
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+                                            ^
+  symbol:   class ByteArrayOutputStream
+  location: class Codec
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:134: error: cannot find symbol
+                    throw new IOException("неверная магия контейнера");
+                              ^
+  symbol:   class IOException
+  location: class Codec
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:293: error: incompatible types: String cannot be converted to Value
+                push(indexOf(t, constantString(b)));
+                                              ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:501: error: variable f is already defined in method execute(Frame,FuncProto,int,int,int)
+                Value f;
+                      ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:534: error: incompatible types: Value cannot be converted to Value[]
+                    Value[] res = call(iterFn, new Value[]{state, control});
+                                      ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:186: error: cannot find symbol
+            fs.declareLocal(p);
+              ^
+  symbol:   method declareLocal(String)
+  location: variable fs of type FuncState
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:144: error: cannot assign a value to final variable value
+            ret.value = parseExpr();
+               ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:176: error: cannot assign a value to final variable value
+                decl.value = parseExpr();
+                    ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:568: error: incompatible types: void cannot be converted to Token
+        Token open = expectOp("{");
+                             ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/AxmlPatcher.java:215: error: method writeIntLE in class AxmlPatcher cannot be applied to given types;
+            writeIntLE(out, offset);
+            ^
+  required: byte[],int,int
+  found:    ByteArrayOutputStream,int
+  reason: actual and formal argument lists differ in length
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+11 errors
+
+> Task :engine:compileDebugJavaWithJavac FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792356063815.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
-* Where:
-Build file '/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/build.gradle' line: 1
-
 * What went wrong:
-Could not compile build file '/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/build.gradle'.
-> startup failed:
-  build file '/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/build.gradle': 1: Unexpected character: '#' @ line 1, column 1.
-     # LS Studio — редактор/IDE: исходники LS, живой предпросмотр, офлайн-сборщик APK.
-     ^
-  
-  1 error
-
+Execution failed for task ':engine:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:144: error: cannot assign a value to final variable value
+              ret.value = parseExpr();
+                 ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:176: error: cannot assign a value to final variable value
+                  decl.value = parseExpr();
+                      ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/AxmlPatcher.java:215: error: method writeIntLE in class AxmlPatcher cannot be applied to given types;
+              writeIntLE(out, offset);
+              ^
+    required: byte[],int,int
+    found:    ByteArrayOutputStream,int
+    reason: actual and formal argument lists differ in length
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:293: error: incompatible types: String cannot be converted to Value
+                  push(indexOf(t, constantString(b)));
+                                                ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:534: error: incompatible types: Value cannot be converted to Value[]
+                      Value[] res = call(iterFn, new Value[]{state, control});
+                                        ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:568: error: incompatible types: void cannot be converted to Token
+          Token open = expectOp("{");
+                               ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
+              ByteArrayOutputStream out = new ByteArrayOutputStream();
+              ^
+    symbol:   class ByteArrayOutputStream
+    location: class Codec
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
+              ByteArrayOutputStream out = new ByteArrayOutputStream();
+                                              ^
+    symbol:   class ByteArrayOutputStream
+    location: class Codec
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:134: error: cannot find symbol
+                      throw new IOException("неверная магия контейнера");
+                                ^
+    symbol:   class IOException
+    location: class Codec
+  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:186: error: cannot find symbol
+              fs.declareLocal(p);
+                ^
+    symbol:   method declareLocal(String)
+    location: variable fs of type FuncState
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:501: error: variable f is already defined in method execute(Frame,FuncProto,int,int,int)
+                  Value f;
+                        ^
+  11 errors
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
 
-BUILD FAILED in 40s
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 59s
+9 actionable tasks: 9 executed
