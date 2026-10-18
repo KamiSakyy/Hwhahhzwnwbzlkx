@@ -1,0 +1,1 @@
+objdump: build/aot/liblsapp.so: file format not recognized

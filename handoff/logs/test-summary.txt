@@ -1,6 +1,6 @@
 com.lsengine.engine.AotTest                                  tests=1 failures=1 errors=0 skipped=0
   [FAILURE] compilesProgramIntoNativeLibrary
-      java.lang.AssertionError: должна быть секция кода: []
+      java.lang.AssertionError: должна быть секция кода: [] | header=7f454c4602010100 0000000000000000 03003e0001000000 0000000000000000 4000000000000000 b06a000000000000 0000000040003800 0400400009000800 
       	at org.junit.Assert.fail(Assert.java:89)
       	at org.junit.Assert.assertTrue(Assert.java:42)
       	at com.lsengine.engine.AotTest.compilesProgramIntoNativeLibrary(AotTest.java:120)
@@ -15,17 +15,4 @@ com.lsengine.engine.AotTest                                  tests=1 failures=1 
 com.lsengine.engine.ApkPipelineTest                          tests=4 failures=0 errors=0 skipped=0
 com.lsengine.engine.BytecodeFileTest                         tests=3 failures=0 errors=0 skipped=0
 com.lsengine.engine.CodecTest                                tests=4 failures=0 errors=0 skipped=0
-com.lsengine.engine.LanguageTest                             tests=12 failures=1 errors=0 skipped=0
-  [FAILURE] compoundAssignmentAndTernary
-      org.junit.ComparisonFailure: expected:<м[ног]о> but was:<м[ал]о>
-      	at org.junit.Assert.assertEquals(Assert.java:117)
-      	at org.junit.Assert.assertEquals(Assert.java:146)
-      	at com.lsengine.engine.LanguageTest.compoundAssignmentAndTernary(LanguageTest.java:129)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-      	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-      	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-      	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
-      	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+com.lsengine.engine.LanguageTest                             tests=12 failures=0 errors=0 skipped=0
