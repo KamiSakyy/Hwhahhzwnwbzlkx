@@ -129,7 +129,7 @@ public class AotTest {
         assertEquals('E', arm[1] & 0xFF);
         assertEquals(3, arm[16] & 0xFF);  // ET_DYN
         assertEquals(183, arm[18] & 0xFF); // EM_AARCH64
-        assertEquals(183, (arm[19] & 0xFF) | ((arm[20] & 0xFF) << 8));
+        assertEquals(183, (arm[18] & 0xFF) | ((arm[19] & 0xFF) << 8));
         write(new File(dir, "liblsapp-arm64.so"), arm);
         assertFalse("в ARM64-библиотеке тоже нет символьной таблицы",
                 sectionNames(arm).contains(".symtab"));
