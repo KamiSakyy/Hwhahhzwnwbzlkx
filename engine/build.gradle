@@ -32,6 +32,10 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true
+        unitTests.all {
+            // Каталог для артефактов AOT-теста (ELF-библиотека и эталонный вывод).
+            systemProperty 'ls.aot.dir', rootProject.file('build/aot').absolutePath
+        }
     }
 
     lint {

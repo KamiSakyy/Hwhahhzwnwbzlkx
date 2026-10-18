@@ -55,6 +55,22 @@ jobs:
           set -o pipefail
           ./gradlew --no-daemon :engine:testDebugUnitTest 2>&1 | tee gradle-tests.log
 
+      - name: "AOT: машинный код и сверка с виртуальной машиной"
+        run: |
+          set -euo pipefail
+          mkdir -p build/aot
+          gcc -std=c11 -O2 -I engine/src/main/cpp \
+            engine/src/main/cpp/lsrt.c tools/aot_host_test.c \
+            -o build/aot/aot_host -ldl -lm 2>&1 | tee aot-build.log
+          ./build/aot/aot_host build/aot/liblsapp.so > build/aot/actual.txt 2> build/aot/actual.err || {
+            cat build/aot/actual.err
+            exit 1
+          }
+          echo '--- вывод машинного кода ---'
+          cat build/aot/actual.txt
+          echo '--- сверка с виртуальной машиной ---'
+          diff -u build/aot/expected.txt build/aot/actual.txt
+
       - name: Сборка runtime и studio
         run: |
           set -o pipefail
@@ -102,6 +118,9 @@ jobs:
             apk-contents.txt
             runtime-contents.txt
             apksigner-report.txt
+            aot-build.log
+            build/aot/actual.txt
+            build/aot/expected.txt
             engine/build/reports/tests/
             engine/build/test-results/
           if-no-files-found: ignore
@@ -125,6 +144,9 @@ jobs:
           cp -f gradle-tests.log handoff/logs/gradle-tests.log 2>/dev/null || true
           cp -f gradle-build.log handoff/logs/gradle-build.log 2>/dev/null || true
           cp -f apksigner-report.txt handoff/logs/apksigner-report.txt 2>/dev/null || true
+          cp -f aot-build.log handoff/logs/aot-build.log 2>/dev/null || true
+          cp -f build/aot/actual.txt handoff/logs/aot-actual.txt 2>/dev/null || true
+          cp -f build/aot/expected.txt handoff/logs/aot-expected.txt 2>/dev/null || true
           python3 - <<'PY' > handoff/logs/test-summary.txt 2>/dev/null || true
           import glob, re, xml.etree.ElementTree as ET
           for path in sorted(glob.glob('engine/build/test-results/testDebugUnitTest/*.xml')):
