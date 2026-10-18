@@ -257,6 +257,15 @@ public final class Parser {
 
         // Присваивание или вызов.
         Ast.Expr expr = parseSuffixedExpr();
+        String compound = compoundOperator();
+        if (compound != null) {
+            advance();
+            Ast.Expr value = parseExpr();
+            if (!(expr instanceof Ast.Name) && !(expr instanceof Ast.Index)) {
+                throw new LsError("Некорректная цель присваивания", t.line, t.col);
+            }
+            return pos(new Ast.Assign(expr, value, compound), t);
+        }
         if (checkOp("=") || checkOp(",")) {
             List<Ast.Expr> targets = new ArrayList<>();
             targets.add(expr);
@@ -365,7 +374,35 @@ public final class Parser {
     // ---------------- выражения ----------------
 
     public Ast.Expr parseExpr() throws LsError {
-        return parseOr();
+        Ast.Expr cond = parseOr();
+        if (checkOp("?")) {
+            advance();
+            Ast.Expr yes = parseExpr();
+            expectOp(":");
+            Ast.Expr no = parseExpr();
+            return new Ast.Ternary(cond, yes, no);
+        }
+        return cond;
+    }
+
+    /** Составной оператор присваивания ("+=" и подобные) либо null. */
+    private String compoundOperator() {
+        if (checkOp("+=")) {
+            return "+";
+        }
+        if (checkOp("-=")) {
+            return "-";
+        }
+        if (checkOp("*=")) {
+            return "*";
+        }
+        if (checkOp("/=")) {
+            return "/";
+        }
+        if (checkOp("%=")) {
+            return "%";
+        }
+        return null;
     }
 
     private List<Ast.Expr> parseExprList() throws LsError {

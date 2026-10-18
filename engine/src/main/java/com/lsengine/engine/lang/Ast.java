@@ -149,10 +149,30 @@ public final class Ast {
     public static final class Assign extends Stat {
         public final Expr target;
         public final Expr value;
+        /** Составное присваивание: "+", "-", "*", "/", "%" либо null. */
+        public final String op;
 
         public Assign(Expr target, Expr value) {
+            this(target, value, null);
+        }
+
+        public Assign(Expr target, Expr value, String op) {
             this.target = target;
             this.value = value;
+            this.op = op;
+        }
+    }
+
+    /** Тернарный оператор: cond ? значение : иначе. */
+    public static final class Ternary extends Expr {
+        public final Expr cond;
+        public final Expr yes;
+        public final Expr no;
+
+        public Ternary(Expr cond, Expr yes, Expr no) {
+            this.cond = cond;
+            this.yes = yes;
+            this.no = no;
         }
     }
 

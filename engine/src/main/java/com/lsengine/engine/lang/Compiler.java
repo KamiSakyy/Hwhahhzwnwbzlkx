@@ -319,6 +319,10 @@ public final class Compiler {
 
     private void compileAssign(Ast.Assign assign) throws LsError {
         Ast.Expr target = assign.target;
+        if (assign.op != null) {
+            compileCompoundAssign(assign);
+            return;
+        }
         if (target instanceof Ast.Name) {
             String name = ((Ast.Name) target).name;
             compileExpr(assign.value);
@@ -349,6 +353,44 @@ public final class Compiler {
             return;
         }
         throw new LsError("Некорректная цель присваивания", assign.line, assign.col);
+    }
+
+    /** Составное присваивание: x += v превращается в x = x + v. */
+    private void compileCompoundAssign(Ast.Assign assign) throws LsError {
+        Ast.Expr target = assign.target;
+        int op = binaryOpcode(assign.op);
+        if (target instanceof Ast.Name) {
+            String name = ((Ast.Name) target).name;
+            compileExpr(target);
+            compileExpr(assign.value);
+            emit(op, 0, 0);
+            int local = findLocal(current, name);
+            if (local >= 0) {
+                emit(Opcodes.STORE_LOCAL, 0, local);
+                return;
+            }
+            int up = findUpvalue(current, name);
+            if (up >= 0) {
+                emit(Opcodes.STORE_UPVAL, 0, up);
+                return;
+            }
+            emit(Opcodes.STORE_GLOBAL, 0, chunk.addConstant(name));
+            return;
+        }
+        Ast.Index index = (Ast.Index) target;
+        compileExpr(index.obj);
+        if (index.isField && index.key instanceof Ast.StrLit) {
+            String key = ((Ast.StrLit) index.key).value;
+            emit(Opcodes.GET_FIELD, 0, chunk.addConstant(key));
+            compileExpr(assign.value);
+            emit(op, 0, 0);
+            emit(Opcodes.SET_FIELD, 0, chunk.addConstant(key));
+            return;
+        }
+        compileExpr(index.key);
+        compileExpr(assign.value);
+        emit(op, 0, 0);
+        emit(Opcodes.SET_INDEX, 0, 0);
     }
 
     private void compileNumFor(Ast.NumFor node) throws LsError {
@@ -504,6 +546,15 @@ public final class Compiler {
             compileBinary((Ast.Bin) expr);
         } else if (expr instanceof Ast.Un) {
             compileUnary((Ast.Un) expr);
+        } else if (expr instanceof Ast.Ternary) {
+            Ast.Ternary ternary = (Ast.Ternary) expr;
+            compileExpr(ternary.cond);
+            int elseJump = emitJump(Opcodes.JZ);
+            compileExpr(ternary.yes);
+            int endJump = emitJump(Opcodes.JMP);
+            patchJump(elseJump);
+            compileExpr(ternary.no);
+            patchJump(endJump);
         } else {
             throw new LsError("Неизвестное выражение", expr.line, expr.col);
         }
@@ -550,6 +601,27 @@ public final class Compiler {
         }
     }
 
+    /** Код бинарной операции по её записи. */
+    private int binaryOpcode(String op) throws LsError {
+        switch (op) {
+            case "+": return Opcodes.ADD;
+            case "-": return Opcodes.SUB;
+            case "*": return Opcodes.MUL;
+            case "/": return Opcodes.DIV;
+            case "%": return Opcodes.MOD;
+            case "^": return Opcodes.POW;
+            case "..": return Opcodes.CONCAT;
+            case "==": return Opcodes.EQ;
+            case "~=": return Opcodes.NE;
+            case "<": return Opcodes.LT;
+            case "<=": return Opcodes.LE;
+            case ">": return Opcodes.GT;
+            case ">=": return Opcodes.GE;
+            default:
+                throw new LsError("Неизвестный оператор '" + op + "'", 0, 0);
+        }
+    }
+
     private void compileBinary(Ast.Bin bin) throws LsError {
         if (bin.op.equals("and")) {
             compileExpr(bin.left);
@@ -581,24 +653,7 @@ public final class Compiler {
         }
         compileExpr(bin.left);
         compileExpr(bin.right);
-        int op;
-        switch (bin.op) {
-            case "+": op = Opcodes.ADD; break;
-            case "-": op = Opcodes.SUB; break;
-            case "*": op = Opcodes.MUL; break;
-            case "/": op = Opcodes.DIV; break;
-            case "%": op = Opcodes.MOD; break;
-            case "^": op = Opcodes.POW; break;
-            case "..": op = Opcodes.CONCAT; break;
-            case "==": op = Opcodes.EQ; break;
-            case "~=": op = Opcodes.NE; break;
-            case "<": op = Opcodes.LT; break;
-            case "<=": op = Opcodes.LE; break;
-            case ">": op = Opcodes.GT; break;
-            case ">=": op = Opcodes.GE; break;
-            default:
-                throw new LsError("Неизвестный оператор '" + bin.op + "'", bin.line, bin.col);
-        }
+        int op = binaryOpcode(bin.op);
         emit(op, 0, 0);
     }
 
