@@ -31,20 +31,21 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:packageDebugResources
 > Task :engine:processDebugNavigationResources
 > Task :engine:preDebugUnitTestBuild UP-TO-DATE
-> Task :engine:javaPreCompileDebug
 > Task :engine:javaPreCompileDebugUnitTest
+> Task :engine:javaPreCompileDebug
 > Task :engine:processDebugJavaRes NO-SOURCE
 > Task :engine:processDebugUnitTestJavaRes NO-SOURCE
 > Task :engine:parseDebugLocalResources
 > Task :engine:generateDebugRFile
 
-> Task :engine:compileDebugJavaWithJavac FAILED
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/aot/AotArm64.java:328: error: incompatible types: possible lossy conversion from long to int
-            insn(0xF100001F | (imm << 10) | (r << 5));
-                                          ^
-Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+> Task :engine:compileDebugJavaWithJavac
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/ApkSignerV2.java:157: error: unreported exception IOException; must be caught or declared to be thrown
+        out.write(data);
+                 ^
 1 error
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792357795707.json
+
+> Task :engine:compileDebugJavaWithJavac FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792357894843.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
@@ -53,10 +54,9 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':engine:compileDebugJavaWithJavac'.
 > Compilation failed; see the compiler output below.
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/aot/AotArm64.java:328: error: incompatible types: possible lossy conversion from long to int
-              insn(0xF100001F | (imm << 10) | (r << 5));
-                                            ^
-  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/ApkSignerV2.java:157: error: unreported exception IOException; must be caught or declared to be thrown
+          out.write(data);
+                   ^
   1 error
 
 * Try:
@@ -69,5 +69,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 1m 7s
+BUILD FAILED in 58s
 9 actionable tasks: 9 executed
