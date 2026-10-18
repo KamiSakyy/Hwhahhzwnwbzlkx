@@ -175,11 +175,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for attempt in 1 2 3 4 5; do
             git add -A handoff
-            if git diff --cached --quiet; then
-              echo "Изменений в handoff/ нет"
-              exit 0
+            if ! git diff --cached --quiet; then
+              git commit -m "handoff: артефакты и логи сборки [skip ci]" || true
             fi
-            git commit -m "handoff: артефакты и логи сборки [skip ci]" || true
             git pull --rebase --autostash origin "${{ github.ref_name }}" || true
             if git push origin "HEAD:${{ github.ref_name }}"; then
               echo "Логи отправлены (попытка $attempt)"
