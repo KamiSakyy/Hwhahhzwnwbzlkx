@@ -13,7 +13,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: '8.9' }
       - name: Install SDK
-        run: yes | sdkmanager --licenses >/dev/null 2>&1; sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        run: |
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin:/usr/local/lib/android/sdk/cmdline-tools/latest/bin"
+          which sdkmanager || ls $ANDROID_HOME
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
       - name: Build Release APK
         run: gradle assembleRelease --stacktrace
       - name: APK size (limit 50 MB)
