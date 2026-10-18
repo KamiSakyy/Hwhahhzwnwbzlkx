@@ -107,6 +107,18 @@ jobs:
           cat build/aot/actual-arm64.txt
           diff -u build/aot/expected.txt build/aot/actual-arm64.txt
 
+      - name: "AOT: диагностика падения (gdb)"
+        if: always()
+        run: |
+          set +e
+          if [ -x build/aot/aot_host ] && [ -f build/aot/liblsapp.so ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq gdb
+            gdb -batch -ex run -ex "bt 20" --args build/aot/aot_host build/aot/liblsapp.so \
+              > build/aot/gdb.txt 2>&1
+            tail -40 build/aot/gdb.txt
+          fi
+
       - name: Сборка runtime и studio
         run: |
           set -o pipefail
@@ -187,6 +199,7 @@ jobs:
           cp -f aot-build.log handoff/logs/aot-build.log 2>/dev/null || true
           cp -f build/aot/actual.txt handoff/logs/aot-actual.txt 2>/dev/null || true
           cp -f build/aot/actual.err handoff/logs/aot-actual.err 2>/dev/null || true
+          cp -f build/aot/gdb.txt handoff/logs/aot-gdb.txt 2>/dev/null || true
           cp -f build/aot/expected.txt handoff/logs/aot-expected.txt 2>/dev/null || true
           cp -f build/aot/readelf.txt handoff/logs/aot-readelf.txt 2>/dev/null || true
           cp -f build/aot/actual-arm64.txt handoff/logs/aot-actual-arm64.txt 2>/dev/null || true

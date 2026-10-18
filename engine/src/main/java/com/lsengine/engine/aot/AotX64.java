@@ -125,7 +125,7 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void jumpIfEq(int reg, long value, int id) {
-        movImm(R10, value);
+        movImmRaw(R10, value);
         rex(true, R10, x86(reg));
         u8(0x39);
         modrmReg(R10, x86(reg));
@@ -134,7 +134,7 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void jumpIfNe(int reg, long value, int id) {
-        movImm(R10, value);
+        movImmRaw(R10, value);
         rex(true, R10, x86(reg));
         u8(0x39);
         modrmReg(R10, x86(reg));
@@ -143,8 +143,9 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void jumpIfBelow(int reg, long value, int id) {
-        movImm(R10, value);
-        rex(true, R10, x86(reg));
+        movImmRaw(R10, value);
+        // 3B /r: поле ModRM.reg — приёмник, ModRM.rm — источник.
+        rex(true, x86(reg), R10);
         u8(0x3B);
         modrmReg(x86(reg), R10);
         jumpCond(0x82, id);
@@ -152,7 +153,7 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void jumpIfZero(int reg, int id) {
-        rex(false, x86(reg), x86(reg));
+        rex(true, x86(reg), x86(reg));
         u8(0x85);
         modrmReg(x86(reg), x86(reg));
         jumpCond(0x84, id);
@@ -160,7 +161,7 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void jumpIfNotZero(int reg, int id) {
-        rex(false, x86(reg), x86(reg));
+        rex(true, x86(reg), x86(reg));
         u8(0x85);
         modrmReg(x86(reg), x86(reg));
         jumpCond(0x85, id);
@@ -170,6 +171,17 @@ public final class AotX64 extends AotBackend {
     public void movImm(int reg, long value) {
         rex(true, 0, x86(reg));
         u8(0xB8 + (x86(reg) & 7));
+        u64(value);
+    }
+
+    /**
+     * Загрузка 64-битной константы во «сырой» регистр x86-64 (r10, r11).
+     * Эти номера нельзя пропускать через x86(): там используются номера
+     * абстрактных регистров AotIsa.
+     */
+    private void movImmRaw(int x86reg, long value) {
+        rex(true, 0, x86reg);
+        u8(0xB8 + (x86reg & 7));
         u64(value);
     }
 
@@ -210,7 +222,9 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void addImm(int reg, int imm) {
-        rex(true, R10, x86(reg));
+        // 81 /0 — поле ModRM.reg задаёт расширение opcode, поэтому бит
+        // REX.R здесь должен быть нулевым, иначе инструкция недопустима.
+        rex(true, 0, x86(reg));
         u8(0x81);
         u8(0xC0 | (x86(reg) & 7));
         u32(imm);
@@ -218,7 +232,7 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void subImm(int reg, int imm) {
-        rex(true, R10, x86(reg));
+        rex(true, 0, x86(reg));
         u8(0x81);
         u8(0xE8 | (x86(reg) & 7));
         u32(imm);
@@ -227,13 +241,13 @@ public final class AotX64 extends AotBackend {
     @Override
     public void andImm(int reg, long mask) {
         if (mask >= Integer.MIN_VALUE && mask <= Integer.MAX_VALUE) {
-            rex(true, R10, x86(reg));
+            rex(true, 0, x86(reg));
             u8(0x81);
             u8(0xE0 | (x86(reg) & 7));
             u32((int) mask);
             return;
         }
-        movImm(R11, mask);
+        movImmRaw(R11, mask);
         rex(true, R11, x86(reg));
         u8(0x21);
         modrmReg(R11, x86(reg));
@@ -242,13 +256,13 @@ public final class AotX64 extends AotBackend {
     @Override
     public void orImm(int reg, long mask) {
         if (mask >= Integer.MIN_VALUE && mask <= Integer.MAX_VALUE) {
-            rex(true, R10, x86(reg));
+            rex(true, 0, x86(reg));
             u8(0x81);
             u8(0xC8 | (x86(reg) & 7));
             u32((int) mask);
             return;
         }
-        movImm(R11, mask);
+        movImmRaw(R11, mask);
         rex(true, R11, x86(reg));
         u8(0x09);
         modrmReg(R11, x86(reg));
@@ -256,7 +270,7 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void cmpImm(int reg, long imm) {
-        movImm(R10, imm);
+        movImmRaw(R10, imm);
         rex(true, R10, x86(reg));
         u8(0x39);
         modrmReg(R10, x86(reg));
@@ -264,7 +278,7 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void shiftRightImm(int reg, int bits) {
-        rex(true, R10, x86(reg));
+        rex(true, 0, x86(reg));
         u8(0xC1);
         u8(0xE8 | (x86(reg) & 7));
         u8(bits);
