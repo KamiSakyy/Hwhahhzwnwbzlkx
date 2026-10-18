@@ -153,7 +153,7 @@ public class AotTest {
         int strSize = (int) readLong(elf, shoff + shstrndx * shentsize + 32);
         for (int i = 0; i < shnum; i++) {
             int base = shoff + i * shentsize;
-            int nameOff = (int) readLong(elf, base);
+            int nameOff = readInt(elf, base);
             if (nameOff < 0 || strOff + nameOff >= strSize) {
                 continue;
             }
@@ -166,6 +166,11 @@ public class AotTest {
             names.add(sb.toString());
         }
         return names;
+    }
+
+    private static int readInt(byte[] data, int offset) {
+        return (data[offset] & 0xFF) | ((data[offset + 1] & 0xFF) << 8)
+                | ((data[offset + 2] & 0xFF) << 16) | ((data[offset + 3] & 0xFF) << 24);
     }
 
     private static long readLong(byte[] data, int offset) {

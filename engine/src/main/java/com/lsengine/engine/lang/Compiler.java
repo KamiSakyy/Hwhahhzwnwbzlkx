@@ -379,6 +379,8 @@ public final class Compiler {
         }
         Ast.Index index = (Ast.Index) target;
         compileExpr(index.obj);
+        // Таблица остаётся на стеке: SET_FIELD/SET_INDEX ожидают её под значением.
+        emit(Opcodes.DUP, 0, 0);
         if (index.isField && index.key instanceof Ast.StrLit) {
             String key = ((Ast.StrLit) index.key).value;
             emit(Opcodes.GET_FIELD, 0, chunk.addConstant(key));
