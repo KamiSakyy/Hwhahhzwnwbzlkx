@@ -6,14 +6,14 @@ api_closure_set_upval (args=0x7fffffffd0b0) at engine/src/main/cpp/lsrt.c:1892
 1892	        c->upvals[index] = (ls_value)(uintptr_t)cell;
 #0  api_closure_set_upval (args=0x7fffffffd0b0) at engine/src/main/cpp/lsrt.c:1892
 #1  0x000000000001097e in ls_app_entry () from build/aot/liblsapp.so
-#2  0x000055555555c753 in main (argc=2, argv=0x7fffffffd418) at tools/aot_host_test.c:44
+#2  0x000055555555c720 in main (argc=2, argv=0x7fffffffd418) at tools/aot_host_test.c:44
 api_closure_set_upval + 120 in section .text of /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/aot/aot_host
-   0x55555555c1f4 <api_closure_set_upval+104>:	push   %rbp
-   0x55555555c1f5 <api_closure_set_upval+105>:	in     (%dx),%al
-   0x55555555c1f6 <api_closure_set_upval+106>:	movslq %edx,%rdx
-   0x55555555c1f9 <api_closure_set_upval+109>:	shl    $0x3,%rdx
-   0x55555555c1fd <api_closure_set_upval+113>:	add    %rax,%rdx
-   0x55555555c200 <api_closure_set_upval+116>:	mov    -0x8(%rbp),%rax
+   0x55555555c1c1 <api_closure_set_upval+104>:	push   %rbp
+   0x55555555c1c2 <api_closure_set_upval+105>:	in     (%dx),%al
+   0x55555555c1c3 <api_closure_set_upval+106>:	movslq %edx,%rdx
+   0x55555555c1c6 <api_closure_set_upval+109>:	shl    $0x3,%rdx
+   0x55555555c1ca <api_closure_set_upval+113>:	add    %rax,%rdx
+   0x55555555c1cd <api_closure_set_upval+116>:	mov    -0x8(%rbp),%rax
 rax            0x555555562f38      93824992292664
 rbx            0x7fffffffd1c0      140737488343488
 rcx            0x555555562f38      93824992292664
@@ -22,15 +22,15 @@ rsi            0x0                 0
 rdi            0x0                 0
 rbp            0x7fffffffd090      0x7fffffffd090
 rsp            0x7fffffffd060      0x7fffffffd060
-r8             0x5555555719d0      93824992352720
-r9             0x0                 0
-r10            0x55555555c18c      93824992264588
-r11            0x1                 1
+r8             0x7ffff7e04b20      140737352059680
+r9             0x20                32
+r10            0x55555555c159      93824992264537
+r11            0x0                 0
 r12            0x7ffc5555555612b8  9222339961940218552
 r13            0x0                 0
 r14            0x55555555fca8      93824992279720
 r15            0x7ffff7ffd000      140737354125312
-rip            0x55555555c204      0x55555555c204 <api_closure_set_upval+120>
+rip            0x55555555c1d1      0x55555555c1d1 <api_closure_set_upval+120>
 eflags         0x10206             [ PF IF RF ]
 cs             0x33                51
 ss             0x2b                43
@@ -38,5 +38,13 @@ ds             0x0                 0
 es             0x0                 0
 fs             0x0                 0
 gs             0x0                 0
+k0             0x7f8               2040
+k1             0xffffffff          4294967295
+k2             0x0                 0
+k3             0x0                 0
+k4             0x0                 0
+k5             0x0                 0
+k6             0x0                 0
+k7             0x0                 0
 fs_base        0x7ffff7ec5740      140737352849216
 gs_base        0x0                 0
