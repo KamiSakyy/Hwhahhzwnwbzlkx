@@ -352,6 +352,12 @@ public final class AotElf {
                 dynamicSize, shstrBytes.length};
         int[] shType = {0, 1, 1, 1, 11, 3, 5, 6, 3};
         int[] shFlags = {0, 6, 2, 3, 2, 2, 2, 2, 2};
+        // sh_link: индекс связанной секции (для .dynsym — .dynstr и т. п.)
+        int[] shLink = {0, 0, 0, 0, 5, 0, 4, 5, 0};
+        // sh_entsize: размер одной записи секции
+        long[] shEntSize = {0, 0, 0, 0, 24, 0, 4, 16, 0};
+        // sh_addralign: выравнивание адреса
+        long[] shAlign = {0, 16, 8, 8, 8, 1, 8, 8, 1};
         long[] shOffset = {
                 0, textOffset, rodataOffset, dataOffset, dataOffset + dynsymOffsetInSeg,
                 dataOffset + dynstrOffsetInSeg, dataOffset + hashOffsetInSeg,
@@ -363,10 +369,10 @@ public final class AotElf {
             u64(out, shAddr[i]);
             u64(out, shOffset[i]);
             u64(out, shSize[i]);
-            u32(out, 0);   // sh_link
-            u32(out, 0);   // sh_info
-            u64(out, 1);   // sh_addralign
-            u64(out, 0);   // sh_entsize
+            u32(out, shLink[i]);   // sh_link
+            u32(out, 0);           // sh_info
+            u64(out, shAlign[i]);  // sh_addralign
+            u64(out, shEntSize[i]);// sh_entsize
         }
         out.write(shstrBytes, 0, shstrBytes.length);
         return out.toByteArray();

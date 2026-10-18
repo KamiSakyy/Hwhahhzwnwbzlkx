@@ -156,6 +156,7 @@ jobs:
             apksigner-report.txt
             aot-build.log
             build/aot/actual.txt
+            build/aot/actual.err
             build/aot/expected.txt
             build/aot/actual-arm64.txt
             build/aot/readelf.txt
@@ -185,6 +186,7 @@ jobs:
           cp -f apksigner-report.txt handoff/logs/apksigner-report.txt 2>/dev/null || true
           cp -f aot-build.log handoff/logs/aot-build.log 2>/dev/null || true
           cp -f build/aot/actual.txt handoff/logs/aot-actual.txt 2>/dev/null || true
+          cp -f build/aot/actual.err handoff/logs/aot-actual.err 2>/dev/null || true
           cp -f build/aot/expected.txt handoff/logs/aot-expected.txt 2>/dev/null || true
           cp -f build/aot/readelf.txt handoff/logs/aot-readelf.txt 2>/dev/null || true
           cp -f build/aot/actual-arm64.txt handoff/logs/aot-actual-arm64.txt 2>/dev/null || true
