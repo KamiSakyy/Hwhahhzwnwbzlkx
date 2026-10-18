@@ -114,7 +114,9 @@ jobs:
           if [ -x build/aot/aot_host ] && [ -f build/aot/liblsapp.so ]; then
             sudo apt-get update -qq
             sudo apt-get install -y -qq gdb
-            gdb -batch -ex run -ex "bt 20" --args build/aot/aot_host build/aot/liblsapp.so \
+            gdb -batch -ex "set pagination off" -ex run -ex "bt 20" \
+              -ex "info symbol \$pc" -ex "x/6i \$pc-16" -ex "info registers" \
+              --args build/aot/aot_host build/aot/liblsapp.so \
               > build/aot/gdb.txt 2>&1
             tail -40 build/aot/gdb.txt
           fi
