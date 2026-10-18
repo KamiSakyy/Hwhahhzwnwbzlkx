@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import com.lsengine.engine.aot.AotModule;
 import com.lsengine.engine.lang.Chunk;
 import com.lsengine.engine.lang.Compiler;
+import com.lsengine.engine.vm.Builtins;
 import com.lsengine.engine.vm.Vm;
 
 import org.junit.Test;
@@ -86,6 +87,7 @@ public class AotTest {
 
         List<String> printed = new ArrayList<>();
         Vm vm = new Vm();
+        Builtins.install(vm);
         vm.setPrinter(printed::add);
         vm.load(chunk);
         vm.start();

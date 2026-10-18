@@ -19,6 +19,8 @@ public final class Compiler {
         final String name;
         final int paramCount;
         int localCount;
+        /** Максимальное число локальных переменных за всё время компиляции функции. */
+        int maxLocals;
         final List<String> localNames = new ArrayList<>();
         final Map<String, Integer> localSlots = new HashMap<>();
         final List<Chunk.Upval> upvalues = new ArrayList<>();
@@ -126,6 +128,9 @@ public final class Compiler {
 
     private int declareLocal(String name) {
         int slot = current.localCount++;
+        if (current.localCount > current.maxLocals) {
+            current.maxLocals = current.localCount;
+        }
         while (current.localNames.size() <= slot) {
             current.localNames.add(null);
         }
@@ -167,7 +172,9 @@ public final class Compiler {
         Chunk.FuncProto proto = new Chunk.FuncProto();
         proto.name = f.name;
         proto.paramCount = f.paramCount;
-        proto.localCount = f.localCount;
+        // Локальные переменные циклов освобождаются раньше конца функции,
+        // но слоты в машинном коде остаются — нужен максимум, а не текущее число.
+        proto.localCount = Math.max(f.localCount, f.maxLocals);
         proto.code = f.code.toByteArray();
         proto.upvalues.addAll(f.upvalues);
         int[] captured = new int[f.capturedLocals.size()];
@@ -527,9 +534,9 @@ public final class Compiler {
         }
         for (int i = 0; i < table.hashKeys.size(); i++) {
             emit(Opcodes.DUP, 0, 0);
-            emit(Opcodes.PUSH_CONST, 0, chunk.addConstant(table.hashKeys.get(i)));
             compileExpr(table.hashValues.get(i));
-            emit(Opcodes.SET_FIELD, 0, 0);
+            // Ключ передаётся в самой инструкции SET_FIELD, в стек он не кладётся.
+            emit(Opcodes.SET_FIELD, 0, chunk.addConstant(table.hashKeys.get(i)));
         }
         for (int i = 0; i < table.numKeys.size(); i++) {
             emit(Opcodes.DUP, 0, 0);

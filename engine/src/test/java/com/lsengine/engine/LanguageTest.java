@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import com.lsengine.engine.lang.Chunk;
 import com.lsengine.engine.lang.Compiler;
 import com.lsengine.engine.lang.LsError;
+import com.lsengine.engine.vm.Builtins;
 import com.lsengine.engine.vm.Value;
 import com.lsengine.engine.vm.Vm;
 
@@ -27,6 +28,7 @@ public class LanguageTest {
         Compiler compiler = new Compiler();
         Chunk chunk = compiler.compile(source);
         Vm vm = new Vm();
+        Builtins.install(vm);
         vm.setPrinter(PRINTED::add);
         vm.load(chunk);
         vm.start();
