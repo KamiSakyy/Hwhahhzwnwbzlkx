@@ -100,12 +100,12 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void epilogue() {
-        rex(true, RAX, RBP);
-        u8(0x89);
-        modrmReg(RSP, RBP);             // mov rsp, rbp
         u8(0x41);
         u8(0x5C);                       // pop r12
         u8(0x5B);                       // pop rbx
+        rex(true, RAX, RBP);
+        u8(0x89);
+        modrmReg(RSP, RBP);             // mov rsp, rbp
         u8(0x5D);                       // pop rbp
         u8(0xC3);                       // ret
     }
@@ -361,14 +361,14 @@ public final class AotX64 extends AotBackend {
         u8(0x8B);
         int at = modrmRip(R10);
         fixups.add(new AotElf.Fixup(at, FIX_API, apiIndex));
-        rex(false, R10, R10);
+        rex(true, 0, R10);
         u8(0xFF);
-        modrmReg(R10, R10);
+        modrmReg(2, R10);
     }
 
     @Override
     public void callReg(int reg) {
-        rex(false, x86(reg), x86(reg));
+        rex(true, 0, x86(reg));
         u8(0xFF);
         modrmReg(2, x86(reg));   // FF /2 — вызов по адресу в регистре
     }
