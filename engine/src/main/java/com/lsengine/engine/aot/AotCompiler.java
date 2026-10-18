@@ -698,6 +698,10 @@ public final class AotCompiler {
             case Opcodes.FOR_PREP:
             case Opcodes.FOR_ITER:
                 return 2;
+            case Opcodes.JZ:
+            case Opcodes.JNZ:
+                // Условие снимается со стека.
+                return -1;
             default:
                 return 0;
         }
