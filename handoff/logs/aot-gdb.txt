@@ -7,10 +7,51 @@ Program received signal SIGSEGV, Segmentation fault.
 #1  0x00007fffffffd218 in ?? ()
 #2  0x0000555555560c08 in __frame_dummy_init_array_entry ()
 #3  0x00007ffff7ffd000 in _GLOBAL_OFFSET_TABLE_ () from /lib64/ld-linux-x86-64.so.2
-#4  0x41c348e948c80856 in ?? ()
-#5  0x41c358ee23c80856 in ?? ()
-#6  0x0000034000000340 in ?? ()
+#4  0xb2497ce67bde8c6d in ?? ()
+#5  0xb2496ce110de8c6d in ?? ()
+#6  0x0000098000000980 in ?? ()
 #7  0x00007ffff7d26e24 in __GI___sbrk (increment=<optimized out>) at ./misc/sbrk.c:74
-#8  0xfcd4d9a5bf65a400 in ?? ()
+#8  0x20f497af118b7400 in ?? ()
 #9  0x0000000000000003 in ?? ()
 #10 0x0000000000000000 in ?? ()
+ls_app_entry + 21 in section .text of build/aot/liblsapp.so
+   0x1081d <ls_app_entry+5>:	push   %r12
+   0x1081f <ls_app_entry+7>:	sub    $0x1d0,%rsp
+   0x10826 <ls_app_entry+14>:	lea    -0xc0(%rbp),%rbx
+=> 0x1082d <ls_app_entry+21>:	mov    %rdi,-0xb8(%rbp)
+   0x10834 <ls_app_entry+28>:	mov    -0x10(%rdi),%rax
+   0x1083b <ls_app_entry+35>:	mov    %rax,-0xa8(%rbp)
+rax            0x10818             67608
+rbx            0x10758             67416
+rcx            0x1818              6168
+rdx            0x1                 1
+rsi            0x0                 0
+rdi            0x7fffffffd2d0      140737488343760
+rbp            0x10818             0x10818 <ls_app_entry>
+rsp            0x7fffffffd0d0      0x7fffffffd0d0
+r8             0x5555555729d0      93824992356816
+r9             0x0                 0
+r10            0x172d3             94931
+r11            0x1                 1
+r12            0x2                 2
+r13            0x0                 0
+r14            0x555555560c08      93824992283656
+r15            0x7ffff7ffd000      140737354125312
+rip            0x1082d             0x1082d <ls_app_entry+21>
+eflags         0x10202             [ IF RF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+k0             0x440               1088
+k1             0xffffffffffff      281474976710655
+k2             0x0                 0
+k3             0x0                 0
+k4             0x0                 0
+k5             0x0                 0
+k6             0x0                 0
+k7             0x0                 0
+fs_base        0x7ffff7ec5740      140737352849216
+gs_base        0x0                 0
