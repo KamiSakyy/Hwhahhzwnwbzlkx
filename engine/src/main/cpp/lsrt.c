@@ -1688,7 +1688,7 @@ ls_value lsrt_for_iter_value(ls_value iter, ls_value ctrl, ls_value *out) {
     if (ls_is_box(iter) && ls_tag(iter) == LS_TAG_NATIVE) {
         ls_native *n = (ls_native *)ls_payload(iter);
         ls_value frame[3];
-        frame[0] = ls_num(2);
+        frame[0] = (ls_value)(uintptr_t)2;   /* argc — «сырое» целое */
         frame[1] = ctrl;
         frame[2] = LS_NIL;
         ls_value r = n->fn(frame + 1);
@@ -1742,7 +1742,7 @@ ls_value lsrt_call_value(ls_value fn, ls_value *args, int argc) {
         ls_native *native = (ls_native *)ls_payload(fn);
         ls_value frame[64];
         int count = argc > 62 ? 62 : argc;
-        frame[0] = ls_num((double)count);
+        frame[0] = (ls_value)(uintptr_t)count;   /* argc — «сырое» целое */
         for (int i = 0; i < count; i++) {
             frame[i + 1] = args[i];
         }
@@ -1756,7 +1756,7 @@ ls_value lsrt_call_value(ls_value fn, ls_value *args, int argc) {
         ls_value frame[64];
         int count = argc > 62 ? 62 : argc;
         frame[0] = (ls_value)(uintptr_t)fn;   /* замыкание */
-        frame[1] = ls_num((double)count);      /* количество аргументов */
+        frame[1] = (ls_value)(uintptr_t)count; /* argc — «сырое» целое */
         for (int i = 0; i < count; i++) {
             frame[i + 2] = args[i];
         }

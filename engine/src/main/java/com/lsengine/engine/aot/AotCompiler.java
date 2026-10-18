@@ -144,11 +144,11 @@ public final class AotCompiler {
         backend.load(AotIsa.R0, AotIsa.R1, 0);
         backend.jumpIfNe(AotIsa.R0, AotValues.NIL, lblCreate);
         backend.label(lblCreate);
-        backend.movImm(AotIsa.R0, slot);
+        backend.movImm(AotIsa.R0, AotValues.num(slot));
         backend.store(AotIsa.FP, argsDisp, AotIsa.R0);
         backend.leaRodata(AotIsa.R0, dataIndex);
         backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R0);
-        backend.movImm(AotIsa.R0, rodataLengths.get(dataIndex));
+        backend.movImm(AotIsa.R0, AotValues.num(rodataLengths.get(dataIndex)));
         backend.store(AotIsa.FP, argsDisp + 16, AotIsa.R0);
         backend.movImm(AotIsa.R0, 3);
         backend.store(AotIsa.FP, callBase + 8, AotIsa.R0);
@@ -567,7 +567,7 @@ public final class AotCompiler {
         backend.addImm(AotIsa.SP, 8 * (argc + 1));
         backend.jump(lblAfter);
         backend.label(lblError);
-        backend.movImm(AotIsa.R0, 1);
+        backend.movImm(AotIsa.R0, AotValues.num(1));
         backend.store(AotIsa.FP, argsDisp, AotIsa.R0);
         callApi(AotApi.ERROR, 1);
         backend.movImm(AotIsa.R0, AotValues.NIL);
@@ -579,9 +579,9 @@ public final class AotCompiler {
         Chunk.FuncProto target = chunk.functions.get(targetIndex);
         backend.leaFunction(AotIsa.R0, targetIndex);
         backend.store(AotIsa.FP, argsDisp, AotIsa.R0);
-        backend.movImm(AotIsa.R0, target.paramCount);
+        backend.movImm(AotIsa.R0, AotValues.num(target.paramCount));
         backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R0);
-        backend.movImm(AotIsa.R0, target.upvalues.size());
+        backend.movImm(AotIsa.R0, AotValues.num(target.upvalues.size()));
         backend.store(AotIsa.FP, argsDisp + 16, AotIsa.R0);
         callApi(AotApi.NEW_CLOSURE, 3);
         backend.movReg(AotIsa.R2, AotIsa.R0);
@@ -589,7 +589,7 @@ public final class AotCompiler {
             Chunk.Upval u = target.upvalues.get(i);
             backend.movReg(AotIsa.R0, AotIsa.R2);
             backend.store(AotIsa.FP, argsDisp, AotIsa.R0);
-            backend.movImm(AotIsa.R0, i);
+            backend.movImm(AotIsa.R0, AotValues.num(i));
             backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R0);
             if (u.fromParentLocal) {
                 backend.load(AotIsa.R1, AotIsa.FP, backend.localOffset(u.index));
