@@ -123,7 +123,8 @@ public class LanguageTest {
                 + "y = x > 3 ? 'много' : 'мало'\n"
                 + "z = 0\n"
                 + "z += 1\n");
-        assertEquals(4.0, vm.globals().get("x").asNumber(), 1e-9);
+        // 10 + 5 = 15, -3 = 12, *2 = 24, /4 = 6, %5 = 1
+        assertEquals(1.0, vm.globals().get("x").asNumber(), 1e-9);
         assertEquals(10.0, vm.globals().get("t").asTable().get("n").asNumber(), 1e-9);
         assertEquals("много", vm.globals().get("y").asString());
         assertEquals(1.0, vm.globals().get("z").asNumber(), 1e-9);

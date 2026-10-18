@@ -175,8 +175,8 @@ public class AotTest {
 
     private static long readLong(byte[] data, int offset) {
         long value = 0;
-        for (int i = 7; i >= 0; i--) {
-            value = (value << 8) | (data[offset + i] & 0xFF);
+        for (int i = 0; i < 8; i++) {
+            value |= ((long) (data[offset + i] & 0xFF)) << (8 * i);
         }
         return value;
     }
