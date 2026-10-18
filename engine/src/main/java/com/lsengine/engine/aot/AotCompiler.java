@@ -66,6 +66,7 @@ public final class AotCompiler {
         }
 
         AotElf.Module module = new AotElf.Module();
+        module.machine = backend.machineType();
         module.code = backend.code();
         module.rodata = rodata.toByteArray();
         module.functionOffsets = funcOffsets;
@@ -207,7 +208,6 @@ public final class AotCompiler {
         callBase = backend.frameBase() - frameSize;
         argsDisp = callBase + 16;
 
-        module.machine = backend.machineType();
         backend.prologue(frameSize);
         backend.lea(AotIsa.SP, AotIsa.FP, backend.stackTopOffset(localCount));
 
