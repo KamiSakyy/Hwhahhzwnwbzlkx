@@ -1,0 +1,16 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x000000000001082d in ls_app_entry () from build/aot/liblsapp.so
+#0  0x000000000001082d in ls_app_entry () from build/aot/liblsapp.so
+#1  0x00007fffffffd218 in ?? ()
+#2  0x0000555555560c08 in __frame_dummy_init_array_entry ()
+#3  0x00007ffff7ffd000 in _GLOBAL_OFFSET_TABLE_ () from /lib64/ld-linux-x86-64.so.2
+#4  0x41c348e948c80856 in ?? ()
+#5  0x41c358ee23c80856 in ?? ()
+#6  0x0000034000000340 in ?? ()
+#7  0x00007ffff7d26e24 in __GI___sbrk (increment=<optimized out>) at ./misc/sbrk.c:74
+#8  0xfcd4d9a5bf65a400 in ?? ()
+#9  0x0000000000000003 in ?? ()
+#10 0x0000000000000000 in ?? ()
