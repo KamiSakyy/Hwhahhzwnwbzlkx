@@ -76,10 +76,10 @@ Disassembly of section .text:
     117b:	5d                   	pop    %rbp
     117c:	c3                   	ret
     117d:	e9 7e fe ff ff       	jmp    1000 <ls_app_entry-0x818>
-    1182:	49 8b 85 10 00 00 00 	mov    0x10(%r13),%rax
+    1182:	49 8b 85 28 00 00 00 	mov    0x28(%r13),%rax
     1189:	48 81 c0 00 00 00 00 	add    $0x0,%rax
     1190:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
-    1197:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
+    1197:	48 8b 80 18 00 00 00 	mov    0x18(%rax),%rax
     119e:	48 81 eb 08 00 00 00 	sub    $0x8,%rbx
     11a5:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     11ac:	48 8b 85 e8 ff ff ff 	mov    -0x18(%rbp),%rax
@@ -107,7 +107,7 @@ Disassembly of section .text:
     123a:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     1241:	ff 00 00 
     1244:	4c 21 d8             	and    %r11,%rax
-    1247:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    1247:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     124e:	48 89 85 30 ff ff ff 	mov    %rax,-0xd0(%rbp)
     1255:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     125c:	00 00 00 
@@ -133,10 +133,10 @@ Disassembly of section .text:
     12cd:	00 f8 7f 
     12d0:	48 81 eb 08 00 00 00 	sub    $0x8,%rbx
     12d7:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
-    12de:	49 8b 85 10 00 00 00 	mov    0x10(%r13),%rax
+    12de:	49 8b 85 28 00 00 00 	mov    0x28(%r13),%rax
     12e5:	48 81 c0 00 00 00 00 	add    $0x0,%rax
     12ec:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
-    12f3:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
+    12f3:	48 8b 80 18 00 00 00 	mov    0x18(%rax),%rax
     12fa:	48 81 eb 08 00 00 00 	sub    $0x8,%rbx
     1301:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     1308:	48 8b 85 e8 ff ff ff 	mov    -0x18(%rbp),%rax
@@ -164,7 +164,7 @@ Disassembly of section .text:
     1396:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     139d:	ff 00 00 
     13a0:	4c 21 d8             	and    %r11,%rax
-    13a3:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    13a3:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     13aa:	48 89 85 30 ff ff ff 	mov    %rax,-0xd0(%rbp)
     13b1:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     13b8:	00 00 00 
@@ -233,10 +233,10 @@ Disassembly of section .text:
     14f7:	4c 8b 15 aa 6c 00 00 	mov    0x6caa(%rip),%r10        # 81a8 <ls_app_api_table+0xd0>
     14fe:	49 ff d2             	rex.WB call *%r10
     1501:	49 89 c4             	mov    %rax,%r12
-    1504:	49 8b 85 10 00 00 00 	mov    0x10(%r13),%rax
+    1504:	49 8b 85 28 00 00 00 	mov    0x28(%r13),%rax
     150b:	48 81 c0 00 00 00 00 	add    $0x0,%rax
     1512:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
-    1519:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
+    1519:	48 8b 80 18 00 00 00 	mov    0x18(%rax),%rax
     1520:	48 81 eb 08 00 00 00 	sub    $0x8,%rbx
     1527:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     152e:	48 b8 00 00 00 00 00 	movabs $0x3ff0000000000000,%rax
@@ -259,14 +259,14 @@ Disassembly of section .text:
     1599:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     15a0:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     15a7:	48 81 c3 08 00 00 00 	add    $0x8,%rbx
-    15ae:	49 8b 8d 10 00 00 00 	mov    0x10(%r13),%rcx
+    15ae:	49 8b 8d 28 00 00 00 	mov    0x28(%r13),%rcx
     15b5:	48 81 c1 00 00 00 00 	add    $0x0,%rcx
     15bc:	48 8b 89 00 00 00 00 	mov    0x0(%rcx),%rcx
-    15c3:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
-    15ca:	49 8b 85 10 00 00 00 	mov    0x10(%r13),%rax
+    15c3:	48 89 81 18 00 00 00 	mov    %rax,0x18(%rcx)
+    15ca:	49 8b 85 28 00 00 00 	mov    0x28(%r13),%rax
     15d1:	48 81 c0 00 00 00 00 	add    $0x0,%rax
     15d8:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
-    15df:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
+    15df:	48 8b 80 18 00 00 00 	mov    0x18(%rax),%rax
     15e6:	48 81 eb 08 00 00 00 	sub    $0x8,%rbx
     15ed:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     15f4:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
@@ -453,7 +453,7 @@ Disassembly of section .text:
     199c:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     19a3:	48 81 c3 08 00 00 00 	add    $0x8,%rbx
     19aa:	48 8b 8d e8 ff ff ff 	mov    -0x18(%rbp),%rcx
-    19b1:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
+    19b1:	48 89 81 18 00 00 00 	mov    %rax,0x18(%rcx)
     19b8:	48 8d 0d 49 66 00 00 	lea    0x6649(%rip),%rcx        # 8008 <ls_app_entry+0x67f0>
     19bf:	48 8b 81 00 00 00 00 	mov    0x0(%rcx),%rax
     19c6:	49 ba 00 00 00 00 00 	movabs $0x7ff8000000000000,%r10
@@ -515,7 +515,7 @@ Disassembly of section .text:
     1b14:	48 81 eb 08 00 00 00 	sub    $0x8,%rbx
     1b1b:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     1b22:	48 8b 85 e8 ff ff ff 	mov    -0x18(%rbp),%rax
-    1b29:	48 8b 80 00 00 00 00 	mov    0x0(%rax),%rax
+    1b29:	48 8b 80 18 00 00 00 	mov    0x18(%rax),%rax
     1b30:	48 81 eb 08 00 00 00 	sub    $0x8,%rbx
     1b37:	48 89 83 00 00 00 00 	mov    %rax,0x0(%rbx)
     1b3e:	48 b8 00 00 00 00 00 	movabs $0x4028000000000000,%rax
@@ -526,7 +526,7 @@ Disassembly of section .text:
     1b5d:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     1b64:	ff 00 00 
     1b67:	4c 21 d8             	and    %r11,%rax
-    1b6a:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    1b6a:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     1b71:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     1b78:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     1b7f:	00 00 00 
@@ -556,7 +556,7 @@ Disassembly of section .text:
     1c08:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     1c0f:	ff 00 00 
     1c12:	4c 21 d8             	and    %r11,%rax
-    1c15:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    1c15:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     1c1c:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     1c23:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     1c2a:	00 00 00 
@@ -832,7 +832,7 @@ Disassembly of section .text:
     22b1:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     22b8:	ff 00 00 
     22bb:	4c 21 d8             	and    %r11,%rax
-    22be:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    22be:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     22c5:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     22cc:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     22d3:	00 00 00 
@@ -869,7 +869,7 @@ Disassembly of section .text:
     2389:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     2390:	48 81 c3 08 00 00 00 	add    $0x8,%rbx
     2397:	48 8b 8d d8 ff ff ff 	mov    -0x28(%rbp),%rcx
-    239e:	48 89 81 00 00 00 00 	mov    %rax,0x0(%rcx)
+    239e:	48 89 81 18 00 00 00 	mov    %rax,0x18(%rcx)
     23a5:	48 8d 05 06 f1 ff ff 	lea    -0xefa(%rip),%rax        # 14b2 <ls_app_entry-0x366>
     23ac:	48 89 85 30 fe ff ff 	mov    %rax,-0x1d0(%rbp)
     23b3:	48 b8 00 00 00 00 00 	movabs $0x0,%rax
@@ -914,7 +914,7 @@ Disassembly of section .text:
     2494:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     249b:	ff 00 00 
     249e:	4c 21 d8             	and    %r11,%rax
-    24a1:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    24a1:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     24a8:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     24af:	48 b8 00 00 00 00 00 	movabs $0x0,%rax
     24b6:	00 00 00 
@@ -1007,7 +1007,7 @@ Disassembly of section .text:
     26be:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     26c5:	ff 00 00 
     26c8:	4c 21 d8             	and    %r11,%rax
-    26cb:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    26cb:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     26d2:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     26d9:	48 b8 00 00 00 00 00 	movabs $0x0,%rax
     26e0:	00 00 00 
@@ -1035,7 +1035,7 @@ Disassembly of section .text:
     275b:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     2762:	ff 00 00 
     2765:	4c 21 d8             	and    %r11,%rax
-    2768:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    2768:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     276f:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     2776:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     277d:	00 00 00 
@@ -1393,7 +1393,7 @@ Disassembly of section .text:
     3010:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     3017:	ff 00 00 
     301a:	4c 21 d8             	and    %r11,%rax
-    301d:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    301d:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     3024:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     302b:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     3032:	00 00 00 
@@ -1554,7 +1554,7 @@ Disassembly of section .text:
     33e6:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     33ed:	ff 00 00 
     33f0:	4c 21 d8             	and    %r11,%rax
-    33f3:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    33f3:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     33fa:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     3401:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     3408:	00 00 00 
@@ -1726,7 +1726,7 @@ Disassembly of section .text:
     3801:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     3808:	ff 00 00 
     380b:	4c 21 d8             	and    %r11,%rax
-    380e:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    380e:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     3815:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     381c:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     3823:	00 00 00 
@@ -1934,7 +1934,7 @@ Disassembly of section .text:
     3ce6:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     3ced:	ff 00 00 
     3cf0:	4c 21 d8             	and    %r11,%rax
-    3cf3:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    3cf3:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     3cfa:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     3d01:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     3d08:	00 00 00 
@@ -1966,7 +1966,7 @@ Disassembly of section .text:
     3d9f:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     3da6:	ff 00 00 
     3da9:	4c 21 d8             	and    %r11,%rax
-    3dac:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    3dac:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     3db3:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     3dba:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     3dc1:	00 00 00 
@@ -2128,7 +2128,7 @@ Disassembly of section .text:
     416a:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     4171:	ff 00 00 
     4174:	4c 21 d8             	and    %r11,%rax
-    4177:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    4177:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     417e:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     4185:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     418c:	00 00 00 
@@ -2254,7 +2254,7 @@ Disassembly of section .text:
     445a:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     4461:	ff 00 00 
     4464:	4c 21 d8             	and    %r11,%rax
-    4467:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    4467:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     446e:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     4475:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     447c:	00 00 00 
@@ -2284,7 +2284,7 @@ Disassembly of section .text:
     4505:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     450c:	ff 00 00 
     450f:	4c 21 d8             	and    %r11,%rax
-    4512:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    4512:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     4519:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     4520:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     4527:	00 00 00 
@@ -2430,7 +2430,7 @@ Disassembly of section .text:
     4871:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     4878:	ff 00 00 
     487b:	4c 21 d8             	and    %r11,%rax
-    487e:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    487e:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     4885:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     488c:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     4893:	00 00 00 
@@ -2536,7 +2536,7 @@ Disassembly of section .text:
     4aea:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     4af1:	ff 00 00 
     4af4:	4c 21 d8             	and    %r11,%rax
-    4af7:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    4af7:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     4afe:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     4b05:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     4b0c:	00 00 00 
@@ -2566,7 +2566,7 @@ Disassembly of section .text:
     4b95:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     4b9c:	ff 00 00 
     4b9f:	4c 21 d8             	and    %r11,%rax
-    4ba2:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    4ba2:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     4ba9:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     4bb0:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     4bb7:	00 00 00 
@@ -2737,7 +2737,7 @@ Disassembly of section .text:
     4fa4:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     4fab:	ff 00 00 
     4fae:	4c 21 d8             	and    %r11,%rax
-    4fb1:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    4fb1:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     4fb8:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     4fbf:	48 b8 01 00 00 00 00 	movabs $0x1,%rax
     4fc6:	00 00 00 
@@ -2905,7 +2905,7 @@ Disassembly of section .text:
     53b4:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     53bb:	ff 00 00 
     53be:	4c 21 d8             	and    %r11,%rax
-    53c1:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    53c1:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     53c8:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     53cf:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     53d6:	00 00 00 
@@ -3294,7 +3294,7 @@ Disassembly of section .text:
     5d3e:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     5d45:	ff 00 00 
     5d48:	4c 21 d8             	and    %r11,%rax
-    5d4b:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    5d4b:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     5d52:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     5d59:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     5d60:	00 00 00 
@@ -3498,7 +3498,7 @@ Disassembly of section .text:
     6216:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     621d:	ff 00 00 
     6220:	4c 21 d8             	and    %r11,%rax
-    6223:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    6223:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     622a:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     6231:	48 b8 02 00 00 00 00 	movabs $0x2,%rax
     6238:	00 00 00 
@@ -3651,7 +3651,7 @@ Disassembly of section .text:
     65b8:	49 bb ff ff ff ff ff 	movabs $0xffffffffffff,%r11
     65bf:	ff 00 00 
     65c2:	4c 21 d8             	and    %r11,%rax
-    65c5:	48 8b 88 00 00 00 00 	mov    0x0(%rax),%rcx
+    65c5:	48 8b 88 18 00 00 00 	mov    0x18(%rax),%rcx
     65cc:	48 89 85 20 fe ff ff 	mov    %rax,-0x1e0(%rbp)
     65d3:	48 b8 04 00 00 00 00 	movabs $0x4,%rax
     65da:	00 00 00 

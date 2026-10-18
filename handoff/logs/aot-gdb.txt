@@ -2,36 +2,34 @@
 Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
 
 Program received signal SIGSEGV, Segmentation fault.
-api_closure_set_upval (args=0x7fffffffd0b0) at engine/src/main/cpp/lsrt.c:1892
-1892	        c->upvals[index] = (ls_value)(uintptr_t)cell;
-#0  api_closure_set_upval (args=0x7fffffffd0b0) at engine/src/main/cpp/lsrt.c:1892
-#1  0x000000000001097e in ls_app_entry () from build/aot/liblsapp.so
-#2  0x000055555555c720 in main (argc=2, argv=0x7fffffffd418) at tools/aot_host_test.c:44
-api_closure_set_upval + 120 in section .text of /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/aot/aot_host
-   0x55555555c1c1 <api_closure_set_upval+104>:	push   %rbp
-   0x55555555c1c2 <api_closure_set_upval+105>:	in     (%dx),%al
-   0x55555555c1c3 <api_closure_set_upval+106>:	movslq %edx,%rdx
-   0x55555555c1c6 <api_closure_set_upval+109>:	shl    $0x3,%rdx
-   0x55555555c1ca <api_closure_set_upval+113>:	add    %rax,%rdx
-   0x55555555c1cd <api_closure_set_upval+116>:	mov    -0x8(%rbp),%rax
-rax            0x555555562f38      93824992292664
-rbx            0x7fffffffd1c0      140737488343488
-rcx            0x555555562f38      93824992292664
-rdx            0x3                 3
-rsi            0x0                 0
-rdi            0x0                 0
-rbp            0x7fffffffd090      0x7fffffffd090
-rsp            0x7fffffffd060      0x7fffffffd060
+0x0000000000010b6a in ls_app_entry () from build/aot/liblsapp.so
+#0  0x0000000000010b6a in ls_app_entry () from build/aot/liblsapp.so
+#1  0x000055555555c728 in main (argc=2, argv=0x7fffffffd418) at tools/aot_host_test.c:44
+ls_app_entry + 850 in section .text of build/aot/liblsapp.so
+   0x10b5a <ls_app_entry+834>:	(bad)
+   0x10b5b <ls_app_entry+835>:	(bad)
+   0x10b5c <ls_app_entry+836>:	decl   -0x45(%rcx)
+   0x10b5f <ls_app_entry+839>:	(bad)
+   0x10b60 <ls_app_entry+840>:	(bad)
+   0x10b61 <ls_app_entry+841>:	(bad)
+rax            0x0                 0
+rbx            0x7fffffffd1a0      140737488343456
+rcx            0x17010             94224
+rdx            0x10                16
+rsi            0x555555562ff8      93824992292856
+rdi            0x3                 3
+rbp            0x7fffffffd280      0x7fffffffd280
+rsp            0x7fffffffd0a0      0x7fffffffd0a0
 r8             0x7ffff7e04b20      140737352059680
-r9             0x20                32
-r10            0x55555555c159      93824992264537
-r11            0x0                 0
+r9             0x210               528
+r10            0x55555555bf7d      93824992264061
+r11            0xffffffffffff      281474976710655
 r12            0x7ffc5555555612b8  9222339961940218552
 r13            0x0                 0
 r14            0x55555555fca8      93824992279720
 r15            0x7ffff7ffd000      140737354125312
-rip            0x55555555c1d1      0x55555555c1d1 <api_closure_set_upval+120>
-eflags         0x10206             [ PF IF RF ]
+rip            0x10b6a             0x10b6a <ls_app_entry+850>
+eflags         0x10246             [ PF ZF IF RF ]
 cs             0x33                51
 ss             0x2b                43
 ds             0x0                 0
