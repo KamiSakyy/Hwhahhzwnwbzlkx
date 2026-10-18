@@ -24,7 +24,7 @@ public final class AotArm64 extends AotBackend {
     private static final int X29 = 29;   // указатель кадра
     private static final int X30 = 30;   // адрес возврата
     private static final int XZR = 31;
-    private static final int SP = 31;
+    private static final int SPX = 31;   // аппаратный указатель стека
     private static final int TMP = 16;   // x16 — временный регистр (IP0)
 
     /** Размер кадра текущей функции (нужен в эпилоге). */
@@ -68,19 +68,19 @@ public final class AotArm64 extends AotBackend {
     public void prologue(int frameSize) {
         currentFrameSize = frameSize;
         // stp x29, x30, [sp, #-16]! — запись кадра
-        insn(0xA9800000 | ((-2 & 0x7F) << 15) | (X30 << 10) | (SP << 5) | X29);
+        insn(0xA9800000 | ((-2 & 0x7F) << 15) | (X30 << 10) | (SPX << 5) | X29);
         // mov x29, sp
         insn(0x910003FD);
         // stp x19, x20, [sp, #-16]!
-        insn(0xA9800000 | ((-2 & 0x7F) << 15) | (X20 << 10) | (SP << 5) | X19);
+        insn(0xA9800000 | ((-2 & 0x7F) << 15) | (X20 << 10) | (SPX << 5) | X19);
         // stp x21, xzr, [sp, #-16]!
-        insn(0xA9800000 | ((-2 & 0x7F) << 15) | (XZR << 10) | (SP << 5) | X21);
+        insn(0xA9800000 | ((-2 & 0x7F) << 15) | (XZR << 10) | (SPX << 5) | X21);
         // sub sp, sp, #frameSize
         if (frameSize <= 4095) {
             insn(0xD10003FF | (frameSize << 10));
         } else {
             movImm(TMP, frameSize);
-            insn(0x8B0003E3 | (TMP << 16) | (SP << 5) | SP);
+            insn(0x8B0003E3 | (TMP << 16) | (SPX << 5) | SPX);
         }
     }
 
@@ -91,14 +91,14 @@ public final class AotArm64 extends AotBackend {
             insn(0x910003FF | (currentFrameSize << 10));   // add sp, sp, #frameSize
         } else {
             movImm(TMP, currentFrameSize);
-            insn(0x8B0003E3 | (TMP << 16) | (SP << 5) | SP);
+            insn(0x8B0003E3 | (TMP << 16) | (SPX << 5) | SPX);
         }
         // ldp x21, xzr, [sp], #16
-        insn(0xA8C10000 | ((2 & 0x7F) << 15) | (XZR << 10) | (SP << 5) | X21);
+        insn(0xA8C10000 | ((2 & 0x7F) << 15) | (XZR << 10) | (SPX << 5) | X21);
         // ldp x19, x20, [sp], #16
-        insn(0xA8C10000 | ((2 & 0x7F) << 15) | (X20 << 10) | (SP << 5) | X19);
+        insn(0xA8C10000 | ((2 & 0x7F) << 15) | (X20 << 10) | (SPX << 5) | X19);
         // ldp x29, x30, [sp], #16
-        insn(0xA8C10000 | ((2 & 0x7F) << 15) | (X30 << 10) | (SP << 5) | X29);
+        insn(0xA8C10000 | ((2 & 0x7F) << 15) | (X30 << 10) | (SPX << 5) | X29);
         // ret
         insn(0xD65F03C0);
     }
