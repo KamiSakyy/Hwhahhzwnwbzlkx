@@ -117,7 +117,8 @@ public class AotTest {
                 sections.contains(".symtab"));
         assertFalse("отладочных секций быть не должно: " + sections,
                 sections.contains(".debug_info"));
-        assertTrue("должна быть секция кода: " + sections, sections.contains(".text"));
+        assertTrue("должна быть секция кода: " + sections + " | header=" + hex(elf, 64),
+                sections.contains(".text"));
         assertTrue("должна быть динамическая символьная таблица: " + sections,
                 sections.contains(".dynsym"));
 
@@ -166,6 +167,17 @@ public class AotTest {
             names.add(sb.toString());
         }
         return names;
+    }
+
+    private static String hex(byte[] data, int length) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < Math.min(length, data.length); i++) {
+            sb.append(String.format("%02x", data[i] & 0xFF));
+            if (i % 8 == 7) {
+                sb.append(' ');
+            }
+        }
+        return sb.toString();
     }
 
     private static int readInt(byte[] data, int offset) {

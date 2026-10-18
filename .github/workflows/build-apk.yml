@@ -55,6 +55,20 @@ jobs:
           set -o pipefail
           ./gradlew --no-daemon :engine:testDebugUnitTest 2>&1 | tee gradle-tests.log
 
+      - name: Диагностика AOT-библиотеки
+        if: always()
+        run: |
+          set +e
+          mkdir -p build/aot
+          if [ -f build/aot/liblsapp.so ]; then
+            readelf -h -S -l build/aot/liblsapp.so > build/aot/readelf.txt 2>&1
+            objdump -d build/aot/liblsapp.so > build/aot/disasm-full.txt 2>&1
+            cat build/aot/readelf.txt
+          else
+            echo "AOT-библиотека не собрана" > build/aot/readelf.txt
+            cat build/aot/readelf.txt
+          fi
+
       - name: "AOT: машинный код и сверка с виртуальной машиной"
         run: |
           set -euo pipefail
@@ -123,6 +137,8 @@ jobs:
             aot-build.log
             build/aot/actual.txt
             build/aot/expected.txt
+            build/aot/readelf.txt
+            build/aot/disasm-full.txt
             engine/build/reports/tests/
             engine/build/test-results/
           if-no-files-found: ignore
@@ -149,6 +165,8 @@ jobs:
           cp -f aot-build.log handoff/logs/aot-build.log 2>/dev/null || true
           cp -f build/aot/actual.txt handoff/logs/aot-actual.txt 2>/dev/null || true
           cp -f build/aot/expected.txt handoff/logs/aot-expected.txt 2>/dev/null || true
+          cp -f build/aot/readelf.txt handoff/logs/aot-readelf.txt 2>/dev/null || true
+          cp -f build/aot/disasm-full.txt handoff/logs/aot-disasm.txt 2>/dev/null || true
           python3 - <<'PY' > handoff/logs/test-summary.txt 2>/dev/null || true
           import glob, re, xml.etree.ElementTree as ET
           for path in sorted(glob.glob('engine/build/test-results/testDebugUnitTest/*.xml')):
