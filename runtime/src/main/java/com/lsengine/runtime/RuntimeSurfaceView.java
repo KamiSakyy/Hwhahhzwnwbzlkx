@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.lsengine.engine.runtime.FrameDriver;
 import com.lsengine.engine.runtime.LsRuntime;
 
 /**
@@ -18,7 +19,7 @@ public class RuntimeSurfaceView extends SurfaceView implements SurfaceHolder.Cal
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private LsRuntime runtime;
+    private FrameDriver driver;
     private Thread renderThread;
     private volatile boolean running;
     private volatile Canvas currentCanvas;
@@ -41,8 +42,9 @@ public class RuntimeSurfaceView extends SurfaceView implements SurfaceHolder.Cal
         textPaint.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
     }
 
-    public void setRuntime(LsRuntime runtime) {
-        this.runtime = runtime;
+    /** Источник кадров: виртуальная машина или нативный AOT-рантайм. */
+    public void setDriver(FrameDriver driver) {
+        this.driver = driver;
     }
 
     @Override
@@ -75,8 +77,8 @@ public class RuntimeSurfaceView extends SurfaceView implements SurfaceHolder.Cal
                     canvas = getHolder().lockCanvas();
                     if (canvas != null) {
                         currentCanvas = canvas;
-                        if (runtime != null) {
-                            runtime.frame(now / 1_000_000_000.0);
+                        if (driver != null) {
+                            driver.frame(now / 1_000_000_000.0);
                         }
                     }
                 } catch (Exception ignored) {
@@ -114,7 +116,7 @@ public class RuntimeSurfaceView extends SurfaceView implements SurfaceHolder.Cal
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (runtime == null) {
+        if (driver == null) {
             return true;
         }
         int action = event.getActionMasked();
@@ -126,7 +128,7 @@ public class RuntimeSurfaceView extends SurfaceView implements SurfaceHolder.Cal
         } else {
             mapped = LsRuntime.TOUCH_MOVE;
         }
-        runtime.onTouch(event.getX(), event.getY(), mapped);
+        driver.onTouch(event.getX(), event.getY(), mapped);
         return true;
     }
 

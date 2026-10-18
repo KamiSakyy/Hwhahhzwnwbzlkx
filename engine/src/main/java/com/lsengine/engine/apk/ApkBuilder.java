@@ -10,7 +10,9 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -30,6 +32,8 @@ public final class ApkBuilder {
         public int versionCode = 1;
         public String orientation = "portrait";
         public String description = "";
+        /** Нативные библиотеки приложения: путь внутри APK → содержимое. */
+        public final Map<String, byte[]> nativeLibs = new LinkedHashMap<>();
     }
 
     /** Имя файла с контейнером .c внутри собранного APK. */
@@ -76,7 +80,12 @@ public final class ApkBuilder {
         entries.add(new ZipWriter.Entry(BUNDLE_ASSET, bundleBytes));
         entries.add(new ZipWriter.Entry(META_ASSET, meta(options)));
 
-        // 3. Собираем ZIP и подписываем по схеме v2.
+        // 3. Нативные библиотеки: машинный код программы (AOT) и оболочки.
+        for (Map.Entry<String, byte[]> lib : options.nativeLibs.entrySet()) {
+            entries.add(new ZipWriter.Entry(lib.getKey(), lib.getValue()));
+        }
+
+        // 4. Собираем ZIP и подписываем по схеме v2.
         ZipWriter.Result zip = ZipWriter.build(entries);
         PrivateKey key = loadPrivateKey();
         return ApkSignerV2.sign(zip, key, Codec.certificateDer(), Codec.publicKeyDer());

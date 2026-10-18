@@ -1,6 +1,7 @@
 package com.lsengine.studio;
 
 import android.content.Intent;
+import android.os.Build;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -22,6 +23,7 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.lsengine.engine.apk.ApkBuilder;
+import com.lsengine.engine.aot.AotModule;
 import com.lsengine.engine.lang.BytecodeFile;
 import com.lsengine.engine.lang.Chunk;
 import com.lsengine.engine.lang.Compiler;
@@ -217,8 +219,20 @@ public class EditorActivity extends AppCompatActivity {
             byte[] bytecode = BytecodeFile.write(chunk);
             compileStatus.setText("Готово");
             log("Байт-код собран: " + bytecode.length + " байт");
+            byte[] library = null;
+            try {
+                long started = System.currentTimeMillis();
+                library = AotModule.compile(chunk, isArm64Device());
+                log("Машинный код собран: " + library.length + " байт за "
+                        + (System.currentTimeMillis() - started) + " мс");
+            } catch (Throwable error) {
+                log("AOT недоступен, используется виртуальная машина");
+            }
             Intent intent = new Intent(this, PreviewActivity.class);
             intent.putExtra(PreviewActivity.EXTRA_BYTECODE, bytecode);
+            if (library != null) {
+                intent.putExtra(PreviewActivity.EXTRA_AOT_LIBRARY, library);
+            }
             intent.putExtra(PreviewActivity.EXTRA_NAME, project.name);
             intent.putExtra(PreviewActivity.EXTRA_PROJECT_ID, project.id);
             startActivity(intent);
@@ -229,6 +243,15 @@ public class EditorActivity extends AppCompatActivity {
             compileStatus.setText("Ошибка");
             log("✖ " + (e.getMessage() == null ? e.toString() : e.getMessage()));
         }
+    }
+
+    /** Требуется ли машинный код для AArch64 (arm64-v8a). */
+    private boolean isArm64Device() {
+        String[] abis = Build.SUPPORTED_ABIS;
+        if (abis == null || abis.length == 0) {
+            return false;
+        }
+        return abis[0].startsWith("arm64");
     }
 
     // ---------------- сборка APK ----------------

@@ -17,7 +17,7 @@ import java.util.List;
  * Здесь нет ни «интерпретации исходника», ни Android-зависимостей: платформа
  * подключается через интерфейс {@link Surface}.
  */
-public final class LsRuntime {
+public final class LsRuntime implements FrameDriver {
 
     public interface Surface {
         void clear(int color);
@@ -117,6 +117,7 @@ public final class LsRuntime {
     }
 
     /** Один кадр: обновление состояния, update(dt), очистка экрана и draw(). */
+    @Override
     public void frame(double nowSeconds) {
         if (!running) {
             return;

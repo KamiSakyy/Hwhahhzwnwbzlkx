@@ -45,6 +45,19 @@ public final class AotRuntime {
         return handle == 0 ? null : new AotRuntime(handle);
     }
 
+    /**
+     * Загружает библиотеку, уже установленную системой (lib/&lt;abi&gt;/liblsapp.so).
+     *
+     * @return экземпляр рантайма либо null, если загрузка не удалась
+     */
+    public static AotRuntime loadLibrary(String libraryName) {
+        if (!AVAILABLE || libraryName == null || libraryName.isEmpty()) {
+            return null;
+        }
+        long handle = nativeLoadLibrary(libraryName);
+        return handle == 0 ? null : new AotRuntime(handle);
+    }
+
     /** Выполняет точку входа программы (верхний уровень скрипта). */
     public void run() {
         if (handle != 0) {
@@ -54,8 +67,13 @@ public final class AotRuntime {
 
     /** Вызывает глобальную функцию программы: update, draw, onTouch. */
     public void call(String name) {
+        call(name, new double[0]);
+    }
+
+    /** Вызывает глобальную функцию программы с числовыми аргументами. */
+    public void call(String name, double... args) {
         if (handle != 0 && name != null) {
-            nativeCall(handle, name);
+            nativeCall(handle, name, args == null ? new double[0] : args);
         }
     }
 
@@ -76,9 +94,11 @@ public final class AotRuntime {
 
     private static native long nativeLoad(byte[] library);
 
+    private static native long nativeLoadLibrary(String libraryName);
+
     private static native void nativeRun(long handle);
 
-    private static native boolean nativeCall(long handle, String name);
+    private static native boolean nativeCall(long handle, String name, double[] args);
 
     private static native void nativeFree(long handle);
 

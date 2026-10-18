@@ -9,10 +9,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.lsengine.engine.aot.AotRuntime;
 import com.lsengine.engine.bundle.AppBundle;
 import com.lsengine.engine.lang.BytecodeFile;
 import com.lsengine.engine.lang.Chunk;
 import com.lsengine.engine.nativecodec.Codec;
+import com.lsengine.engine.runtime.AotHost;
 import com.lsengine.engine.runtime.LsRuntime;
 
 import java.io.ByteArrayOutputStream;
@@ -31,6 +33,8 @@ public class RuntimeActivity extends Activity implements LsRuntime.Host {
 
     private RuntimeSurfaceView surface;
     private LsRuntime runtime;
+    private AotRuntime aotRuntime;
+    private AotHost aotHost;
     private ToneGenerator tone;
     private TextView errorView;
 
@@ -54,13 +58,27 @@ public class RuntimeActivity extends Activity implements LsRuntime.Host {
             AppBundle bundle = AppBundle.fromBytes(plain);
             applyOrientation(bundle.orientation);
             Chunk chunk = BytecodeFile.read(bundle.bytecode);
-            runtime = new LsRuntime();
-            runtime.setSurface(surface);
-            runtime.setHost(this);
-            runtime.setAppInfo(bundle.appName, bundle.versionName);
-            runtime.setLogSink(message -> Log.i(TAG, message));
-            surface.setRuntime(runtime);
-            runtime.load(chunk);
+            AotRuntime native_ = AotRuntime.loadLibrary("lsapp");
+            if (native_ != null) {
+                // В APK лежит машинный код: запускаем его напрямую.
+                aotRuntime = native_;
+                aotHost = new AotHost(native_);
+                aotHost.setSurface(surface);
+                aotHost.setHost(this);
+                AotRuntime.setPlatform(aotHost);
+                surface.setDriver(aotHost);
+                aotHost.start();
+                Log.i(TAG, "запуск машинного кода (AOT)");
+            } else {
+                runtime = new LsRuntime();
+                runtime.setSurface(surface);
+                runtime.setHost(this);
+                runtime.setAppInfo(bundle.appName, bundle.versionName);
+                runtime.setLogSink(message -> Log.i(TAG, message));
+                surface.setDriver(runtime);
+                runtime.load(chunk);
+                Log.i(TAG, "запуск виртуальной машины");
+            }
             surface.startRendering();
         } catch (Exception e) {
             Log.e(TAG, "не удалось запустить приложение", e);
@@ -126,6 +144,10 @@ public class RuntimeActivity extends Activity implements LsRuntime.Host {
         super.onDestroy();
         if (runtime != null) {
             runtime.stop();
+        }
+        if (aotRuntime != null) {
+            aotRuntime.close();
+            aotRuntime = null;
         }
         if (tone != null) {
             tone.release();

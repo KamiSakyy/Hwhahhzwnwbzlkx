@@ -313,6 +313,41 @@ Java_com_lsengine_engine_aot_AotRuntime_nativeLoad(JNIEnv *env, jclass clazz, jb
     return (jlong) (intptr_t) module;
 }
 
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_lsengine_engine_aot_AotRuntime_nativeLoadLibrary(JNIEnv *env, jclass clazz, jstring name) {
+    (void) clazz;
+    if (name == NULL) {
+        return 0;
+    }
+    const char *utf = env->GetStringUTFChars(name, NULL);
+    if (!utf) {
+        return 0;
+    }
+    void *handle = dlopen(utf, RTLD_NOW | RTLD_LOCAL);
+    env->ReleaseStringUTFChars(name, utf);
+    if (!handle) {
+        return 0;
+    }
+    lsrt_init();
+    ls_api_fn *table = (ls_api_fn *) dlsym(handle, "ls_app_api_table");
+    if (table) {
+        ls_register_api(table);
+    }
+    ls_value (*entry)(ls_value *) = (ls_value (*)(ls_value *)) dlsym(handle, "ls_app_entry");
+    if (!entry) {
+        dlclose(handle);
+        return 0;
+    }
+    ls_module *module = (ls_module *) calloc(1, sizeof(ls_module));
+    if (!module) {
+        dlclose(handle);
+        return 0;
+    }
+    module->handle = handle;
+    module->entry = entry;
+    return (jlong) (intptr_t) module;
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_lsengine_engine_aot_AotRuntime_nativeRun(JNIEnv *env, jclass clazz, jlong handle) {
     (void) env;
@@ -329,7 +364,7 @@ Java_com_lsengine_engine_aot_AotRuntime_nativeRun(JNIEnv *env, jclass clazz, jlo
 
 extern "C" JNIEXPORT jboolean JNICALL
 Java_com_lsengine_engine_aot_AotRuntime_nativeCall(JNIEnv *env, jclass clazz, jlong handle,
-                                                    jstring name) {
+                                                    jstring name, jdoubleArray args) {
     (void) clazz;
     (void) handle;
     if (name == NULL) {
@@ -339,7 +374,24 @@ Java_com_lsengine_engine_aot_AotRuntime_nativeCall(JNIEnv *env, jclass clazz, jl
     if (!utf) {
         return JNI_FALSE;
     }
-    lsrt_call_global(utf, NULL, 0);
+    jsize count = args == NULL ? 0 : env->GetArrayLength(args);
+    jdouble *values = NULL;
+    if (count > 0) {
+        values = env->GetDoubleArrayElements(args, NULL);
+    }
+    ls_value *frame = (ls_value *) calloc((size_t) count + 2, sizeof(ls_value));
+    if (frame != NULL) {
+        frame[0] = 0;
+        frame[1] = (ls_value) count;
+        for (jsize i = 0; i < count; i++) {
+            frame[2 + i] = ls_num(values ? values[i] : 0.0);
+        }
+        lsrt_call_global(utf, frame + 2, (int) count);
+        free(frame);
+    }
+    if (values != NULL) {
+        env->ReleaseDoubleArrayElements(args, values, JNI_ABORT);
+    }
     env->ReleaseStringUTFChars(name, utf);
     return JNI_TRUE;
 }

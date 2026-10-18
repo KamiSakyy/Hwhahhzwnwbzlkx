@@ -14,8 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.toolbar.MaterialToolbar;
+import com.lsengine.engine.aot.AotRuntime;
 import com.lsengine.engine.lang.BytecodeFile;
 import com.lsengine.engine.lang.Chunk;
+import com.lsengine.engine.runtime.AotHost;
 import com.lsengine.engine.runtime.LsRuntime;
 import com.lsengine.studio.ui.LsSurfaceView;
 
@@ -26,11 +28,15 @@ import com.lsengine.studio.ui.LsSurfaceView;
 public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host {
 
     public static final String EXTRA_BYTECODE = "bytecode";
+    /** Машинный код программы (ELF), если он собран AOT-компилятором. */
+    public static final String EXTRA_AOT_LIBRARY = "aot_library";
     public static final String EXTRA_NAME = "name";
     public static final String EXTRA_PROJECT_ID = "project_id";
 
     private LsSurfaceView surface;
     private LsRuntime runtime;
+    private AotRuntime aotRuntime;
+    private AotHost aotHost;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Chip statsChip;
     private View errorCard;
@@ -96,12 +102,17 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
     private void startRuntime() {
         errorCard.setVisibility(View.GONE);
         errorText.setText("");
+        byte[] library = getIntent().getByteArrayExtra(EXTRA_AOT_LIBRARY);
+        if (library != null && library.length > 0 && AotRuntime.isAvailable()) {
+            startAot(library);
+            return;
+        }
         runtime = new LsRuntime();
         runtime.setSurface(surface);
         runtime.setHost(this);
         runtime.setAppInfo(getIntent().getStringExtra(EXTRA_NAME), "1.0");
         runtime.setLogSink(this::log);
-        surface.setRuntime(runtime);
+        surface.setDriver(runtime);
         try {
             Chunk chunk = BytecodeFile.read(bytecode);
             runtime.load(chunk);
@@ -111,9 +122,35 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
         }
     }
 
+    /** Запуск машинного кода: без байт-кода и без интерпретатора. */
+    private void startAot(byte[] library) {
+        AotRuntime loaded = AotRuntime.load(library);
+        if (loaded == null) {
+            showError("Не удалось загрузить машинный код программы");
+            return;
+        }
+        AotHost host = new AotHost(loaded);
+        host.setSurface(surface);
+        host.setHost(this);
+        AotRuntime.setPlatform(host);
+        aotRuntime = loaded;
+        aotHost = host;
+        surface.setDriver(host);
+        try {
+            host.start();
+            surface.startRendering();
+        } catch (Exception e) {
+            showError(e.getMessage() == null ? e.toString() : e.getMessage());
+        }
+    }
+
     private void restart() {
         if (runtime != null) {
             runtime.stop();
+        }
+        if (aotRuntime != null) {
+            aotRuntime.close();
+            aotRuntime = null;
         }
         startRuntime();
     }
@@ -162,6 +199,10 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
 
     @Override
     protected void onDestroy() {
+        if (aotRuntime != null) {
+            aotRuntime.close();
+            aotRuntime = null;
+        }
         super.onDestroy();
         if (runtime != null) {
             runtime.stop();
