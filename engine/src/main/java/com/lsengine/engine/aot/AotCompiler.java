@@ -552,6 +552,8 @@ public final class AotCompiler {
         backend.jumpIfZero(AotIsa.R1, lblError);
         backend.lea(AotIsa.R4, AotIsa.FP, argsDisp);
         backend.callReg(AotIsa.R1);
+        // Убираем callee и аргументы из стека значений.
+        backend.addImm(AotIsa.SP, 8 * (argc + 1));
         backend.jump(lblAfter);
         backend.label(lblError);
         backend.movImm(AotIsa.R0, 1);

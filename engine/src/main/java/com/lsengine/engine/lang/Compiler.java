@@ -179,7 +179,7 @@ public final class Compiler {
         return proto;
     }
 
-    private int compileFunction(String name, List<String> params, Ast.Block body) {
+    private int compileFunction(String name, List<String> params, Ast.Block body) throws LsError {
         FuncState parent = current;
         FuncState fs = new FuncState(parent, name, params.size());
         current = fs;
@@ -196,7 +196,7 @@ public final class Compiler {
 
     // ---------------- операторы ----------------
 
-    private void compileBlock(Ast.Block block) {
+    private void compileBlock(Ast.Block block) throws LsError {
         openScope();
         for (Ast.Stat stat : block.stats) {
             compileStat(stat);
@@ -204,7 +204,7 @@ public final class Compiler {
         closeScope();
     }
 
-    private void compileStat(Ast.Stat stat) {
+    private void compileStat(Ast.Stat stat) throws LsError {
         if (stat instanceof Ast.VarDecl) {
             Ast.VarDecl decl = (Ast.VarDecl) stat;
             if (decl.value != null) {
@@ -219,6 +219,7 @@ public final class Compiler {
             compileAssign(assign);
         } else if (stat instanceof Ast.If) {
             Ast.If node = (Ast.If) stat;
+            compileExpr(node.cond);
             int elseJump = emitJump(Opcodes.JZ);
             compileBlock(node.thenBlock);
             int endJump = emitJump(Opcodes.JMP);
@@ -305,7 +306,7 @@ public final class Compiler {
         loop.breaks.clear();
     }
 
-    private void compileAssign(Ast.Assign assign) {
+    private void compileAssign(Ast.Assign assign) throws LsError {
         Ast.Expr target = assign.target;
         if (target instanceof Ast.Name) {
             String name = ((Ast.Name) target).name;
@@ -339,7 +340,7 @@ public final class Compiler {
         throw new LsError("Некорректная цель присваивания", assign.line, assign.col);
     }
 
-    private void compileNumFor(Ast.NumFor node) {
+    private void compileNumFor(Ast.NumFor node) throws LsError {
         openScope();
         int varSlot = declareLocal(node.var);
         int limitSlot = declareLocal(FOR_LIMIT);
@@ -409,7 +410,7 @@ public final class Compiler {
         closeScope();
     }
 
-    private void compileGenFor(Ast.GenFor node) {
+    private void compileGenFor(Ast.GenFor node) throws LsError {
         openScope();
         // Итератор: f, s, ctrl
         compileExpr(node.iterable);
@@ -449,7 +450,7 @@ public final class Compiler {
 
     // ---------------- выражения ----------------
 
-    private void compileExpr(Ast.Expr expr) {
+    private void compileExpr(Ast.Expr expr) throws LsError {
         if (expr instanceof Ast.NumLit) {
             emit(Opcodes.PUSH_CONST, 0, chunk.addConstant(((Ast.NumLit) expr).value));
         } else if (expr instanceof Ast.StrLit) {
@@ -497,7 +498,7 @@ public final class Compiler {
         }
     }
 
-    private void compileCall(Ast.Call call) {
+    private void compileCall(Ast.Call call) throws LsError {
         if (call.method) {
             Ast.Index index = (Ast.Index) call.callee;
             compileExpr(index.obj);
@@ -516,7 +517,7 @@ public final class Compiler {
         emit(Opcodes.CALL, 0, call.args.size());
     }
 
-    private void compileTable(Ast.TableLit table) {
+    private void compileTable(Ast.TableLit table) throws LsError {
         emit(Opcodes.NEW_TABLE, 0, 0);
         for (int i = 0; i < table.arrayItems.size(); i++) {
             emit(Opcodes.DUP, 0, 0);
@@ -538,7 +539,7 @@ public final class Compiler {
         }
     }
 
-    private void compileBinary(Ast.Bin bin) {
+    private void compileBinary(Ast.Bin bin) throws LsError {
         if (bin.op.equals("and")) {
             compileExpr(bin.left);
             emit(Opcodes.DUP, 0, 0);
@@ -590,7 +591,7 @@ public final class Compiler {
         emit(op, 0, 0);
     }
 
-    private void compileUnary(Ast.Un un) {
+    private void compileUnary(Ast.Un un) throws LsError {
         compileExpr(un.operand);
         if (un.op.equals("not")) {
             emit(Opcodes.NOT, 0, 0);

@@ -221,7 +221,7 @@ public final class Ast {
     }
 
     public static final class Return extends Stat {
-        public final Expr value;
+        public Expr value;
 
         public Return(Expr value) {
             this.value = value;
