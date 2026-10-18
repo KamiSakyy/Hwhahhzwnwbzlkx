@@ -2,7 +2,7 @@ package com.novawallet.app;
 import android.content.*; import androidx.security.crypto.*;
 import java.io.IOException; import java.security.GeneralSecurityException;
 public class Store{
- static SharedPreferences prefs(Context c){ try{ return EncryptedSharedPreferences.create(c,"nova_secure","_androidx_security_master_key_",EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);}catch(Exception e){ return c.getSharedPreferences("nova_plain",Context.MODE_PRIVATE);} }
+ static SharedPreferences prefs(Context c){ try{ return EncryptedSharedPreferences.create("nova_secure","_androidx_security_master_key_",c,EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);}catch(Exception e){ return c.getSharedPreferences("nova_plain",Context.MODE_PRIVATE);} }
  public static boolean hasWallet(Context c){return prefs(c).contains("mnemonic")||prefs(c).contains("privkey");}
  public static void saveMnemonic(Context c,String m){prefs(c).edit().putString("mnemonic",m.trim().toLowerCase()).apply();}
  public static void savePriv(Context c,String p){prefs(c).edit().putString("privkey",p).apply();}
