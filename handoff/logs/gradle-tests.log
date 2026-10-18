@@ -38,20 +38,23 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:parseDebugLocalResources
 > Task :engine:generateDebugRFile
 > Task :engine:compileDebugJavaWithJavac
-> Task :engine:bundleLibRuntimeToJarDebug
 > Task :engine:bundleLibCompileToJarDebug
+> Task :engine:bundleLibRuntimeToJarDebug
 > Task :engine:generateDebugUnitTestStubRFile
 > Task :engine:compileDebugUnitTestJavaWithJavac
 
 > Task :engine:testDebugUnitTest
 
 AotTest > compilesProgramIntoNativeLibrary FAILED
-    java.lang.AssertionError at AotTest.java:119
+    java.lang.AssertionError at AotTest.java:120
 
-23 tests completed, 1 failed
+LanguageTest > compoundAssignmentAndTernary FAILED
+    com.lsengine.engine.lang.LsError at LanguageTest.java:29
+
+24 tests completed, 2 failed
 
 > Task :engine:testDebugUnitTest FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792359472299.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792359575205.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 

@@ -1,9 +1,9 @@
 com.lsengine.engine.AotTest                                  tests=1 failures=1 errors=0 skipped=0
   [FAILURE] compilesProgramIntoNativeLibrary
-      java.lang.AssertionError: должна быть секция кода
+      java.lang.AssertionError: должна быть секция кода: []
       	at org.junit.Assert.fail(Assert.java:89)
       	at org.junit.Assert.assertTrue(Assert.java:42)
-      	at com.lsengine.engine.AotTest.compilesProgramIntoNativeLibrary(AotTest.java:119)
+      	at com.lsengine.engine.AotTest.compilesProgramIntoNativeLibrary(AotTest.java:120)
       	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
       	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -15,4 +15,17 @@ com.lsengine.engine.AotTest                                  tests=1 failures=1 
 com.lsengine.engine.ApkPipelineTest                          tests=4 failures=0 errors=0 skipped=0
 com.lsengine.engine.BytecodeFileTest                         tests=3 failures=0 errors=0 skipped=0
 com.lsengine.engine.CodecTest                                tests=4 failures=0 errors=0 skipped=0
-com.lsengine.engine.LanguageTest                             tests=11 failures=0 errors=0 skipped=0
+com.lsengine.engine.LanguageTest                             tests=12 failures=1 errors=0 skipped=0
+  [FAILURE] compoundAssignmentAndTernary
+      com.lsengine.engine.lang.LsError: Ожидалось имя метода, получено 'мало'
+      	at app//com.lsengine.engine.lang.Parser.expect(Parser.java:60)
+      	at app//com.lsengine.engine.lang.Parser.parseSuffixedExpr(Parser.java:521)
+      	at app//com.lsengine.engine.lang.Parser.parsePower(Parser.java:497)
+      	at app//com.lsengine.engine.lang.Parser.parseUnary(Parser.java:493)
+      	at app//com.lsengine.engine.lang.Parser.parseMultiplicative(Parser.java:478)
+      	at app//com.lsengine.engine.lang.Parser.parseAdditive(Parser.java:468)
+      	at app//com.lsengine.engine.lang.Parser.parseConcat(Parser.java:458)
+      	at app//com.lsengine.engine.lang.Parser.parseComparison(Parser.java:448)
+      	at app//com.lsengine.engine.lang.Parser.parseNot(Parser.java:444)
+      	at app//com.lsengine.engine.lang.Parser.parseAnd(Parser.java:429)
+      	at app//com.lsengine.engine.lang.Parser.parseOr(Parser.java:419)
