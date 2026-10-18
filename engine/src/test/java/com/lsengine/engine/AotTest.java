@@ -1,6 +1,7 @@
 package com.lsengine.engine;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.lsengine.engine.aot.AotModule;
@@ -108,11 +109,69 @@ public class AotTest {
             throw new IOException("не удалось создать каталог " + dir);
         }
         write(new File(dir, "liblsapp.so"), elf);
+
+        // Библиотека не должна содержать символьной таблицы и отладочных секций:
+        // декомпилировать такой машинный код заметно сложнее.
+        List<String> sections = sectionNames(elf);
+        assertFalse("символьная таблица не должна попадать в библиотеку",
+                sections.contains(".symtab"));
+        assertFalse("отладочных секций быть не должно", sections.contains(".debug_info"));
+        assertTrue("должна быть секция кода", sections.contains(".text"));
+        assertTrue("должна быть динамическая символьная таблица", sections.contains(".dynsym"));
+
+        // ARM64: та же программа, но машинный код для AArch64.
+        byte[] arm = AotModule.compileArm64(chunk);
+        assertTrue("библиотека ARM64 не пустая", arm.length > 512);
+        assertEquals(0x7F, arm[0] & 0xFF);
+        assertEquals('E', arm[1] & 0xFF);
+        assertEquals(3, arm[16] & 0xFF);  // ET_DYN
+        assertEquals(183, arm[18] & 0xFF); // EM_AARCH64
+        assertEquals(183, (arm[19] & 0xFF) | ((arm[20] & 0xFF) << 8));
+        write(new File(dir, "liblsapp-arm64.so"), arm);
+        assertFalse("в ARM64-библиотеке тоже нет символьной таблицы",
+                sectionNames(arm).contains(".symtab"));
         StringBuilder expected = new StringBuilder();
         for (String line : printed) {
             expected.append(line).append('\n');
         }
         write(new File(dir, "expected.txt"), expected.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** Имена секций ELF-библиотеки. */
+    private static List<String> sectionNames(byte[] elf) {
+        List<String> names = new ArrayList<>();
+        int shoff = (int) readLong(elf, 40);
+        int shentsize = (elf[58] & 0xFF) | ((elf[59] & 0xFF) << 8);
+        int shnum = (elf[60] & 0xFF) | ((elf[61] & 0xFF) << 8);
+        int shstrndx = (elf[62] & 0xFF) | ((elf[63] & 0xFF) << 8);
+        if (shoff == 0 || shnum == 0 || shstrndx >= shnum) {
+            return names;
+        }
+        int strOff = (int) readLong(elf, shoff + shstrndx * shentsize + 24);
+        int strSize = (int) readLong(elf, shoff + shstrndx * shentsize + 32);
+        for (int i = 0; i < shnum; i++) {
+            int base = shoff + i * shentsize;
+            int nameOff = (int) readLong(elf, base);
+            if (nameOff < 0 || strOff + nameOff >= strSize) {
+                continue;
+            }
+            StringBuilder sb = new StringBuilder();
+            int p = strOff + nameOff;
+            while (p < elf.length && elf[p] != 0) {
+                sb.append((char) (elf[p] & 0xFF));
+                p++;
+            }
+            names.add(sb.toString());
+        }
+        return names;
+    }
+
+    private static long readLong(byte[] data, int offset) {
+        long value = 0;
+        for (int i = 7; i >= 0; i--) {
+            value = (value << 8) | (data[offset + i] & 0xFF);
+        }
+        return value;
     }
 
     private static void write(File file, byte[] data) throws IOException {
