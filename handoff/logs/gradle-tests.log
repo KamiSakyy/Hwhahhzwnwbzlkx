@@ -31,21 +31,24 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:packageDebugResources
 > Task :engine:processDebugNavigationResources
 > Task :engine:preDebugUnitTestBuild UP-TO-DATE
-> Task :engine:javaPreCompileDebugUnitTest
 > Task :engine:javaPreCompileDebug
+> Task :engine:javaPreCompileDebugUnitTest
 > Task :engine:processDebugJavaRes NO-SOURCE
 > Task :engine:processDebugUnitTestJavaRes NO-SOURCE
 > Task :engine:parseDebugLocalResources
 > Task :engine:generateDebugRFile
 
 > Task :engine:compileDebugJavaWithJavac
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/ApkSignerV2.java:157: error: unreported exception IOException; must be caught or declared to be thrown
-        out.write(data);
-                 ^
-1 error
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:94: error: int cannot be dereferenced
+        current.code.write(op, 0, op.length);
+                                    ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:95: error: int cannot be dereferenced
+        current.code.write(a, 0, a.length);
+                                  ^
+2 errors
 
 > Task :engine:compileDebugJavaWithJavac FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792357894843.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792358038213.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
@@ -54,10 +57,13 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':engine:compileDebugJavaWithJavac'.
 > Compilation failed; see the compiler output below.
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/ApkSignerV2.java:157: error: unreported exception IOException; must be caught or declared to be thrown
-          out.write(data);
-                   ^
-  1 error
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:94: error: int cannot be dereferenced
+          current.code.write(op, 0, op.length);
+                                      ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:95: error: int cannot be dereferenced
+          current.code.write(a, 0, a.length);
+                                    ^
+  2 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
@@ -69,5 +75,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 58s
+BUILD FAILED in 1m
 9 actionable tasks: 9 executed
