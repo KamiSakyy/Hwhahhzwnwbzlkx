@@ -1,4 +1,4 @@
-# LS Studio — редактор/IDE: исходники LS, живой предпросмотр, офлайн-сборщик APK.
+// LS Studio — редактор/IDE: исходники LS, живой предпросмотр, офлайн-сборщик APK.
 plugins {
     id 'com.android.application'
 }

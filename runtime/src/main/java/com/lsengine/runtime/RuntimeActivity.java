@@ -58,7 +58,7 @@ public class RuntimeActivity extends Activity implements LsRuntime.Host {
             runtime.setSurface(surface);
             runtime.setHost(this);
             runtime.setAppInfo(bundle.appName, bundle.versionName);
-            runtime.setLogSink(Log::i);
+            runtime.setLogSink(message -> Log.i(TAG, message));
             surface.setRuntime(runtime);
             runtime.load(chunk);
             surface.startRendering();
