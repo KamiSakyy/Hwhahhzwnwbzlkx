@@ -1,7 +1,7 @@
 com.lsengine.engine.AotTest                                  tests=1 failures=1 errors=0 skipped=0
   [FAILURE] compilesProgramIntoNativeLibrary
-      com.lsengine.engine.vm.VmException: попытка вызвать значение типа number
-      	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:443)
+      com.lsengine.engine.vm.VmException: попытка вызвать значение типа nil
+      	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:447)
       	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
       	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
       	at app//com.lsengine.engine.AotTest.compilesProgramIntoNativeLibrary(AotTest.java:91)
@@ -12,56 +12,17 @@ com.lsengine.engine.AotTest                                  tests=1 failures=1 
       	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
       	at app//org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
       	at app//org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
-com.lsengine.engine.ApkPipelineTest                          tests=4 failures=2 errors=0 skipped=0
-  [FAILURE] zipCanBeReadBack
-      java.lang.AssertionError
-      	at org.junit.Assert.fail(Assert.java:87)
-      	at org.junit.Assert.assertTrue(Assert.java:42)
-      	at org.junit.Assert.assertTrue(Assert.java:53)
-      	at com.lsengine.engine.ApkPipelineTest.zipCanBeReadBack(ApkPipelineTest.java:42)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-      	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-      	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-      	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
-  [FAILURE] signatureBlockIsInserted
-      java.util.zip.ZipException: invalid stored block lengths
-      	at java.base/java.util.zip.InflaterInputStream.read(InflaterInputStream.java:164)
-      	at java.base/java.util.zip.ZipInputStream.read(ZipInputStream.java:196)
-      	at java.base/java.io.FilterInputStream.read(FilterInputStream.java:106)
-      	at com.lsengine.engine.ApkPipelineTest.signatureBlockIsInserted(ApkPipelineTest.java:88)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-      	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-      	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-      	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
-com.lsengine.engine.BytecodeFileTest                         tests=3 failures=1 errors=0 skipped=0
-  [FAILURE] constantsArePreserved
-      java.lang.AssertionError
-      	at org.junit.Assert.fail(Assert.java:87)
-      	at org.junit.Assert.assertTrue(Assert.java:42)
-      	at org.junit.Assert.assertTrue(Assert.java:53)
-      	at com.lsengine.engine.BytecodeFileTest.constantsArePreserved(BytecodeFileTest.java:67)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-      	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-      	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-      	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+com.lsengine.engine.ApkPipelineTest                          tests=4 failures=0 errors=0 skipped=0
+com.lsengine.engine.BytecodeFileTest                         tests=3 failures=0 errors=0 skipped=0
 com.lsengine.engine.CodecTest                                tests=4 failures=0 errors=0 skipped=0
-com.lsengine.engine.LanguageTest                             tests=11 failures=8 errors=0 skipped=0
+com.lsengine.engine.LanguageTest                             tests=11 failures=6 errors=0 skipped=0
   [FAILURE] loopsAndConditionals
       java.lang.AssertionError: expected:<30.0> but was:<0.0>
       	at org.junit.Assert.fail(Assert.java:89)
       	at org.junit.Assert.failNotEquals(Assert.java:835)
       	at org.junit.Assert.assertEquals(Assert.java:555)
       	at org.junit.Assert.assertEquals(Assert.java:685)
-      	at com.lsengine.engine.LanguageTest.loopsAndConditionals(LanguageTest.java:104)
+      	at com.lsengine.engine.LanguageTest.loopsAndConditionals(LanguageTest.java:106)
       	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
       	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -70,12 +31,12 @@ com.lsengine.engine.LanguageTest                             tests=11 failures=8
       	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
   [FAILURE] genericForOverTable
       com.lsengine.engine.vm.VmException: ожидалась таблица, получено string
-      	at app//com.lsengine.engine.vm.Vm.tableOf(Vm.java:607)
+      	at app//com.lsengine.engine.vm.Vm.tableOf(Vm.java:611)
       	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:299)
       	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
       	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
-      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:31)
-      	at app//com.lsengine.engine.LanguageTest.genericForOverTable(LanguageTest.java:111)
+      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:32)
+      	at app//com.lsengine.engine.LanguageTest.genericForOverTable(LanguageTest.java:113)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
       	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -83,12 +44,12 @@ com.lsengine.engine.LanguageTest                             tests=11 failures=8
       	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
   [FAILURE] tablesAndLength
       com.lsengine.engine.vm.VmException: попытка обратиться к элементу типа nil
-      	at app//com.lsengine.engine.vm.Vm.indexOf(Vm.java:600)
+      	at app//com.lsengine.engine.vm.Vm.indexOf(Vm.java:604)
       	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:293)
       	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
       	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
-      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:31)
-      	at app//com.lsengine.engine.LanguageTest.tablesAndLength(LanguageTest.java:79)
+      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:32)
+      	at app//com.lsengine.engine.LanguageTest.tablesAndLength(LanguageTest.java:81)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
       	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -96,12 +57,12 @@ com.lsengine.engine.LanguageTest                             tests=11 failures=8
       	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
   [FAILURE] stringsAndConcat
       com.lsengine.engine.vm.VmException: попытка обратиться к элементу типа nil
-      	at app//com.lsengine.engine.vm.Vm.indexOf(Vm.java:600)
+      	at app//com.lsengine.engine.vm.Vm.indexOf(Vm.java:604)
       	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:293)
       	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
       	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
-      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:31)
-      	at app//com.lsengine.engine.LanguageTest.stringsAndConcat(LanguageTest.java:45)
+      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:32)
+      	at app//com.lsengine.engine.LanguageTest.stringsAndConcat(LanguageTest.java:46)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
       	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -109,53 +70,27 @@ com.lsengine.engine.LanguageTest                             tests=11 failures=8
       	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
   [FAILURE] methodCallSyntax
       com.lsengine.engine.vm.VmException: попытка обратиться к элементу типа string
-      	at app//com.lsengine.engine.vm.Vm.indexOf(Vm.java:600)
+      	at app//com.lsengine.engine.vm.Vm.indexOf(Vm.java:604)
       	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:293)
       	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
       	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
-      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:31)
-      	at app//com.lsengine.engine.LanguageTest.methodCallSyntax(LanguageTest.java:123)
+      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:32)
+      	at app//com.lsengine.engine.LanguageTest.methodCallSyntax(LanguageTest.java:125)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
       	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
       	at java.base@17.0.20.1/java.lang.reflect.Method.invoke(Method.java:569)
       	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
   [FAILURE] printGoesToPrinter
-      com.lsengine.engine.vm.VmException: попытка вызвать значение типа number
-      	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:443)
+      com.lsengine.engine.vm.VmException: попытка вызвать значение типа nil
+      	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:447)
       	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
       	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
-      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:31)
-      	at app//com.lsengine.engine.LanguageTest.printGoesToPrinter(LanguageTest.java:131)
+      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:32)
+      	at app//com.lsengine.engine.LanguageTest.printGoesToPrinter(LanguageTest.java:133)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
       	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
       	at java.base@17.0.20.1/java.lang.reflect.Method.invoke(Method.java:569)
       	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
       	at app//org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-  [FAILURE] recursionWorks
-      com.lsengine.engine.vm.VmException: попытка вызвать значение типа number
-      	at app//com.lsengine.engine.vm.Vm.execute(Vm.java:443)
-      	at app//com.lsengine.engine.vm.Vm.runFrames(Vm.java:244)
-      	at app//com.lsengine.engine.vm.Vm.start(Vm.java:88)
-      	at app//com.lsengine.engine.LanguageTest.run(LanguageTest.java:31)
-      	at app//com.lsengine.engine.LanguageTest.recursionWorks(LanguageTest.java:138)
-      	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base@17.0.20.1/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base@17.0.20.1/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base@17.0.20.1/java.lang.reflect.Method.invoke(Method.java:569)
-      	at app//org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-      	at app//org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-  [FAILURE] booleansAndNil
-      java.lang.AssertionError
-      	at org.junit.Assert.fail(Assert.java:87)
-      	at org.junit.Assert.assertTrue(Assert.java:42)
-      	at org.junit.Assert.assertTrue(Assert.java:53)
-      	at com.lsengine.engine.LanguageTest.booleansAndNil(LanguageTest.java:58)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-      	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-      	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-      	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
