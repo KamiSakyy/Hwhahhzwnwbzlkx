@@ -104,6 +104,11 @@ public final class AotArm64 extends AotBackend {
     }
 
     @Override
+    public int machineType() {
+        return AotModule.MACHINE_ARM64;
+    }
+
+    @Override
     public int frameBase() {
         return -40;   // запись кадра (16) + три сохранённых регистра (24)
     }

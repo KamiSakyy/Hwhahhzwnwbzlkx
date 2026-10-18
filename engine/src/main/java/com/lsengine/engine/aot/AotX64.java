@@ -414,6 +414,11 @@ public final class AotX64 extends AotBackend {
     }
 
     @Override
+    public int machineType() {
+        return AotModule.MACHINE_X64;
+    }
+
+    @Override
     public int frameBase() {
         return -16;   // push rbx, push r12
     }

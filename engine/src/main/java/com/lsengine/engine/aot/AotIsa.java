@@ -21,6 +21,9 @@ package com.lsengine.engine.aot;
  */
 public interface AotIsa {
 
+    /** Тип процессора для заголовка ELF: 0x3E — x86-64, 0xB7 — AArch64. */
+    int machineType();
+
     int R0 = 0;
     int R1 = 1;
     int R2 = 2;

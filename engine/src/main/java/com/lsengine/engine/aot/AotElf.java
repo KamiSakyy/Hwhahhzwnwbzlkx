@@ -71,6 +71,8 @@ public final class AotElf {
         public int[] labelOffsets = new int[0];
         public final List<Export> exported = new ArrayList<>();
         public String soname = "liblsapp.so";
+        /** Тип процессора (e_machine). */
+        public int machine = AotModule.MACHINE_X64;
     }
 
     private static final int PAGE = 0x1000;
@@ -205,7 +207,7 @@ public final class AotElf {
         ident[7] = 0;   // System V
         out.write(ident, 0, 16);
         u16(out, 3);          // ET_DYN
-        u16(out, 0x3E);       // EM_X86_64
+        u16(out, module.machine);   // e_machine (x86-64 или AArch64)
         u32(out, 1);          // версия
         u64(out, 0);          // точка входа
         u64(out, shoff);
@@ -360,14 +362,10 @@ public final class AotElf {
             u64(out, shAddr[i]);
             u64(out, shOffset[i]);
             u64(out, shSize[i]);
-            u32(out, 0);
-            u32(out, 0);
-            u64(out, 1);
-            u64(out, 0);
-            u32(out, 0);
-            u32(out, 0);
-            u32(out, 16);   // sh_addralign
-            u64(out, 0);
+            u32(out, 0);   // sh_link
+            u32(out, 0);   // sh_info
+            u64(out, 1);   // sh_addralign
+            u64(out, 0);   // sh_entsize
         }
         out.write(shstrBytes, 0, shstrBytes.length);
         return out.toByteArray();

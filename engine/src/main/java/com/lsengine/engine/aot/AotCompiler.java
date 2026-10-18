@@ -207,6 +207,7 @@ public final class AotCompiler {
         callBase = backend.frameBase() - frameSize;
         argsDisp = callBase + 16;
 
+        module.machine = backend.machineType();
         backend.prologue(frameSize);
         backend.lea(AotIsa.SP, AotIsa.FP, backend.stackTopOffset(localCount));
 

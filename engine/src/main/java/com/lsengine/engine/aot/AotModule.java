@@ -11,6 +11,10 @@ public final class AotModule {
     private AotModule() {
     }
 
+    /** Тип процессора: 0x3E — x86-64, 0xB7 — AArch64. */
+    public static final int MACHINE_X64 = 0x3E;
+    public static final int MACHINE_ARM64 = 0xB7;
+
     /** Компилирует программу под нужную архитектуру. */
     public static byte[] compile(Chunk chunk, boolean arm64) {
         AotBackend backend = arm64 ? new AotArm64() : new AotX64();
