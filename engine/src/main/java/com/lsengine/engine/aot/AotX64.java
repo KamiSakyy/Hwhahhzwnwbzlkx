@@ -329,41 +329,41 @@ public final class AotX64 extends AotBackend {
     @Override
     public void addDouble(int dst, int src) {
         u8(0xF2);
-        rex(true, xmm(src), xmm(dst));
+        rex(true, xmm(dst), xmm(src));
         u8(0x58);
-        modrmReg(xmm(src), xmm(dst));
+        modrmReg(xmm(dst), xmm(src));
     }
 
     @Override
     public void subDouble(int dst, int src) {
         u8(0xF2);
-        rex(true, xmm(src), xmm(dst));
+        rex(true, xmm(dst), xmm(src));
         u8(0x5C);
-        modrmReg(xmm(src), xmm(dst));
+        modrmReg(xmm(dst), xmm(src));
     }
 
     @Override
     public void mulDouble(int dst, int src) {
         u8(0xF2);
-        rex(true, xmm(src), xmm(dst));
+        rex(true, xmm(dst), xmm(src));
         u8(0x59);
-        modrmReg(xmm(src), xmm(dst));
+        modrmReg(xmm(dst), xmm(src));
     }
 
     @Override
     public void divDouble(int dst, int src) {
         u8(0xF2);
-        rex(true, xmm(src), xmm(dst));
+        rex(true, xmm(dst), xmm(src));
         u8(0x5E);
-        modrmReg(xmm(src), xmm(dst));
+        modrmReg(xmm(dst), xmm(src));
     }
 
     @Override
     public void compareDouble(int a, int b) {
         u8(0x66);
-        rex(true, xmm(b), xmm(a));
+        rex(true, xmm(a), xmm(b));
         u8(0x2E);
-        modrmReg(xmm(b), xmm(a));
+        modrmReg(xmm(a), xmm(b));
     }
 
     @Override
