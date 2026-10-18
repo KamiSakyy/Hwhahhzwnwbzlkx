@@ -46,12 +46,12 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:testDebugUnitTest
 
 AotTest > compilesProgramIntoNativeLibrary FAILED
-    java.lang.IllegalArgumentException at AotTest.java:126
+    java.lang.AssertionError at AotTest.java:132
 
 24 tests completed, 1 failed
 
 > Task :engine:testDebugUnitTest FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792360665864.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792360841732.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
