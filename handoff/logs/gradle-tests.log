@@ -39,55 +39,31 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:generateDebugRFile
 
 > Task :engine:compileDebugJavaWithJavac
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:271: error: unreported exception LsError; must be caught or declared to be thrown
+                throw new LsError("'break' вне цикла", stat.line, stat.col);
+                ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:279: error: unreported exception LsError; must be caught or declared to be thrown
+            throw new LsError("Неизвестный оператор", stat.line, stat.col);
             ^
-  symbol:   class ByteArrayOutputStream
-  location: class Codec
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-                                            ^
-  symbol:   class ByteArrayOutputStream
-  location: class Codec
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:134: error: cannot find symbol
-                    throw new IOException("неверная магия контейнера");
-                              ^
-  symbol:   class IOException
-  location: class Codec
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:293: error: incompatible types: String cannot be converted to Value
-                push(indexOf(t, constantString(b)));
-                                              ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:501: error: variable f is already defined in method execute(Frame,FuncProto,int,int,int)
-                Value f;
-                      ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:534: error: incompatible types: Value cannot be converted to Value[]
-                    Value[] res = call(iterFn, new Value[]{state, control});
-                                      ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:186: error: cannot find symbol
-            fs.declareLocal(p);
-              ^
-  symbol:   method declareLocal(String)
-  location: variable fs of type FuncState
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:339: error: unreported exception LsError; must be caught or declared to be thrown
+        throw new LsError("Некорректная цель присваивания", assign.line, assign.col);
+        ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:496: error: unreported exception LsError; must be caught or declared to be thrown
+            throw new LsError("Неизвестное выражение", expr.line, expr.col);
+            ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:588: error: unreported exception LsError; must be caught or declared to be thrown
+                throw new LsError("Неизвестный оператор '" + bin.op + "'", bin.line, bin.col);
+                ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:602: error: unreported exception LsError; must be caught or declared to be thrown
+            throw new LsError("Неизвестный унарный оператор '" + un.op + "'", un.line, un.col);
+            ^
 /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:144: error: cannot assign a value to final variable value
             ret.value = parseExpr();
                ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:176: error: cannot assign a value to final variable value
-                decl.value = parseExpr();
-                    ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:568: error: incompatible types: void cannot be converted to Token
-        Token open = expectOp("{");
-                             ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/AxmlPatcher.java:215: error: method writeIntLE in class AxmlPatcher cannot be applied to given types;
-            writeIntLE(out, offset);
-            ^
-  required: byte[],int,int
-  found:    ByteArrayOutputStream,int
-  reason: actual and formal argument lists differ in length
-Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
-11 errors
+7 errors
 
 > Task :engine:compileDebugJavaWithJavac FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792356063815.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792356470641.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
@@ -99,49 +75,25 @@ Execution failed for task ':engine:compileDebugJavaWithJavac'.
   /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:144: error: cannot assign a value to final variable value
               ret.value = parseExpr();
                  ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:176: error: cannot assign a value to final variable value
-                  decl.value = parseExpr();
-                      ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/apk/AxmlPatcher.java:215: error: method writeIntLE in class AxmlPatcher cannot be applied to given types;
-              writeIntLE(out, offset);
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:271: error: unreported exception LsError; must be caught or declared to be thrown
+                  throw new LsError("'break' вне цикла", stat.line, stat.col);
+                  ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:279: error: unreported exception LsError; must be caught or declared to be thrown
+              throw new LsError("Неизвестный оператор", stat.line, stat.col);
               ^
-    required: byte[],int,int
-    found:    ByteArrayOutputStream,int
-    reason: actual and formal argument lists differ in length
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:293: error: incompatible types: String cannot be converted to Value
-                  push(indexOf(t, constantString(b)));
-                                                ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:534: error: incompatible types: Value cannot be converted to Value[]
-                      Value[] res = call(iterFn, new Value[]{state, control});
-                                        ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:568: error: incompatible types: void cannot be converted to Token
-          Token open = expectOp("{");
-                               ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
-              ByteArrayOutputStream out = new ByteArrayOutputStream();
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:339: error: unreported exception LsError; must be caught or declared to be thrown
+          throw new LsError("Некорректная цель присваивания", assign.line, assign.col);
+          ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:496: error: unreported exception LsError; must be caught or declared to be thrown
+              throw new LsError("Неизвестное выражение", expr.line, expr.col);
               ^
-    symbol:   class ByteArrayOutputStream
-    location: class Codec
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:111: error: cannot find symbol
-              ByteArrayOutputStream out = new ByteArrayOutputStream();
-                                              ^
-    symbol:   class ByteArrayOutputStream
-    location: class Codec
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/nativecodec/Codec.java:134: error: cannot find symbol
-                      throw new IOException("неверная магия контейнера");
-                                ^
-    symbol:   class IOException
-    location: class Codec
-  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:186: error: cannot find symbol
-              fs.declareLocal(p);
-                ^
-    symbol:   method declareLocal(String)
-    location: variable fs of type FuncState
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/vm/Vm.java:501: error: variable f is already defined in method execute(Frame,FuncProto,int,int,int)
-                  Value f;
-                        ^
-  11 errors
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:588: error: unreported exception LsError; must be caught or declared to be thrown
+                  throw new LsError("Неизвестный оператор '" + bin.op + "'", bin.line, bin.col);
+                  ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:602: error: unreported exception LsError; must be caught or declared to be thrown
+              throw new LsError("Неизвестный унарный оператор '" + un.op + "'", un.line, un.col);
+              ^
+  7 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
@@ -153,5 +105,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 59s
+BUILD FAILED in 55s
 9 actionable tasks: 9 executed
