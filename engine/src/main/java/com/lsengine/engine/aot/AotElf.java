@@ -210,8 +210,9 @@ public final class AotElf {
         u16(out, module.machine);   // e_machine (x86-64 или AArch64)
         u32(out, 1);          // версия
         u64(out, 0);          // точка входа
-        u64(out, shoff);
-        u32(out, 0);
+        u64(out, phoff);      // e_phoff — смещение таблицы программных заголовков
+        u64(out, shoff);      // e_shoff — смещение таблицы секций
+        u32(out, 0);          // e_flags
         u16(out, headerSize);
         u16(out, phentsize);
         u16(out, phnum);

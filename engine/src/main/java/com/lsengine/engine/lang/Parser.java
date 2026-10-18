@@ -377,7 +377,13 @@ public final class Parser {
         Ast.Expr cond = parseOr();
         if (checkOp("?")) {
             advance();
-            Ast.Expr yes = parseExpr();
+            noColonDepth++;
+            Ast.Expr yes;
+            try {
+                yes = parseExpr();
+            } finally {
+                noColonDepth--;
+            }
             expectOp(":");
             Ast.Expr no = parseExpr();
             return new Ast.Ternary(cond, yes, no);
@@ -503,6 +509,9 @@ public final class Parser {
         return base;
     }
 
+    /** Глубина вложенности тернарных выражений: внутри них «:» не считается вызовом метода. */
+    private int noColonDepth;
+
     private Ast.Expr parseSuffixedExpr() throws LsError {
         Ast.Expr expr = parsePrimary();
         while (true) {
@@ -516,7 +525,7 @@ public final class Parser {
                 Ast.Expr key = parseExpr();
                 expectOp("]");
                 expr = pos(new Ast.Index(expr, key, false), t);
-            } else if (t.isOp(":")) {
+            } else if (t.isOp(":") && noColonDepth == 0) {
                 advance();
                 Token name = expect(Token.Type.NAME, null, "имя метода");
                 List<Ast.Expr> args = parseCallArgs();
