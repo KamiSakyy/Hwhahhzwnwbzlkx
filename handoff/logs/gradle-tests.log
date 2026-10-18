@@ -31,42 +31,70 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:packageDebugResources
 > Task :engine:processDebugNavigationResources
 > Task :engine:preDebugUnitTestBuild UP-TO-DATE
-> Task :engine:javaPreCompileDebugUnitTest
 > Task :engine:javaPreCompileDebug
+> Task :engine:javaPreCompileDebugUnitTest
 > Task :engine:processDebugJavaRes NO-SOURCE
 > Task :engine:processDebugUnitTestJavaRes NO-SOURCE
 > Task :engine:parseDebugLocalResources
 > Task :engine:generateDebugRFile
-
 > Task :engine:compileDebugJavaWithJavac
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:94: error: int cannot be dereferenced
-        current.code.write(op, 0, op.length);
-                                    ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:95: error: int cannot be dereferenced
-        current.code.write(a, 0, a.length);
-                                  ^
-2 errors
+> Task :engine:bundleLibRuntimeToJarDebug
+> Task :engine:bundleLibCompileToJarDebug
+> Task :engine:generateDebugUnitTestStubRFile
+> Task :engine:compileDebugUnitTestJavaWithJavac
 
-> Task :engine:compileDebugJavaWithJavac FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792358126665.json
+> Task :engine:testDebugUnitTest
+
+AotTest > compilesProgramIntoNativeLibrary FAILED
+    com.lsengine.engine.vm.VmException at AotTest.java:91
+
+ApkPipelineTest > zipCanBeReadBack FAILED
+    java.lang.AssertionError at ApkPipelineTest.java:42
+
+ApkPipelineTest > signatureBlockIsInserted FAILED
+    java.util.zip.ZipException at ApkPipelineTest.java:88
+
+BytecodeFileTest > constantsArePreserved FAILED
+    java.lang.AssertionError at BytecodeFileTest.java:67
+
+LanguageTest > loopsAndConditionals FAILED
+    java.lang.AssertionError at LanguageTest.java:104
+
+LanguageTest > genericForOverTable FAILED
+    com.lsengine.engine.vm.VmException at LanguageTest.java:31
+
+LanguageTest > tablesAndLength FAILED
+    com.lsengine.engine.vm.VmException at LanguageTest.java:31
+
+LanguageTest > stringsAndConcat FAILED
+    com.lsengine.engine.vm.VmException at LanguageTest.java:31
+
+LanguageTest > methodCallSyntax FAILED
+    com.lsengine.engine.vm.VmException at LanguageTest.java:31
+
+LanguageTest > printGoesToPrinter FAILED
+    com.lsengine.engine.vm.VmException at LanguageTest.java:31
+
+LanguageTest > recursionWorks FAILED
+    com.lsengine.engine.vm.VmException at LanguageTest.java:31
+
+LanguageTest > booleansAndNil FAILED
+    java.lang.AssertionError at LanguageTest.java:58
+
+23 tests completed, 12 failed
+
+> Task :engine:testDebugUnitTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792358243603.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':engine:compileDebugJavaWithJavac'.
-> Compilation failed; see the compiler output below.
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:94: error: int cannot be dereferenced
-          current.code.write(op, 0, op.length);
-                                      ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:95: error: int cannot be dereferenced
-          current.code.write(a, 0, a.length);
-                                    ^
-  2 errors
+Execution failed for task ':engine:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/build/reports/tests/testDebugUnitTest/index.html
 
 * Try:
-> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
@@ -75,5 +103,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 56s
-9 actionable tasks: 9 executed
+BUILD FAILED in 1m 11s
+14 actionable tasks: 14 executed
