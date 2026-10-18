@@ -154,6 +154,20 @@ public final class Parser {
 
         if (t.isKeyword("local")) {
             advance();
+            if (peek().isKeyword("function")) {
+                // local function name(...) ... end
+                advance();
+                Token fnTok = expect(Token.Type.NAME, null, "имя функции");
+                List<String> fnParams = new ArrayList<>();
+                expectOp("(");
+                parseParams(fnParams);
+                expectOp(")");
+                Ast.Block fnBody = new Ast.Block();
+                pos(fnBody, fnTok);
+                parseBlockInto(fnBody, "end");
+                expectKeyword("end");
+                return pos(new Ast.FuncDecl(fnTok.text, fnParams, fnBody, true), fnTok);
+            }
             Token nameTok = expect(Token.Type.NAME, null, "имя переменной");
             Ast.VarDecl decl = new Ast.VarDecl(nameTok.text, null);
             pos(decl, nameTok);
