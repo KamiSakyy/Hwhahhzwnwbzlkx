@@ -69,7 +69,9 @@ static inline ls_value ls_num(double d) {
     /* «тихий» NaN с редким паттерном приводим к каноническому, чтобы он
        никогда не был принят за бокс. */
     if ((bits & LS_BOX_MASK) == LS_BOX_BASE) {
-        bits = 0x7FF8000000000000ULL;
+        /* Канонический NaN: 0xFFF8… не похож на бокс, поэтому «nil» и NaN
+           никогда не путаются. */
+        bits = 0xFFF8000000000000ULL;
     }
     return (ls_value)bits;
 }
