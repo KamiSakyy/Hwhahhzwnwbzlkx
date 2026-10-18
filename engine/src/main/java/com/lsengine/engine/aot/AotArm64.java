@@ -44,6 +44,7 @@ public final class AotArm64 extends AotBackend {
             case FP: return X29;
             case CL: return X20;
             case GL: return X21;
+            case TMP: return TMP;   // внутренний временный регистр x16
             default: throw new IllegalArgumentException("неизвестный регистр " + index);
         }
     }
