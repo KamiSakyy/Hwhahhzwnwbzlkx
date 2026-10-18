@@ -31,8 +31,8 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:packageDebugResources
 > Task :engine:processDebugNavigationResources
 > Task :engine:preDebugUnitTestBuild UP-TO-DATE
-> Task :engine:javaPreCompileDebugUnitTest
 > Task :engine:javaPreCompileDebug
+> Task :engine:javaPreCompileDebugUnitTest
 > Task :engine:processDebugJavaRes NO-SOURCE
 > Task :engine:processDebugUnitTestJavaRes NO-SOURCE
 > Task :engine:parseDebugLocalResources
@@ -51,7 +51,7 @@ AotTest > compilesProgramIntoNativeLibrary FAILED
 24 tests completed, 1 failed
 
 > Task :engine:testDebugUnitTest FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792360465360.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792360665864.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
