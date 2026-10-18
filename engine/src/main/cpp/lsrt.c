@@ -8,6 +8,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -928,7 +929,8 @@ static unsigned int rng_state = 2463534242u;
 ls_value lsrt_math_random(ls_value *args) {
     rng_state = rng_state * 1664525u + 1013904223u;
     double r = (double)(rng_state >> 8) / (double)(1u << 24);
-    if (LS_ARGC(args) >= 2) {
+    int argc = LS_ARGC(args);
+    if (argc >= 2) {
         double lo = lsrt_check_number(args[0], "random");
         double hi = lsrt_check_number(args[1], "random");
         if (hi < lo) {
@@ -936,13 +938,176 @@ ls_value lsrt_math_random(ls_value *args) {
             lo = hi;
             hi = t;
         }
-        return ls_num(lo + r * (hi - lo + 1));
+        return ls_num(lo + floor(r * (hi - lo + 1)));
+    }
+    if (argc == 1) {
+        double n = lsrt_check_number(args[0], "random");
+        if (n <= 0) {
+            return ls_num(0);
+        }
+        return ls_num(floor(r * n) + 1);
     }
     return ls_num(r);
 }
 
+/* Установка зерна генератора случайных чисел. */
+ls_value lsrt_math_randomseed(ls_value *args) {
+    if (LS_ARGC(args) > 0) {
+        rng_state = (unsigned int)(long long)lsrt_check_number(args[0], "randomseed");
+        if (rng_state == 0) {
+            rng_state = 2463534242u;
+        }
+    }
+    return LS_NIL;
+}
+
+/* Время: секунды с начала эпохи. */
+ls_value lsrt_os_time(ls_value *args) {
+    (void) args;
+    return ls_num((double)time(NULL));
+}
+
+/* Профиль: секунды с запуска процесса. */
+ls_value lsrt_os_clock(ls_value *args) {
+    (void) args;
+    return ls_num((double)clock() / (double)CLOCKS_PER_SEC);
+}
+
 ls_value lsrt_string_len(ls_value *args) {
     return ls_num((double)ls_str_len(args[0]));
+}
+
+/* Разделение строки по разделителю: результат — таблица с частями. */
+ls_value lsrt_string_split(ls_value *args) {
+    const char *s = lsrt_string_cstr(args[0]);
+    size_t n = ls_str_len(args[0]);
+    const char *sep = ",";
+    size_t sepLen = 1;
+    if (LS_ARGC(args) > 1 && ls_is_box(args[1]) && ls_tag(args[1]) == LS_TAG_STR) {
+        sep = lsrt_string_cstr(args[1]);
+        sepLen = ls_str_len(args[1]);
+    }
+    ls_table *parts = lsrt_new_table();
+    size_t from = 0;
+    int index = 1;
+    if (sepLen == 0) {
+        for (size_t i = 0; i < n; i++) {
+            char one[2] = {s[i], 0};
+            lsrt_table_set(parts, ls_num((double)index++),
+                            ls_box(LS_TAG_STR, lsrt_new_string(one, 1)));
+        }
+        return ls_box(LS_TAG_TABLE, parts);
+    }
+    while (from <= n) {
+        const char *at = NULL;
+        for (size_t i = from; i + sepLen <= n; i++) {
+            if (memcmp(s + i, sep, sepLen) == 0) {
+                at = s + i;
+                break;
+            }
+        }
+        size_t len = at ? (size_t)(at - s) - from : n - from;
+        lsrt_table_set(parts, ls_num((double)index++),
+                        ls_box(LS_TAG_STR, lsrt_new_string(s + from, len)));
+        if (!at) {
+            break;
+        }
+        from += sepLen;
+    }
+    return ls_box(LS_TAG_TABLE, parts);
+}
+
+/* Поиск подстроки: возвращает позицию с единицы или nil. */
+ls_value lsrt_string_find(ls_value *args) {
+    if (LS_ARGC(args) < 2 || !ls_is_box(args[1]) || ls_tag(args[1]) != LS_TAG_STR) {
+        return LS_NIL;
+    }
+    const char *s = lsrt_string_cstr(args[0]);
+    size_t n = ls_str_len(args[0]);
+    const char *needle = lsrt_string_cstr(args[1]);
+    size_t m = ls_str_len(args[1]);
+    if (m == 0) {
+        return ls_num(1.0);
+    }
+    if (m > n) {
+        return LS_NIL;
+    }
+    for (size_t i = 0; i + m <= n; i++) {
+        if (memcmp(s + i, needle, m) == 0) {
+            return ls_num((double)(i + 1));
+        }
+    }
+    return LS_NIL;
+}
+
+/* Разворот строки. */
+ls_value lsrt_string_reverse(ls_value *args) {
+    const char *s = lsrt_string_cstr(args[0]);
+    size_t n = ls_str_len(args[0]);
+    char *buf = (char *)malloc(n + 1);
+    for (size_t i = 0; i < n; i++) {
+        buf[n - 1 - i] = s[i];
+    }
+    buf[n] = 0;
+    ls_value out = ls_box(LS_TAG_STR, lsrt_new_string(buf, n));
+    free(buf);
+    return out;
+}
+
+/* Удаление пробелов по краям. */
+ls_value lsrt_string_trim(ls_value *args) {
+    const char *s = lsrt_string_cstr(args[0]);
+    size_t n = ls_str_len(args[0]);
+    size_t from = 0;
+    while (from < n && isspace((unsigned char)s[from])) {
+        from++;
+    }
+    size_t to = n;
+    while (to > from && isspace((unsigned char)s[to - 1])) {
+        to--;
+    }
+    return ls_box(LS_TAG_STR, lsrt_new_string(s + from, to - from));
+}
+
+/* Код символа по индексу (с единицы). */
+ls_value lsrt_string_byte(ls_value *args) {
+    const char *s = lsrt_string_cstr(args[0]);
+    size_t n = ls_str_len(args[0]);
+    int index = 1;
+    if (LS_ARGC(args) > 1) {
+        index = (int)lsrt_check_number(args[1], "byte");
+    }
+    if (index < 1 || (size_t)index > n) {
+        return LS_NIL;
+    }
+    return ls_num((double)(unsigned char)s[index - 1]);
+}
+
+/* Символ по коду. */
+ls_value lsrt_string_char(ls_value *args) {
+    int code = (int)lsrt_check_number(args[0], "char");
+    if (code < 0 || code > 0x10FFFF) {
+        return ls_box(LS_TAG_STR, lsrt_new_string("", 0));
+    }
+    char buf[4];
+    int len = 0;
+    unsigned int c = (unsigned int)code;
+    if (c < 0x80) {
+        buf[len++] = (char)c;
+    } else if (c < 0x800) {
+        buf[len++] = (char)(0xC0 | (c >> 6));
+        buf[len++] = (char)(0x80 | (c & 0x3F));
+    } else if (c < 0x10000) {
+        buf[len++] = (char)(0xE0 | (c >> 12));
+        buf[len++] = (char)(0x80 | ((c >> 6) & 0x3F));
+        buf[len++] = (char)(0x80 | (c & 0x3F));
+    } else {
+        buf[len++] = (char)(0xF0 | (c >> 18));
+        buf[len++] = (char)(0x80 | ((c >> 12) & 0x3F));
+        buf[len++] = (char)(0x80 | ((c >> 6) & 0x3F));
+        buf[len++] = (char)(0x80 | (c & 0x3F));
+    }
+    return ls_box(LS_TAG_STR, lsrt_new_string(buf, (size_t)len));
 }
 
 ls_value lsrt_string_upper(ls_value *args) {
@@ -1296,6 +1461,7 @@ void lsrt_init(void) {
     register_native((ls_table *)math, "min", lsrt_math_min);
     register_native((ls_table *)math, "max", lsrt_math_max);
     register_native((ls_table *)math, "random", lsrt_math_random);
+    register_native((ls_table *)math, "randomseed", lsrt_math_randomseed);
     lsrt_table_set_str(g, "math", ls_box(LS_TAG_TABLE, math));
 
     /* string */
@@ -1306,7 +1472,19 @@ void lsrt_init(void) {
     register_native((ls_table *)str, "sub", lsrt_string_sub);
     register_native((ls_table *)str, "rep", lsrt_string_rep);
     register_native((ls_table *)str, "format", lsrt_string_format);
+    register_native((ls_table *)str, "split", lsrt_string_split);
+    register_native((ls_table *)str, "find", lsrt_string_find);
+    register_native((ls_table *)str, "reverse", lsrt_string_reverse);
+    register_native((ls_table *)str, "trim", lsrt_string_trim);
+    register_native((ls_table *)str, "byte", lsrt_string_byte);
+    register_native((ls_table *)str, "char", lsrt_string_char);
     lsrt_table_set_str(g, "string", ls_box(LS_TAG_TABLE, str));
+
+    /* os */
+    ls_table_obj *os = (ls_table_obj *)lsrt_new_table();
+    register_native((ls_table *)os, "time", lsrt_os_time);
+    register_native((ls_table *)os, "clock", lsrt_os_clock);
+    lsrt_table_set_str(g, "os", ls_box(LS_TAG_TABLE, os));
 
     /* table */
     ls_table_obj *tbl = (ls_table_obj *)lsrt_new_table();

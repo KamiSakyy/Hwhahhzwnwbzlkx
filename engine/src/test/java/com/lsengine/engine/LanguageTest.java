@@ -111,6 +111,25 @@ public class LanguageTest {
     }
 
     @Test
+    public void compoundAssignmentAndTernary() throws Exception {
+        Vm vm = run("x = 10\n"
+                + "x += 5\n"
+                + "x -= 3\n"
+                + "x *= 2\n"
+                + "x /= 4\n"
+                + "x %= 5\n"
+                + "t = {n = 4}\n"
+                + "t.n += 6\n"
+                + "y = x > 3 ? 'много' : 'мало'\n"
+                + "z = 0\n"
+                + "z += 1\n");
+        assertEquals(4.0, vm.globals().get("x").asNumber(), 1e-9);
+        assertEquals(10.0, vm.globals().get("t").asTable().get("n").asNumber(), 1e-9);
+        assertEquals("много", vm.globals().get("y").asString());
+        assertEquals(1.0, vm.globals().get("z").asNumber(), 1e-9);
+    }
+
+    @Test
     public void genericForOverTable() throws Exception {
         Vm vm = run("t = {a = 1, b = 2}\n"
                 + "sum = 0\n"

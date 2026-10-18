@@ -74,6 +74,17 @@ public final class Builtins {
         installMath(g);
         installString(g);
         installTable(g);
+        installOs(g);
+    }
+
+    /** Модуль os: время и профиль. */
+    private static void installOs(Table g) {
+        Table os = new Table();
+        os.set("time", Value.of((NativeFn) (v, args) ->
+                Value.of((double) (System.currentTimeMillis() / 1000L))));
+        os.set("clock", Value.of((NativeFn) (v, args) ->
+                Value.of(System.nanoTime() / 1_000_000_000.0)));
+        g.set("os", Value.of(os));
     }
 
     private static void installMath(Table g) {
@@ -130,6 +141,12 @@ public final class Builtins {
             }
             return Value.of(lo + RANDOM.nextInt(hi - lo + 1));
         }));
+        math.set("randomseed", Value.of((NativeFn) (v, args) -> {
+            if (args.length > 0) {
+                RANDOM.setSeed((long) num(args, 0, "randomseed"));
+            }
+            return Value.nil();
+        }));
         g.set("math", Value.of(math));
     }
 
@@ -167,6 +184,54 @@ public final class Builtins {
                 sb.append(s);
             }
             return Value.of(sb.toString());
+        }));
+        str.set("split", Value.of((NativeFn) (v, args) -> {
+            String source = str(args, 0);
+            String sep = args.length > 1 ? str(args, 1) : ",";
+            Table parts = new Table();
+            int index = 1;
+            if (sep.isEmpty()) {
+                for (int i = 0; i < source.length(); i++) {
+                    parts.set(Value.of((double) index++), Value.of(String.valueOf(source.charAt(i))));
+                }
+                return Value.of(parts);
+            }
+            int from = 0;
+            while (true) {
+                int at = source.indexOf(sep, from);
+                if (at < 0) {
+                    parts.set(Value.of((double) index++), Value.of(source.substring(from)));
+                    break;
+                }
+                parts.set(Value.of((double) index++), Value.of(source.substring(from, at)));
+                from = at + sep.length();
+            }
+            return Value.of(parts);
+        }));
+        str.set("find", Value.of((NativeFn) (v, args) -> {
+            String source = str(args, 0);
+            String needle = str(args, 1);
+            int at = source.indexOf(needle);
+            return at < 0 ? Value.nil() : Value.of((double) (at + 1));
+        }));
+        str.set("reverse", Value.of((NativeFn) (v, args) ->
+                Value.of(new StringBuilder(str(args, 0)).reverse().toString())));
+        str.set("trim", Value.of((NativeFn) (v, args) ->
+                Value.of(str(args, 0).trim())));
+        str.set("byte", Value.of((NativeFn) (v, args) -> {
+            String source = str(args, 0);
+            int index = args.length > 1 ? (int) num(args, 1, "byte") : 1;
+            if (index < 1 || index > source.length()) {
+                return Value.nil();
+            }
+            return Value.of((double) source.charAt(index - 1));
+        }));
+        str.set("char", Value.of((NativeFn) (v, args) -> {
+            int code = (int) num(args, 0, "char");
+            if (code < 0 || code > 0xFFFF) {
+                return Value.of("");
+            }
+            return Value.of(String.valueOf((char) code));
         }));
         str.set("format", Value.of((NativeFn) (v, args) -> {
             String fmt = str(args, 0);
