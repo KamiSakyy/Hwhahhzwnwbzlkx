@@ -39,6 +39,7 @@ public final class AotX64 extends AotBackend {
             case FP: return RBP;
             case CL: return R13;
             case GL: return R12;
+            case ARGP: return RDI;
             default: throw new IllegalArgumentException("неизвестный регистр " + reg);
         }
     }
@@ -436,6 +437,11 @@ public final class AotX64 extends AotBackend {
     @Override
     public int scratchSlotOffset(int localCount) {
         return AotFrame.scratchOffset(localCount);
+    }
+
+    @Override
+    public int argsPtrOffset(int localCount) {
+        return AotFrame.argsPtrOffset(localCount);
     }
 
     @Override

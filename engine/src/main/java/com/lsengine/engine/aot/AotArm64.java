@@ -44,6 +44,7 @@ public final class AotArm64 extends AotBackend {
             case FP: return X29;
             case CL: return X20;
             case GL: return X21;
+            case ARGP: return 0;    // x0 — первый аргумент по соглашению A64
             case TMP: return TMP;   // внутренний временный регистр x16
             default: throw new IllegalArgumentException("неизвестный регистр " + index);
         }
@@ -111,33 +112,38 @@ public final class AotArm64 extends AotBackend {
 
     @Override
     public int frameBase() {
-        return -40;   // запись кадра (16) + три сохранённых регистра (24)
+        return -48;   // запись кадра (16) + два сохранённых регистра (32)
     }
 
     @Override
     public int localOffset(int slot) {
-        return -(40 + 8 * slot);
+        return -(56 + 8 * slot);
     }
 
     @Override
     public int closureSlotOffset(int localCount) {
-        return -(40 + 8 * localCount);
+        return -(56 + 8 * localCount);
     }
 
     @Override
     public int scratchSlotOffset(int localCount) {
-        return -(48 + 8 * localCount);
+        return -(64 + 8 * localCount);
+    }
+
+    @Override
+    public int argsPtrOffset(int localCount) {
+        return -(72 + 8 * localCount);
     }
 
     @Override
     public int stackTopOffset(int localCount) {
-        return -(56 + 8 * localCount);
+        return -(80 + 8 * localCount);
     }
 
     @Override
     public int frameSize(int localCount, int maxStack, int maxArgs) {
         int callArea = AotFrame.align16(16 + 8 * maxArgs);
-        return AotFrame.align16(40 + 8 * localCount + 8 * maxStack + callArea);
+        return AotFrame.align16(32 + 8 * localCount + 8 * maxStack + callArea);
     }
 
     // ---------------- переходы ----------------

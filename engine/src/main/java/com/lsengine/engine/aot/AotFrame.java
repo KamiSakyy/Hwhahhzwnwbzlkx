@@ -27,14 +27,19 @@ public final class AotFrame {
         return -(32 + 8 * localCount);
     }
 
+    /** Смещение слота с указателем на входящие аргументы вызова. */
+    public static int argsPtrOffset(int localCount) {
+        return -(40 + 8 * localCount);
+    }
+
     /** Начальное значение указателя стека значений. */
     public static int stackTop(int localCount) {
-        return -(40 + 8 * localCount);
+        return -(48 + 8 * localCount);
     }
 
     /** Размер кадра. */
     public static int frameSize(int localCount, int maxStack, int maxArgs) {
         int callArea = align16(16 + 8 * maxArgs);
-        return align16(24 + 8 * localCount + 8 * maxStack + callArea);
+        return align16(32 + 8 * localCount + 8 * maxStack + callArea);
     }
 }

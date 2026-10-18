@@ -211,8 +211,13 @@ public final class AotCompiler {
         backend.prologue(frameSize);
         backend.lea(AotIsa.SP, AotIsa.FP, backend.stackTopOffset(localCount));
 
+        // Указатель на входящие аргументы сохраняем в кадре: вызовы API
+        // портят регистры, а параметры читаются позже.
+        backend.store(AotIsa.FP, backend.argsPtrOffset(localCount), AotIsa.ARGP);
+
         // Указатель на замыкание: в кадре (корень GC) и в регистре.
-        backend.load(AotIsa.R0, AotIsa.FP, 8);
+        // По соглашению вызова замыкание лежит на 16 байт ниже args[0].
+        backend.load(AotIsa.R0, AotIsa.ARGP, -16);
         backend.store(AotIsa.FP, backend.closureSlotOffset(localCount), AotIsa.R0);
         backend.movReg(AotIsa.CL, AotIsa.R0);
 
@@ -234,9 +239,11 @@ public final class AotCompiler {
         for (int i = 0; i < proto.paramCount; i++) {
             int lblNil = nextLabel++;
             int lblStore = nextLabel++;
-            backend.load(AotIsa.R1, AotIsa.FP, 16);
+            backend.load(AotIsa.R1, AotIsa.FP, backend.argsPtrOffset(localCount));
+            backend.load(AotIsa.R1, AotIsa.R1, -8);   // количество аргументов
             backend.jumpIfBelow(AotIsa.R1, i + 1, lblNil);
-            backend.load(AotIsa.R0, AotIsa.FP, 24 + 8 * i);
+            backend.load(AotIsa.R1, AotIsa.FP, backend.argsPtrOffset(localCount));
+            backend.load(AotIsa.R0, AotIsa.R1, 8 * i); // args[i]
             backend.jump(lblStore);
             backend.label(lblNil);
             backend.movImm(AotIsa.R0, AotValues.NIL);
@@ -553,7 +560,8 @@ public final class AotCompiler {
             backend.store(AotIsa.FP, callBase + 16 + 8 * i, AotIsa.R0);
         }
         backend.jumpIfZero(AotIsa.R1, lblError);
-        backend.lea(AotIsa.R4, AotIsa.FP, argsDisp);
+        // Указатель на аргументы передаём по соглашению вызова.
+        backend.lea(AotIsa.ARGP, AotIsa.FP, argsDisp);
         backend.callReg(AotIsa.R1);
         // Убираем callee и аргументы из стека значений.
         backend.addImm(AotIsa.SP, 8 * (argc + 1));

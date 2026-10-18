@@ -44,6 +44,12 @@ public interface AotIsa {
     int D0 = 12;
     /** Второй регистр с плавающей точкой. */
     int D1 = 13;
+    /**
+     * Регистр, в котором по соглашению вызова передаётся указатель на
+     * входящие аргументы: args[0] лежит по этому адресу, количество
+     * аргументов — по адресу −8, замыкание — по адресу −16.
+     */
+    int ARGP = 14;
 
     int FIX_POOL = 1;
     int FIX_RODATA = 2;
@@ -188,6 +194,9 @@ public interface AotIsa {
 
     /** Смещение вспомогательного слота. */
     int scratchSlotOffset(int localCount);
+
+    /** Смещение слота с указателем на входящие аргументы. */
+    int argsPtrOffset(int localCount);
 
     /** Начальное значение указателя стека значений. */
     int stackTopOffset(int localCount);

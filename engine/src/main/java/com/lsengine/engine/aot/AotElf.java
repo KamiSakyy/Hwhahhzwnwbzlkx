@@ -319,9 +319,10 @@ public final class AotElf {
         u64(out, 10);           // DT_STRSZ
         u64(out, dynstrBytes.length);
         u64(out, 11);           // DT_SYMENT
-        u64(out, 24);
         u64(out, 14);           // DT_SONAME
         u64(out, dynstrAddr + sonameOffset);
+        u64(out, 24);           // DT_DEBUG
+        u64(out, 0);
         u64(out, 0);            // DT_NULL
         u64(out, 0);
 
