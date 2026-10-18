@@ -2,43 +2,35 @@
 Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
 
 Program received signal SIGSEGV, Segmentation fault.
-0x000000000001082d in ls_app_entry () from build/aot/liblsapp.so
-#0  0x000000000001082d in ls_app_entry () from build/aot/liblsapp.so
-#1  0x00007fffffffd218 in ?? ()
-#2  0x0000555555560c08 in __frame_dummy_init_array_entry ()
-#3  0x00007ffff7ffd000 in _GLOBAL_OFFSET_TABLE_ () from /lib64/ld-linux-x86-64.so.2
-#4  0xb2497ce67bde8c6d in ?? ()
-#5  0xb2496ce110de8c6d in ?? ()
-#6  0x0000098000000980 in ?? ()
-#7  0x00007ffff7d26e24 in __GI___sbrk (increment=<optimized out>) at ./misc/sbrk.c:74
-#8  0x20f497af118b7400 in ?? ()
-#9  0x0000000000000003 in ?? ()
-#10 0x0000000000000000 in ?? ()
-ls_app_entry + 21 in section .text of build/aot/liblsapp.so
-   0x1081d <ls_app_entry+5>:	push   %r12
-   0x1081f <ls_app_entry+7>:	sub    $0x1d0,%rsp
-   0x10826 <ls_app_entry+14>:	lea    -0xc0(%rbp),%rbx
-=> 0x1082d <ls_app_entry+21>:	mov    %rdi,-0xb8(%rbp)
-   0x10834 <ls_app_entry+28>:	mov    -0x10(%rdi),%rax
-   0x1083b <ls_app_entry+35>:	mov    %rax,-0xa8(%rbp)
-rax            0x10818             67608
-rbx            0x10758             67416
-rcx            0x1818              6168
-rdx            0x1                 1
+0x0000555555556fa4 in api_closure_set_upval ()
+#0  0x0000555555556fa4 in api_closure_set_upval ()
+#1  0x000000000001097e in ls_app_entry () from build/aot/liblsapp.so
+#2  0x00005555555564eb in main ()
+api_closure_set_upval + 36 in section .text of /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/aot/aot_host
+   0x555555556f94 <api_closure_set_upval+20>:	adc    (%rbx),%edi
+   0x555555556f96 <api_closure_set_upval+22>:	rex.X or $0x73,%al
+   0x555555556f99 <api_closure_set_upval+25>:	(bad)
+   0x555555556f9a <api_closure_set_upval+26>:	mov    0x10(%rdi),%rcx
+   0x555555556f9e <api_closure_set_upval+30>:	mov    0x10(%rdx),%rdx
+   0x555555556fa2 <api_closure_set_upval+34>:	cltq
+rax            0x0                 0
+rbx            0x7fffffffd1f0      140737488343536
+rcx            0x555555563f38      93824992296760
+rdx            0x3                 3
 rsi            0x0                 0
-rdi            0x7fffffffd2d0      140737488343760
-rbp            0x10818             0x10818 <ls_app_entry>
-rsp            0x7fffffffd0d0      0x7fffffffd0d0
-r8             0x5555555729d0      93824992356816
-r9             0x0                 0
-r10            0x172d3             94931
-r11            0x1                 1
-r12            0x2                 2
+rdi            0x7fffffffd0e0      140737488343264
+rbp            0x7fffffffd2b0      0x7fffffffd2b0
+rsp            0x7fffffffd0c8      0x7fffffffd0c8
+r8             0x7ffff7e04b20      140737352059680
+r9             0x20                32
+r10            0x555555556f80      93824992243584
+r11            0x0                 0
+r12            0x7ffc5555555622b8  9222339961940222648
 r13            0x0                 0
 r14            0x555555560c08      93824992283656
 r15            0x7ffff7ffd000      140737354125312
-rip            0x1082d             0x1082d <ls_app_entry+21>
-eflags         0x10202             [ IF RF ]
+rip            0x555555556fa4      0x555555556fa4 <api_closure_set_upval+36>
+eflags         0x10297             [ CF PF AF SF IF RF ]
 cs             0x33                51
 ss             0x2b                43
 ds             0x0                 0
@@ -46,7 +38,7 @@ es             0x0                 0
 fs             0x0                 0
 gs             0x0                 0
 k0             0x440               1088
-k1             0xffffffffffff      281474976710655
+k1             0x440008            4456456
 k2             0x0                 0
 k3             0x0                 0
 k4             0x0                 0

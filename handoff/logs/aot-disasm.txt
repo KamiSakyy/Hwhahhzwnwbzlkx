@@ -6,7 +6,7 @@ Disassembly of section .text:
 
 0000000000001000 <ls_app_entry-0x818>:
     1000:	55                   	push   %rbp
-    1001:	48 89 c5             	mov    %rax,%rbp
+    1001:	48 89 e5             	mov    %rsp,%rbp
     1004:	53                   	push   %rbx
     1005:	41 54                	push   %r12
     1007:	48 81 ec c0 00 00 00 	sub    $0xc0,%rsp
@@ -72,7 +72,7 @@ Disassembly of section .text:
     116e:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     1175:	41 5c                	pop    %r12
     1177:	5b                   	pop    %rbx
-    1178:	48 89 e5             	mov    %rsp,%rbp
+    1178:	48 89 ec             	mov    %rbp,%rsp
     117b:	5d                   	pop    %rbp
     117c:	c3                   	ret
     117d:	e9 7e fe ff ff       	jmp    1000 <ls_app_entry-0x818>
@@ -207,17 +207,17 @@ Disassembly of section .text:
     1494:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     149b:	41 5c                	pop    %r12
     149d:	5b                   	pop    %rbx
-    149e:	48 89 e5             	mov    %rsp,%rbp
+    149e:	48 89 ec             	mov    %rbp,%rsp
     14a1:	5d                   	pop    %rbp
     14a2:	c3                   	ret
     14a3:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     14aa:	41 5c                	pop    %r12
     14ac:	5b                   	pop    %rbx
-    14ad:	48 89 e5             	mov    %rsp,%rbp
+    14ad:	48 89 ec             	mov    %rbp,%rsp
     14b0:	5d                   	pop    %rbp
     14b1:	c3                   	ret
     14b2:	55                   	push   %rbp
-    14b3:	48 89 c5             	mov    %rax,%rbp
+    14b3:	48 89 e5             	mov    %rsp,%rbp
     14b6:	53                   	push   %rbx
     14b7:	41 54                	push   %r12
     14b9:	48 81 ec a0 00 00 00 	sub    $0xa0,%rsp
@@ -272,17 +272,17 @@ Disassembly of section .text:
     15f4:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     15fb:	41 5c                	pop    %r12
     15fd:	5b                   	pop    %rbx
-    15fe:	48 89 e5             	mov    %rsp,%rbp
+    15fe:	48 89 ec             	mov    %rbp,%rsp
     1601:	5d                   	pop    %rbp
     1602:	c3                   	ret
     1603:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     160a:	41 5c                	pop    %r12
     160c:	5b                   	pop    %rbx
-    160d:	48 89 e5             	mov    %rsp,%rbp
+    160d:	48 89 ec             	mov    %rbp,%rsp
     1610:	5d                   	pop    %rbp
     1611:	c3                   	ret
     1612:	55                   	push   %rbp
-    1613:	48 89 c5             	mov    %rax,%rbp
+    1613:	48 89 e5             	mov    %rsp,%rbp
     1616:	53                   	push   %rbx
     1617:	41 54                	push   %r12
     1619:	48 81 ec b0 00 00 00 	sub    $0xb0,%rsp
@@ -368,19 +368,19 @@ Disassembly of section .text:
     17fa:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     1801:	41 5c                	pop    %r12
     1803:	5b                   	pop    %rbx
-    1804:	48 89 e5             	mov    %rsp,%rbp
+    1804:	48 89 ec             	mov    %rbp,%rsp
     1807:	5d                   	pop    %rbp
     1808:	c3                   	ret
     1809:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     1810:	41 5c                	pop    %r12
     1812:	5b                   	pop    %rbx
-    1813:	48 89 e5             	mov    %rsp,%rbp
+    1813:	48 89 ec             	mov    %rbp,%rsp
     1816:	5d                   	pop    %rbp
     1817:	c3                   	ret
 
 0000000000001818 <ls_app_entry>:
     1818:	55                   	push   %rbp
-    1819:	48 89 c5             	mov    %rax,%rbp
+    1819:	48 89 e5             	mov    %rsp,%rbp
     181c:	53                   	push   %rbx
     181d:	41 54                	push   %r12
     181f:	48 81 ec d0 01 00 00 	sub    $0x1d0,%rsp
@@ -3688,6 +3688,6 @@ Disassembly of section .text:
     6694:	48 8b 83 f8 ff ff ff 	mov    -0x8(%rbx),%rax
     669b:	41 5c                	pop    %r12
     669d:	5b                   	pop    %rbx
-    669e:	48 89 e5             	mov    %rsp,%rbp
+    669e:	48 89 ec             	mov    %rbp,%rsp
     66a1:	5d                   	pop    %rbp
     66a2:	c3                   	ret
