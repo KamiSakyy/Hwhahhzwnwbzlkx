@@ -96,7 +96,21 @@ static inline int ls_truthy(ls_value v) { return v != LS_NIL && v != LS_FALSE; }
 /* Объекты                                                             */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Заголовок сборщика мусора: он лежит в начале каждого объекта в куче.
+ * Публичные структуры ниже повторяют его, чтобы AOT-код знал точные
+ * смещения полей.
+ */
+typedef struct ls_obj {
+    struct ls_obj *next;
+    uint32_t size;
+    uint32_t magic;
+    uint8_t kind;
+    uint8_t mark;
+} ls_obj;
+
 typedef struct ls_string {
+    ls_obj header;
     uint32_t hash;
     uint32_t len;
     struct ls_string *next;   /* для цепочки одинаковых строк в хеше */
@@ -104,6 +118,7 @@ typedef struct ls_string {
 } ls_string;
 
 typedef struct ls_table {
+    ls_obj header;
     ls_value *array;           /* массив: 1..asize */
     uint32_t asize;
     uint32_t alen;             /* использованная длина массива */
@@ -114,6 +129,7 @@ typedef struct ls_table {
 } ls_table;
 
 typedef struct ls_closure {
+    ls_obj header;
     void *code;                /* адрес машинного кода функции */
     uint32_t nparams;
     uint32_t nupvals;
@@ -122,10 +138,12 @@ typedef struct ls_closure {
 } ls_closure;
 
 typedef struct ls_cell {
+    ls_obj header;
     ls_value value;
 } ls_cell;
 
 typedef struct ls_iter {
+    ls_obj header;
     ls_table *table;
     ls_value *keys;
     uint32_t nkeys;
@@ -136,10 +154,17 @@ typedef struct ls_iter {
 typedef ls_value (*ls_native_fn)(ls_value *args);
 
 typedef struct ls_native {
+    ls_obj header;
     ls_native_fn fn;
     const char *name;
     struct ls_native *next;
 } ls_native;
+
+/* Смещения полей объектов — ими пользуется AOT-код. */
+#define LS_CLOSURE_CODE_OFF   offsetof(ls_closure, code)
+#define LS_CLOSURE_UPVALS_OFF offsetof(ls_closure, upvals)
+#define LS_CELL_VALUE_OFF     offsetof(ls_cell, value)
+#define LS_NATIVE_FN_OFF      offsetof(ls_native, fn)
 
 /* ------------------------------------------------------------------ */
 /* Платформа (заполняется из Java через JNI)                          */

@@ -26,14 +26,6 @@
 
 #define LS_OBJ_MAGIC 0x4C534F42u   /* "LSOB" */
 
-typedef struct ls_obj {
-    struct ls_obj *next;
-    uint32_t size;
-    uint32_t magic;
-    uint8_t kind;
-    uint8_t mark;
-} ls_obj;
-
 typedef struct ls_string_obj {
     ls_obj header;
     uint32_t hash;

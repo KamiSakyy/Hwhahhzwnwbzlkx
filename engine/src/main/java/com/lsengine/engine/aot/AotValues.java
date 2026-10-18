@@ -17,6 +17,16 @@ public final class AotValues {
     public static final int TAG_FALSE = 1;
     public static final int TAG_TRUE = 2;
     public static final int TAG_STR = 3;
+
+    /*
+     * Смещения полей объектов в куче рантайма. В начале каждого объекта
+     * лежит заголовок сборщика мусора (24 байта), поэтому поля сдвинуты.
+     * Значения совпадают с макросами LS_*_OFF в engine/src/main/cpp/lsrt.h.
+     */
+    public static final int OBJ_CELL_VALUE = 24;
+    public static final int OBJ_CLOSURE_CODE = 24;
+    public static final int OBJ_CLOSURE_UPVALS = 40;
+    public static final int OBJ_NATIVE_FN = 24;
     public static final int TAG_TABLE = 4;
     public static final int TAG_FUNC = 5;
     public static final int TAG_ITER = 6;

@@ -250,7 +250,7 @@ public final class AotCompiler {
             backend.label(lblStore);
             if (i < captured.length && captured[i]) {
                 backend.load(AotIsa.R1, AotIsa.FP, backend.localOffset(i));
-                backend.store(AotIsa.R1, 0, AotIsa.R0);
+                backend.store(AotIsa.R1, AotValues.OBJ_CELL_VALUE, AotIsa.R0);
             } else {
                 backend.store(AotIsa.FP, backend.localOffset(i), AotIsa.R0);
             }
@@ -305,7 +305,7 @@ public final class AotCompiler {
             case Opcodes.LOAD_LOCAL: {
                 backend.load(AotIsa.R0, AotIsa.FP, backend.localOffset(b));
                 if (b < captured.length && captured[b]) {
-                    backend.load(AotIsa.R0, AotIsa.R0, 0);
+                    backend.load(AotIsa.R0, AotIsa.R0, AotValues.OBJ_CELL_VALUE);
                 }
                 push(AotIsa.R0);
                 break;
@@ -314,26 +314,26 @@ public final class AotCompiler {
                 pop(AotIsa.R0);
                 if (b < captured.length && captured[b]) {
                     backend.load(AotIsa.R1, AotIsa.FP, backend.localOffset(b));
-                    backend.store(AotIsa.R1, 0, AotIsa.R0);
+                    backend.store(AotIsa.R1, AotValues.OBJ_CELL_VALUE, AotIsa.R0);
                 } else {
                     backend.store(AotIsa.FP, backend.localOffset(b), AotIsa.R0);
                 }
                 break;
             }
             case Opcodes.LOAD_UPVAL: {
-                backend.load(AotIsa.R0, AotIsa.CL, 16);
+                backend.load(AotIsa.R0, AotIsa.CL, AotValues.OBJ_CLOSURE_UPVALS);
                 backend.addImm(AotIsa.R0, 8 * b);
                 backend.load(AotIsa.R0, AotIsa.R0, 0);
-                backend.load(AotIsa.R0, AotIsa.R0, 0);
+                backend.load(AotIsa.R0, AotIsa.R0, AotValues.OBJ_CELL_VALUE);
                 push(AotIsa.R0);
                 break;
             }
             case Opcodes.STORE_UPVAL: {
                 pop(AotIsa.R0);
-                backend.load(AotIsa.R1, AotIsa.CL, 16);
+                backend.load(AotIsa.R1, AotIsa.CL, AotValues.OBJ_CLOSURE_UPVALS);
                 backend.addImm(AotIsa.R1, 8 * b);
                 backend.load(AotIsa.R1, AotIsa.R1, 0);
-                backend.store(AotIsa.R1, 0, AotIsa.R0);
+                backend.store(AotIsa.R1, AotValues.OBJ_CELL_VALUE, AotIsa.R0);
                 break;
             }
             case Opcodes.LOAD_GLOBAL: {
@@ -551,7 +551,7 @@ public final class AotCompiler {
         int lblAfter = nextLabel++;
         backend.load(AotIsa.R0, AotIsa.SP, -8 * (argc + 1));
         backend.payload(AotIsa.R0);
-        backend.load(AotIsa.R1, AotIsa.R0, 0);
+        backend.load(AotIsa.R1, AotIsa.R0, AotValues.OBJ_CLOSURE_CODE);
         backend.store(AotIsa.FP, callBase, AotIsa.R0);
         backend.movImm(AotIsa.R0, argc);
         backend.store(AotIsa.FP, callBase + 8, AotIsa.R0);
@@ -594,7 +594,7 @@ public final class AotCompiler {
             if (u.fromParentLocal) {
                 backend.load(AotIsa.R1, AotIsa.FP, backend.localOffset(u.index));
             } else {
-                backend.load(AotIsa.R1, AotIsa.CL, 16);
+                backend.load(AotIsa.R1, AotIsa.CL, AotValues.OBJ_CLOSURE_UPVALS);
                 backend.addImm(AotIsa.R1, 8 * u.index);
                 backend.load(AotIsa.R1, AotIsa.R1, 0);
             }
