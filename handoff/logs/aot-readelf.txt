@@ -49,19 +49,18 @@ Key to Flags:
 Program Headers:
   Type           Offset             VirtAddr           PhysAddr
                  FileSiz            MemSiz              Flags  Align
-  LOAD           0x0000000000001000 0x0000000000001000 0x000000000000568b
-                 0x000000000000568b 0x0000000000001000  R E    0x400000001
-readelf: Error: the segment's file size is larger than its memory size
-  <unknown>: 669 0x0000000000006690 0x00000000000000a0 0x00000000000000a0
-                 0x0000000000001000 0x0000000600000001         0x6730
-  <unknown>: 673 0x00000000000003c0 0x00000000000003c0 0x0000000000001000
-                 0x0000000600000002 0x0000000000006a6c         0x6a6c
-  <unknown>: 80  0x0000000000000080 0x0000000000000008 0x0000000000000000
-                 0x0000000000000000 0x0000000000000000         0x0
+  LOAD           0x0000000000001000 0x0000000000001000 0x0000000000001000
+                 0x000000000000568b 0x0000000000006000  R E    0x1000
+  LOAD           0x0000000000006690 0x0000000000006690 0x0000000000006690
+                 0x00000000000000a0 0x0000000000001000  R      0x1000
+  LOAD           0x0000000000006730 0x0000000000006730 0x0000000000006730
+                 0x00000000000003c0 0x0000000000001000  RW     0x1000
+  DYNAMIC        0x0000000000006a6c 0x0000000000006a6c 0x0000000000006a6c
+                 0x0000000000000080 0x0000000000000080  RW     0x8
 
  Section to Segment mapping:
   Segment Sections...
-   00     
-   01     .rodata .data .dynsym .dynstr .hash .dynamic .shstrtab 
-   02     .text .rodata .data .dynsym .dynstr .hash .dynamic .shstrtab 
-   03     
+   00     .text 
+   01     .rodata 
+   02     .data .dynsym .dynstr .hash .dynamic 
+   03     .dynamic 
