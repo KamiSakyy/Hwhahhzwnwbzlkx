@@ -38,32 +38,13 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:parseDebugLocalResources
 > Task :engine:generateDebugRFile
 
-> Task :engine:compileDebugJavaWithJavac
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:271: error: unreported exception LsError; must be caught or declared to be thrown
-                throw new LsError("'break' вне цикла", stat.line, stat.col);
-                ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:279: error: unreported exception LsError; must be caught or declared to be thrown
-            throw new LsError("Неизвестный оператор", stat.line, stat.col);
-            ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:339: error: unreported exception LsError; must be caught or declared to be thrown
-        throw new LsError("Некорректная цель присваивания", assign.line, assign.col);
-        ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:496: error: unreported exception LsError; must be caught or declared to be thrown
-            throw new LsError("Неизвестное выражение", expr.line, expr.col);
-            ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:588: error: unreported exception LsError; must be caught or declared to be thrown
-                throw new LsError("Неизвестный оператор '" + bin.op + "'", bin.line, bin.col);
-                ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:602: error: unreported exception LsError; must be caught or declared to be thrown
-            throw new LsError("Неизвестный унарный оператор '" + un.op + "'", un.line, un.col);
-            ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:144: error: cannot assign a value to final variable value
-            ret.value = parseExpr();
-               ^
-7 errors
-
 > Task :engine:compileDebugJavaWithJavac FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792357357860.json
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/aot/AotArm64.java:328: error: incompatible types: possible lossy conversion from long to int
+            insn(0xF100001F | (imm << 10) | (r << 5));
+                                          ^
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+1 error
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792357795707.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
@@ -72,28 +53,11 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':engine:compileDebugJavaWithJavac'.
 > Compilation failed; see the compiler output below.
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Parser.java:144: error: cannot assign a value to final variable value
-              ret.value = parseExpr();
-                 ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:271: error: unreported exception LsError; must be caught or declared to be thrown
-                  throw new LsError("'break' вне цикла", stat.line, stat.col);
-                  ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:279: error: unreported exception LsError; must be caught or declared to be thrown
-              throw new LsError("Неизвестный оператор", stat.line, stat.col);
-              ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:339: error: unreported exception LsError; must be caught or declared to be thrown
-          throw new LsError("Некорректная цель присваивания", assign.line, assign.col);
-          ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:496: error: unreported exception LsError; must be caught or declared to be thrown
-              throw new LsError("Неизвестное выражение", expr.line, expr.col);
-              ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:588: error: unreported exception LsError; must be caught or declared to be thrown
-                  throw new LsError("Неизвестный оператор '" + bin.op + "'", bin.line, bin.col);
-                  ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/lang/Compiler.java:602: error: unreported exception LsError; must be caught or declared to be thrown
-              throw new LsError("Неизвестный унарный оператор '" + un.op + "'", un.line, un.col);
-              ^
-  7 errors
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/java/com/lsengine/engine/aot/AotArm64.java:328: error: incompatible types: possible lossy conversion from long to int
+              insn(0xF100001F | (imm << 10) | (r << 5));
+                                            ^
+  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+  1 error
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
@@ -105,5 +69,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 59s
+BUILD FAILED in 1m 7s
 9 actionable tasks: 9 executed
