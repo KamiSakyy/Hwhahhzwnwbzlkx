@@ -727,6 +727,23 @@ const char *lsrt_type_name(ls_value v) {
     }
 }
 
+/*
+ * Форматирование числа как в виртуальной машине: целые — без дробной части,
+ * остальные — кратчайшая запись, которая читается обратно без потерь.
+ */
+static void ls_format_number(char *buf, size_t size, double d) {
+    if (d == (double) (long long) d && d < 1e15 && d > -1e15) {
+        snprintf(buf, size, "%lld", (long long) d);
+        return;
+    }
+    for (int precision = 15; precision <= 17; precision++) {
+        snprintf(buf, size, "%.*g", precision, d);
+        if (strtod(buf, NULL) == d) {
+            break;
+        }
+    }
+}
+
 ls_value lsrt_to_string(ls_value v) {
     switch (lsrt_type_of(v)) {
         case 0: return ls_box(LS_TAG_STR, lsrt_new_string_z("nil"));
@@ -734,11 +751,7 @@ ls_value lsrt_to_string(ls_value v) {
         case 2: {
             double d = ls_as_num(v);
             char buf[64];
-            if (d == (double)(long long)d && d < 1e15 && d > -1e15) {
-                snprintf(buf, sizeof(buf), "%lld", (long long)d);
-            } else {
-                snprintf(buf, sizeof(buf), "%.14g", d);
-            }
+            ls_format_number(buf, sizeof(buf), d);
             return ls_box(LS_TAG_STR, lsrt_new_string_z(buf));
         }
         case 3: return v;
@@ -817,11 +830,7 @@ ls_value lsrt_print(ls_value *args) {
         if (ls_is_num(v)) {
             double d = ls_as_num(v);
             char buf[64];
-            if (d == (double)(long long)d && d < 1e15 && d > -1e15) {
-                snprintf(buf, sizeof(buf), "%lld", (long long)d);
-            } else {
-                snprintf(buf, sizeof(buf), "%.14g", d);
-            }
+            ls_format_number(buf, sizeof(buf), d);
             fputs(buf, stdout);
         } else if (ls_is_box(v) && ls_tag(v) == LS_TAG_STR) {
             fputs(lsrt_string_cstr(v), stdout);
