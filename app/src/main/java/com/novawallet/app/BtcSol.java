@@ -38,7 +38,7 @@ public class BtcSol{
    tx.write(varint(outVals.size())); for(int i=0;i<outVals.size();i++){ tx.write(le64(outVals.get(i))); tx.write(varint(outScripts.get(i).length)); tx.write(outScripts.get(i)); }
    for(int i=0;i<ins.size();i++){ tx.write(varint(2)); tx.write(varint(sigs.get(i).length)); tx.write(sigs.get(i)); tx.write(varint(pubs.get(i).length)); tx.write(pubs.get(i)); }
    tx.write(le32(0)); return tx.toByteArray(); }
- static byte[] der(BigInteger r,BigInteger s){ byte[] rb=r.toByteArray(), sb=s.toByteArray(); java.io.ByteArrayOutputStream o=new java.io.ByteArrayOutputStream(); o.write(0x30); o.write(4+rb.length+sb.length+2-2); // length computed below correctly via rebuild
+ static byte[] der(BigInteger r,BigInteger s)throws java.io.IOException{ byte[] rb=r.toByteArray(), sb=s.toByteArray(); java.io.ByteArrayOutputStream o=new java.io.ByteArrayOutputStream(); o.write(0x30); o.write(4+rb.length+sb.length+2-2); // length computed below correctly via rebuild
    // rebuild properly
    java.io.ByteArrayOutputStream body=new java.io.ByteArrayOutputStream(); body.write(2); body.write(rb.length); body.write(rb); body.write(2); body.write(sb.length); body.write(sb); byte[] b=body.toByteArray(); java.io.ByteArrayOutputStream out=new java.io.ByteArrayOutputStream(); out.write(0x30); out.write(b.length); out.write(b); return out.toByteArray(); }
  static byte[] addressToScript(String addr){ // bc1q P2WPKH only (own + most modern)
