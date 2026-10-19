@@ -270,7 +270,7 @@ jobs:
           echo "Логи не отправлены"
 
   install-arm64:
-    name: Проверка установки и запуска APK на Android ARM64
+    name: Проверка APK через Android ARM64 Native Bridge
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -287,7 +287,7 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Установить Android SDK и system image ARM64
+      - name: Установить Android SDK и API 30 x86_64 system image с ARM64 Native Bridge
         run: |
           set -euxo pipefail
           sudo apt-get update
@@ -304,28 +304,28 @@ jobs:
           "$sdkmanager" --install \
             "platform-tools" \
             "emulator" \
-            "platforms;android-36" \
-            "system-images;android-36;google_apis;arm64-v8a"
+            "platforms;android-30" \
+            "system-images;android-30;google_apis;x86_64"
 
-      - name: Создать ARM64 Android Virtual Device
+      - name: Создать Android 11 x86_64 AVD с ARM64 Native Bridge
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/android-avd"
           export ANDROID_AVD_HOME="$RUNNER_TEMP/android-avd"
           echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
-          echo no | avdmanager create avd --force --name ls-arm64-test \
-            --package "system-images;android-36;google_apis;arm64-v8a" --device pixel_6
+          echo no | avdmanager create avd --force --name ls-arm64-translated \
+            --package "system-images;android-30;google_apis;x86_64" --device pixel_2
           avdmanager list avd
           find "$ANDROID_AVD_HOME" -maxdepth 2 -type f -print
 
-      - name: Загрузить ARM64 Android emulator
+      - name: Загрузить Android x86_64 emulator с ARM64 Native Bridge
         run: |
           set -euo pipefail
           SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
           report_emulator_failure() {
             cat emulator-arm64.log
             while IFS= read -r line; do
-              echo "::error title=Android ARM64 emulator startup::$line"
+              echo "::error title=Android emulator with ARM64 native bridge startup::$line"
             done < <(tail -n 25 emulator-arm64.log)
           }
 
@@ -334,7 +334,7 @@ jobs:
           echo "Android SDK root: $SDK_ROOT"
           ls -la "$SDK_ROOT/emulator" "$SDK_ROOT/platform-tools" || true
           if [ ! -x "$EMULATOR" ]; then
-            echo "::error title=Android ARM64 emulator::Missing executable: $EMULATOR"
+            echo "::error title=Android emulator with ARM64 native bridge::Missing executable: $EMULATOR"
             find "$SDK_ROOT" -maxdepth 4 -iname '*emulator*' -print | head -n 30
             exit 1
           fi
@@ -344,7 +344,7 @@ jobs:
             exit 1
           fi
           nohup "$EMULATOR" \
-            -avd ls-arm64-test -no-window -no-audio -no-boot-anim -no-snapshot \
+            -avd ls-arm64-translated -no-window -no-audio -no-boot-anim -no-snapshot \
             -verbose -show-kernel -gpu swiftshader_indirect -accel off > emulator-arm64.log 2>&1 &
           echo $! > emulator-arm64.pid
           sleep 10
@@ -371,18 +371,19 @@ jobs:
           done
           if [ "$booted" != true ]; then
             report_emulator_failure
-            echo "Android ARM64 emulator did not finish booting"
+            echo "Android emulator with ARM64 native bridge did not finish booting"
             exit 1
           fi
-          adb shell getprop ro.product.cpu.abi | grep -Fx arm64-v8a
+          abi_list="$(adb shell getprop ro.product.cpu.abilist | tr -d '\r')"
+          echo "$abi_list" | tr , '\n' | grep -Fx arm64-v8a
           adb shell getprop ro.build.version.sdk | awk '$1 >= 26 { ok=1 } END { exit !ok }'
 
-      - name: Установить APK и запустить ARM64 AOT приложение
+      - name: Установить APK и запустить ARM64 AOT через Native Bridge
         run: |
           set -euo pipefail
           apk=$(find artifacts -name 'LS-Android-ARM64-test.apk' -print -quit)
           test -n "$apk"
-          adb install -r "$apk"
+          adb install --abi arm64-v8a -r "$apk"
           adb logcat -c
           adb shell am start -W -n \
             com.lsengine.integration/com.lsengine.runtime.RuntimeActivity
@@ -402,11 +403,11 @@ jobs:
           fi
           adb shell pidof com.lsengine.integration
 
-      - name: Сохранить лог Android ARM64 emulator
+      - name: Сохранить лог Android emulator with ARM64 native bridge
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-arm64-install-test
+          name: android-native-bridge-install-test
           path: |
             emulator-arm64.log
             app-logcat.txt
