@@ -1,18 +1,5 @@
 com.lsengine.engine.AotTest                                  tests=1 failures=0 errors=0 skipped=0
-com.lsengine.engine.ApkPipelineTest                          tests=6 failures=1 errors=0 skipped=0
-  [FAILURE] realRuntimeManifestRemainsAlignedAfterPatch
-      java.lang.AssertionError
-      	at org.junit.Assert.fail(Assert.java:87)
-      	at org.junit.Assert.assertTrue(Assert.java:42)
-      	at org.junit.Assert.assertTrue(Assert.java:53)
-      	at com.lsengine.engine.ApkPipelineTest.realRuntimeManifestRemainsAlignedAfterPatch(ApkPipelineTest.java:155)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-      	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
-      	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-      	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+com.lsengine.engine.ApkPipelineTest                          tests=6 failures=0 errors=0 skipped=0
 com.lsengine.engine.AppBundleTest                            tests=1 failures=0 errors=0 skipped=0
 com.lsengine.engine.BytecodeFileTest                         tests=3 failures=0 errors=0 skipped=0
 com.lsengine.engine.CodecTest                                tests=4 failures=0 errors=0 skipped=0
