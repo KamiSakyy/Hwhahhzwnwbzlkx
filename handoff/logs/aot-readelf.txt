@@ -14,7 +14,7 @@ ELF Header:
   Flags:                             0x0
   Size of this header:               64 (bytes)
   Size of program headers:           56 (bytes)
-  Number of program headers:         4
+  Number of program headers:         5
   Size of section headers:           64 (bytes)
   Number of section headers:         9
   Section header string table index: 8
@@ -49,6 +49,8 @@ Key to Flags:
 Program Headers:
   Type           Offset             VirtAddr           PhysAddr
                  FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000004000 0x0000000000004000  R      0x4000
   LOAD           0x0000000000004000 0x0000000000004000 0x0000000000004000
                  0x00000000000056fb 0x0000000000008000  R E    0x4000
   LOAD           0x000000000000c000 0x000000000000c000 0x000000000000c000
@@ -60,7 +62,8 @@ Program Headers:
 
  Section to Segment mapping:
   Segment Sections...
-   00     .text 
-   01     .rodata 
-   02     .data .dynsym .dynstr .hash .dynamic 
-   03     .dynamic 
+   00     
+   01     .text 
+   02     .rodata 
+   03     .data .dynsym .dynstr .hash .dynamic 
+   04     .dynamic 
