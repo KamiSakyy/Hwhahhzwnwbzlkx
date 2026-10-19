@@ -10,7 +10,7 @@ ELF Header:
   Version:                           0x1
   Entry point address:               0x0
   Start of program headers:          64 (bytes into file)
-  Start of section headers:          33728 (bytes into file)
+  Start of section headers:          66496 (bytes into file)
   Flags:                             0x0
   Size of this header:               64 (bytes)
   Size of program headers:           56 (bytes)
@@ -24,21 +24,21 @@ Section Headers:
        Size              EntSize          Flags  Link  Info  Align
   [ 0]                   NULL             0000000000000000  00000000
        0000000000000000  0000000000000000           0     0     0
-  [ 1] .text             PROGBITS         0000000000001000  00001000
+  [ 1] .text             PROGBITS         0000000000004000  00004000
        00000000000056fb  0000000000000000  AX       0     0     16
-  [ 2] .rodata           PROGBITS         0000000000007000  00007000
+  [ 2] .rodata           PROGBITS         000000000000c000  0000c000
        00000000000000a0  0000000000000000   A       0     0     8
-  [ 3] .data             PROGBITS         0000000000008000  00008000
+  [ 3] .data             PROGBITS         0000000000010000  00010000
        0000000000000290  0000000000000000  WA       0     0     8
-  [ 4] .dynsym           DYNSYM           00000000000082bb  000082bb
+  [ 4] .dynsym           DYNSYM           00000000000102bb  000102bb
        0000000000000048  0000000000000018   A       5     0     8
-  [ 5] .dynstr           STRTAB           0000000000008290  00008290
+  [ 5] .dynstr           STRTAB           0000000000010290  00010290
        000000000000002b  0000000000000000   A       0     0     1
-  [ 6] .hash             HASH             0000000000008308  00008308
+  [ 6] .hash             HASH             0000000000010308  00010308
        0000000000000034  0000000000000004   A       4     0     8
-  [ 7] .dynamic          DYNAMIC          000000000000833c  0000833c
+  [ 7] .dynamic          DYNAMIC          000000000001033c  0001033c
        0000000000000080  0000000000000010   A       5     0     8
-  [ 8] .shstrtab         STRTAB           0000000000008600  00008600
+  [ 8] .shstrtab         STRTAB           0000000000010600  00010600
        000000000000003e  0000000000000000   A       0     0     1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
@@ -49,13 +49,13 @@ Key to Flags:
 Program Headers:
   Type           Offset             VirtAddr           PhysAddr
                  FileSiz            MemSiz              Flags  Align
-  LOAD           0x0000000000001000 0x0000000000001000 0x0000000000001000
-                 0x00000000000056fb 0x0000000000006000  R E    0x1000
-  LOAD           0x0000000000007000 0x0000000000007000 0x0000000000007000
-                 0x00000000000000a0 0x0000000000001000  R      0x1000
-  LOAD           0x0000000000008000 0x0000000000008000 0x0000000000008000
-                 0x00000000000003c0 0x0000000000001000  RW     0x1000
-  DYNAMIC        0x000000000000833c 0x000000000000833c 0x000000000000833c
+  LOAD           0x0000000000004000 0x0000000000004000 0x0000000000004000
+                 0x00000000000056fb 0x0000000000008000  R E    0x4000
+  LOAD           0x000000000000c000 0x000000000000c000 0x000000000000c000
+                 0x00000000000000a0 0x0000000000004000  R      0x4000
+  LOAD           0x0000000000010000 0x0000000000010000 0x0000000000010000
+                 0x00000000000003c0 0x0000000000004000  RW     0x4000
+  DYNAMIC        0x000000000001033c 0x000000000001033c 0x000000000001033c
                  0x0000000000000080 0x0000000000000080  RW     0x8
 
  Section to Segment mapping:
