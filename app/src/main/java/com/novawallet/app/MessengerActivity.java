@@ -32,11 +32,15 @@ public class MessengerActivity extends Activity{
  // ---------- загрузка: 1) Blockscout 2) прямое сканирование блоков RPC (без сервера) ----------
  volatile boolean syncing=false;
  void loadAll(){ if(syncing)return; syncing=true; ex.execute(()->{ java.util.Set<String> seen=new java.util.HashSet<>(); List<Msg> merged=new ArrayList<>();
-   // источник 1: Blockscout (история), с догрузкой деталей, если нет raw_input
-   try{ String resp=Http.get("https://eth-sepolia.blockscout.com/api/v2/addresses/"+me()+"/transactions?page_size=100"); JSONObject root=new JSONObject(resp); JSONArray items=root.optJSONArray("items");
-     if(items!=null)for(int i=0;i<items.length();i++){ JSONObject tx=items.getJSONObject(i); String raw=tx.optString("raw_input",""); if(raw.isEmpty())raw=tx.optString("input","");
-       if(raw.isEmpty()&&i<30){ try{ JSONObject d=new JSONObject(Http.get("https://eth-sepolia.blockscout.com/api/v2/transactions/"+tx.optString("hash"))); String dr=d.optString("raw_input",""); if(!dr.isEmpty())tx.put("raw_input",dr); }catch(Exception ignored){} }
-       Msg m=parse(tx); if(m!=null&&seen.add(m.hash)){ merged.add(m); } }
+   // Локальные сообщения НИКОГДА не стираем: сначала кладём уже известные/отправленные
+   for(Msg m:all){ if(m.hash!=null&&seen.add(m.hash))merged.add(m); }
+   // источник 1: Blockscout БЕЗ page_size (API отклоняет этот параметр!), с пагинацией next_page_params
+   try{ String nextQuery="";
+     for(int page=0;page<3;page++){ String resp=Http.get("https://eth-sepolia.blockscout.com/api/v2/addresses/"+me()+"/transactions"+nextQuery); JSONObject root=new JSONObject(resp); JSONArray items=root.optJSONArray("items"); if(items==null)break;
+       for(int i=0;i<items.length();i++){ JSONObject tx=items.getJSONObject(i); String raw=tx.optString("raw_input",""); if(raw.isEmpty())raw=tx.optString("input","");
+         if(raw.isEmpty()&&i<30){ try{ JSONObject d=new JSONObject(Http.get("https://eth-sepolia.blockscout.com/api/v2/transactions/"+tx.optString("hash"))); String dr=d.optString("raw_input",""); if(!dr.isEmpty())tx.put("raw_input",dr); }catch(Exception ignored){} }
+         Msg m=parse(tx); if(m!=null&&seen.add(m.hash)){ merged.add(m); } }
+       JSONObject np=root.optJSONObject("next_page_params"); if(np==null)break; StringBuilder q=new StringBuilder("?"); java.util.Iterator<String> keys=np.keys(); boolean first=true; while(keys.hasNext()){ String k=keys.next(); if(!first)q.append("&"); first=false; q.append(k).append("=").append(np.optString(k)); } nextQuery=q.toString(); }
    }catch(Exception ignored){}
    // источник 2: прямое сканирование блоков через публичные RPC (не зависит от индексаторов)
    try{ scanBlocks(merged,seen); }catch(Exception ignored){}

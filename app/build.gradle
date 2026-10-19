@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.novawallet.app'
     compileSdk 34
-    defaultConfig { applicationId "com.novawallet.app"; minSdk 26; targetSdk 34; versionCode 9; versionName "1.6.0" }
+    defaultConfig { applicationId "com.novawallet.app"; minSdk 26; targetSdk 34; versionCode 10; versionName "1.7.0" }
     signingConfigs {
         release { storeFile file('../keystore/nova-release.p12'); storePassword 'nova2026'; keyAlias 'nova'; keyPassword 'nova2026'; storeType 'PKCS12' }
     }
