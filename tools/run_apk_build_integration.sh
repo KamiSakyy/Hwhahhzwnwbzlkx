@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+on_error() {
+  local code=$?
+  echo "::error title=Offline Android APK integration::failed at line ${BASH_LINENO[0]}: ${BASH_COMMAND} (exit ${code})"
+  exit "$code"
+}
+trap on_error ERR
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 : "${JAVA_HOME:?JAVA_HOME must point to JDK 17}"
