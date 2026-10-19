@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/settings_editor">
+
+        <ListPreference
+            app:defaultValue="13"
+            app:entries="@array/font_sizes"
+            app:entryValues="@array/font_sizes_values"
+            app:key="editor_font_size"
+            app:title="@string/settings_font_size"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="editor_auto_save"
+            app:title="@string/settings_auto_save" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="editor_highlight"
+            app:title="@string/settings_highlight" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/settings_build">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="build_publish_downloads"
+            app:summary="@string/settings_publish_summary"
+            app:title="@string/settings_publish" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="build_v1_signature"
+            app:summary="@string/settings_v1_summary"
+            app:title="@string/settings_v1" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/settings_about">
+
+        <Preference
+            app:key="about_version"
+            app:selectable="false"
+            app:summary="@string/about_summary"
+            app:title="@string/app_name" />
+
+        <Preference
+            app:key="about_offline"
+            app:selectable="false"
+            app:summary="@string/offline_summary"
+            app:title="@string/settings_offline" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

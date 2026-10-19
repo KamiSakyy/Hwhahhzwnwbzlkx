@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LS Studio</string>
+    <string name="app_tagline">Движок создания приложений и игр</string>
+
+    <string name="projects_title">Мои проекты</string>
+    <string name="projects_subtitle">Пишите на языке LS, запускайте вживую и собирайте APK офлайн</string>
+    <string name="new_project">Новый проект</string>
+    <string name="new_file">Новый файл</string>
+    <string name="open_project">Открыть</string>
+    <string name="build_apk">Собрать APK</string>
+    <string name="delete_project">Удалить</string>
+    <string name="no_projects">Пока нет ни одного проекта</string>
+    <string name="no_projects_hint">Нажмите «Новый проект», чтобы создать первое приложение</string>
+
+    <string name="editor_title">Редактор</string>
+    <string name="run_live">LIVE</string>
+    <string name="build_apk_short">APK</string>
+    <string name="console_title">Консоль</string>
+    <string name="files_title">Файлы</string>
+    <string name="settings">Настройки</string>
+    <string name="save">Сохранить</string>
+    <string name="templates">Шаблоны</string>
+
+    <string name="preview_title">Живой предпросмотр</string>
+    <string name="preview_stop">Стоп</string>
+    <string name="preview_restart">Перезапустить</string>
+
+    <string name="build_dialog_title">Сборка APK</string>
+    <string name="app_name_label">Название приложения</string>
+    <string name="package_label">Идентификатор пакета</string>
+    <string name="version_label">Версия</string>
+    <string name="orientation_label">Ориентация</string>
+    <string name="app_icon">Иконка приложения</string>
+    <string name="choose_app_icon">Выбрать из Google Фото или галереи</string>
+    <string name="app_icon_picker_hint">Фото выбирается системным окном Android; разрешение на всю галерею не требуется.</string>
+    <string name="app_icon_selected">Иконка выбрана</string>
+    <string name="build_action">Собрать</string>
+    <string name="cancel">Отмена</string>
+    <string name="close">Закрыть</string>
+    <string name="install">Установить</string>
+    <string name="build_success">APK собран</string>
+    <string name="build_failed">Сборка не удалась</string>
+
+    <string name="template_empty">Пустое приложение</string>
+    <string name="template_game">Игра: арканоид</string>
+    <string name="template_clicker">Игра: кликер</string>
+    <string name="template_animation">Анимация и графика</string>
+    <string name="template_counter">Приложение: счётчик</string>
+    <string name="template_notes">Вы сможете изменить шаблон и исходный код позже</string>
+
+    <string name="settings_editor">Редактор</string>
+    <string name="settings_build">Сборка</string>
+    <string name="settings_about">О программе</string>
+    <string name="settings_font_size">Размер шрифта</string>
+    <string name="settings_auto_save">Автосохранение</string>
+    <string name="settings_highlight">Подсветка синтаксиса</string>
+    <string name="settings_publish">Копировать APK в «Загрузки»</string>
+    <string name="settings_publish_summary">Готовый APK появится в папке «Загрузки/LS Studio»</string>
+    <string name="settings_v1">Подпись v1 (JAR)</string>
+    <string name="settings_v1_summary">Дополнительная подпись для старых версий Android</string>
+    <string name="settings_offline">Полностью офлайн</string>
+    <string name="offline_summary">Приложение, компилятор и сборщик APK работают без интернета</string>
+    <string name="about_summary">LS Studio 1.0.0 · язык LS, VM, офлайн-сборщик</string>
+
+    <string-array name="font_sizes">
+        <item>Маленький (11)</item>
+        <item>Обычный (13)</item>
+        <item>Крупный (16)</item>
+        <item>Очень крупный (20)</item>
+    </string-array>
+
+    <string-array name="font_sizes_values">
+        <item>11</item>
+        <item>13</item>
+        <item>16</item>
+        <item>20</item>
+    </string-array>
+</resources>

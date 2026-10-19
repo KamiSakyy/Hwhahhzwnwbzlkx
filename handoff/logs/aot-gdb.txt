@@ -1,0 +1,20 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+fib(12) =	144
+demo	3
+counter =	2
+sum =	30
+while =	3
+repeat =	6
+hi world
+ABC	5
+7	3
+pairs =	3
+list =	1	4	9
+concat =	abc
+bool =	true	true	true
+[Inferior 1 (process 3386) exited normally]
+No stack.
+No registers.
+No registers.
+The program has no registers now.

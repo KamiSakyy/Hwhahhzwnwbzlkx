@@ -1,0 +1,69 @@
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Shared object file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          66496 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         5
+  Size of section headers:           64 (bytes)
+  Number of section headers:         9
+  Section header string table index: 8
+
+Section Headers:
+  [Nr] Name              Type             Address           Offset
+       Size              EntSize          Flags  Link  Info  Align
+  [ 0]                   NULL             0000000000000000  00000000
+       0000000000000000  0000000000000000           0     0     0
+  [ 1] .text             PROGBITS         0000000000004000  00004000
+       00000000000056fb  0000000000000000  AX       0     0     16
+  [ 2] .rodata           PROGBITS         000000000000c000  0000c000
+       00000000000000a0  0000000000000000   A       0     0     8
+  [ 3] .data             PROGBITS         0000000000010000  00010000
+       0000000000000290  0000000000000000  WA       0     0     8
+  [ 4] .dynsym           DYNSYM           00000000000102c0  000102c0
+       0000000000000048  0000000000000018   A       5     0     8
+  [ 5] .dynstr           STRTAB           0000000000010290  00010290
+       000000000000002b  0000000000000000   A       0     0     1
+  [ 6] .hash             HASH             0000000000010308  00010308
+       0000000000000034  0000000000000004   A       4     0     8
+  [ 7] .dynamic          DYNAMIC          0000000000010340  00010340
+       0000000000000080  0000000000000010   A       5     0     8
+  [ 8] .shstrtab         STRTAB           0000000000010600  00010600
+       000000000000003e  0000000000000000   A       0     0     1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  D (mbind), l (large), p (processor specific)
+
+Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000004000 0x0000000000004000  R      0x4000
+  LOAD           0x0000000000004000 0x0000000000004000 0x0000000000004000
+                 0x00000000000056fb 0x0000000000008000  R E    0x4000
+  LOAD           0x000000000000c000 0x000000000000c000 0x000000000000c000
+                 0x00000000000000a0 0x0000000000004000  R      0x4000
+  LOAD           0x0000000000010000 0x0000000000010000 0x0000000000010000
+                 0x00000000000003c0 0x0000000000004000  RW     0x4000
+  DYNAMIC        0x0000000000010340 0x0000000000010340 0x0000000000010340
+                 0x0000000000000080 0x0000000000000080  RW     0x8
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     
+   01     .text 
+   02     .rodata 
+   03     .data .dynsym .dynstr .hash .dynamic 
+   04     .dynamic 

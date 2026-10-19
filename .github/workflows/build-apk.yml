@@ -1,0 +1,244 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+      - arena/**
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Сборка LS Studio
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Нативный тест кодека (AES-256 + LZMA)
+        run: |
+          set -euo pipefail
+          mkdir -p build-native
+          g++ -std=c++17 -O2 -o build-native/codec_test \
+            tools/codec_test.cpp \
+            engine/src/main/cpp/codec.cpp \
+            engine/src/main/cpp/aes.c \
+            engine/src/main/cpp/lzma/LzmaEnc.c \
+            engine/src/main/cpp/lzma/LzmaDec.c \
+            engine/src/main/cpp/lzma/LzFind.c \
+            engine/src/main/cpp/lzma/LzFindMt.c \
+            engine/src/main/cpp/lzma/Alloc.c \
+            engine/src/main/cpp/lzma/CpuArch.c \
+            engine/src/main/cpp/lzma/Bra86.c \
+            engine/src/main/cpp/lzma/Threads.c \
+            -Iengine/src/main/cpp -Iengine/src/main/cpp/lzma -lpthread
+          ./build-native/codec_test
+
+      - name: Модульные тесты движка
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon :engine:testDebugUnitTest 2>&1 | tee gradle-tests.log
+
+      - name: Диагностика AOT-библиотеки
+        if: always()
+        run: |
+          set +e
+          mkdir -p build/aot
+          if [ -f build/aot/liblsapp.so ]; then
+            readelf -h -S -l build/aot/liblsapp.so > build/aot/readelf.txt 2>&1
+            objdump -d build/aot/liblsapp.so > build/aot/disasm-full.txt 2>&1
+            cat build/aot/readelf.txt
+          else
+            echo "AOT-библиотека не собрана" > build/aot/readelf.txt
+            cat build/aot/readelf.txt
+          fi
+
+      - name: "AOT: машинный код и сверка с виртуальной машиной"
+        run: |
+          set -euo pipefail
+          mkdir -p build/aot
+          gcc -std=c11 -O0 -g -I engine/src/main/cpp \
+            engine/src/main/cpp/lsrt.c tools/aot_host_test.c \
+            -o build/aot/aot_host -ldl -lm 2>&1 | tee aot-build.log
+          ./build/aot/aot_host build/aot/liblsapp.so > build/aot/actual.txt 2> build/aot/actual.err || {
+            cat build/aot/actual.err
+            exit 1
+          }
+          echo '--- вывод машинного кода ---'
+          cat build/aot/actual.txt
+          echo '--- сверка с виртуальной машиной ---'
+          diff -u build/aot/expected.txt build/aot/actual.txt
+          echo '--- дизассемблирование (фрагмент) ---'
+          objdump -d --section=.text build/aot/liblsapp.so | head -120 | tee build/aot/disasm.txt
+
+      - name: "AOT: диагностика падения (gdb)"
+        if: always()
+        run: |
+          set +e
+          if [ -x build/aot/aot_host ] && [ -f build/aot/liblsapp.so ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq gdb
+            gdb -batch -ex "set pagination off" -ex run -ex "bt 20" \
+              -ex "info symbol \$pc" -ex "x/6i \$pc-16" -ex "info registers" \
+              --args build/aot/aot_host build/aot/liblsapp.so \
+              > build/aot/gdb.txt 2>&1
+            tail -40 build/aot/gdb.txt
+          fi
+
+      - name: Сборка runtime и studio
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon :engine:assembleRelease :runtime:assembleRelease :app:assembleRelease 2>&1 | tee gradle-build.log
+
+      - name: Интеграционная сборка реального пользовательского APK ARM64
+        run: |
+          set -euo pipefail
+          bash tools/run_apk_build_integration.sh 2>&1 | tee apk-integration.log
+
+      - name: Проверка подписи APK (apksigner)
+        run: |
+          set -euo pipefail
+          "$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --verbose --print-certs \
+            app/build/outputs/apk/release/app-release.apk | tee apksigner-report.txt
+
+      - name: Проверка размера APK (< 10 МБ)
+        run: |
+          set -euo pipefail
+          size=$(stat -c%s app/build/outputs/apk/release/app-release.apk)
+          echo "Размер APK: $size байт"
+          if [ "$size" -gt 10485760 ]; then
+            echo "APK больше 10 МБ"
+            exit 1
+          fi
+
+      - name: Проверка содержимого APK
+        run: |
+          set -euo pipefail
+          unzip -l app/build/outputs/apk/release/app-release.apk | tee apk-contents.txt
+          unzip -l runtime/build/outputs/apk/release/runtime-release-unsigned.apk | tee runtime-contents.txt
+          for apk in app/build/outputs/apk/release/app-release.apk runtime/build/outputs/apk/release/runtime-release-unsigned.apk; do
+            if unzip -Z1 "$apk" | grep -E '^lib/' | grep -Ev '^lib/arm64-v8a/'; then
+              echo "Найдена архитектура, отличная от Android ARM64: $apk"
+              exit 1
+            fi
+          done
+
+      - name: Архив исходников
+        run: |
+          set -euo pipefail
+          mkdir -p handoff
+          git archive --format=zip --prefix=LS-Engine-source/ -o handoff/LS-Engine-source.zip HEAD
+          cp app/build/outputs/apk/release/app-release.apk handoff/LS-Studio.apk
+          cp runtime/build/outputs/apk/release/runtime-release-unsigned.apk handoff/LS-Runtime-unsigned.apk
+          cp build/apk-integration/LS-Android-ARM64-test.apk handoff/LS-Android-ARM64-test.apk
+          ls -la handoff
+
+      - name: Загрузка отчётов и логов
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-reports
+          path: |
+            gradle-tests.log
+            gradle-build.log
+            apk-integration.log
+            build/apk-integration/badging.txt
+            build/apk-integration/contents.txt
+            apk-contents.txt
+            runtime-contents.txt
+            apksigner-report.txt
+            aot-build.log
+            build/aot/actual.txt
+            build/aot/actual.err
+            build/aot/expected.txt
+            build/aot/actual-arm64.txt
+            build/aot/actual-arm64.err
+            build/aot/readelf.txt
+            build/aot/disasm-full.txt
+            engine/build/reports/tests/
+            engine/build/test-results/
+          if-no-files-found: ignore
+
+      - name: Загрузка артефактов
+        uses: actions/upload-artifact@v4
+        with:
+          name: ls-engine-apk
+          path: |
+            handoff/*
+            app/build/outputs/apk/release/app-release.apk
+            apksigner-report.txt
+            apk-contents.txt
+            build/apk-integration/LS-Android-ARM64-test.apk
+          if-no-files-found: error
+
+      - name: Сборка отчёта о сборке
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p handoff/logs
+          cp -f gradle-tests.log handoff/logs/gradle-tests.log 2>/dev/null || true
+          cp -f gradle-build.log handoff/logs/gradle-build.log 2>/dev/null || true
+          cp -f apksigner-report.txt handoff/logs/apksigner-report.txt 2>/dev/null || true
+          cp -f aot-build.log handoff/logs/aot-build.log 2>/dev/null || true
+          cp -f build/aot/actual.txt handoff/logs/aot-actual.txt 2>/dev/null || true
+          cp -f build/aot/actual.err handoff/logs/aot-actual.err 2>/dev/null || true
+          cp -f build/aot/gdb.txt handoff/logs/aot-gdb.txt 2>/dev/null || true
+          cp -f build/aot/expected.txt handoff/logs/aot-expected.txt 2>/dev/null || true
+          cp -f build/aot/readelf.txt handoff/logs/aot-readelf.txt 2>/dev/null || true
+          cp -f build/aot/actual-arm64.txt handoff/logs/aot-actual-arm64.txt 2>/dev/null || true
+          cp -f build/aot/actual-arm64.err handoff/logs/aot-actual-arm64.err 2>/dev/null || true
+          cp -f build/aot/disasm-full.txt handoff/logs/aot-disasm.txt 2>/dev/null || true
+          python3 - <<'PY' > handoff/logs/test-summary.txt 2>/dev/null || true
+          import glob, re, xml.etree.ElementTree as ET
+          for path in sorted(glob.glob('engine/build/test-results/testDebugUnitTest/*.xml')):
+              root = ET.parse(path).getroot()
+              print('%-60s tests=%s failures=%s errors=%s skipped=%s' % (
+                  root.get('name'), root.get('tests'), root.get('failures'),
+                  root.get('errors'), root.get('skipped')))
+              for case in root.iter('testcase'):
+                  for kind in ('failure', 'error'):
+                      node = case.find(kind)
+                      if node is not None:
+                          print('  [%s] %s' % (kind.upper(), case.get('name')))
+                          text = (node.text or node.get('message') or '').strip()
+                          for line in text.splitlines()[:12]:
+                              print('      ' + line)
+          PY
+          cat handoff/logs/test-summary.txt || true
+
+      - name: Коммит артефактов в handoff/
+        if: always() && (startsWith(github.ref_name, 'arena/') || github.ref_name == github.event.repository.default_branch)
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git add -A handoff
+            if ! git diff --cached --quiet; then
+              git commit -m "handoff: артефакты и логи сборки [skip ci]" || true
+            fi
+            git pull --rebase --autostash origin "${{ github.ref_name }}" || true
+            if git push origin "HEAD:${{ github.ref_name }}"; then
+              echo "Логи отправлены (попытка $attempt)"
+              exit 0
+            fi
+            echo "Не удалось отправить логи, повтор $attempt"
+            sleep 5
+          done
+          echo "Логи не отправлены"

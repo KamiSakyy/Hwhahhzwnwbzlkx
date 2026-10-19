@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF07070C">
+
+    <com.lsengine.studio.ui.LsSurfaceView
+        android:id="@+id/surfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="top"
+        android:background="#66000000"
+        app:navigationIcon="@drawable/ic_close"
+        app:title="@string/preview_title"
+        app:titleTextColor="#FFFFFFFF">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/restartButton"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/preview_restart"
+                android:textColor="#FFFFFFFF" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buildButton"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/build_apk"
+                app:icon="@drawable/ic_build" />
+        </LinearLayout>
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/statsChip"
+        style="@style/Widget.Material3.Chip.Assist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="12dp"
+        android:checkable="false"
+        android:clickable="false"
+        android:textColor="#FFFFFFFF"
+        app:chipBackgroundColor="#66000000"
+        app:chipIcon="@drawable/ic_rocket"
+        app:chipIconTint="#FFFFFFFF"
+        app:chipStrokeWidth="0dp"
+        tools:text="60 FPS" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/errorCard"
+        style="@style/Widget.Material3.CardView.Filled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="12dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#33EF4444"
+        app:cardCornerRadius="18dp">
+
+        <TextView
+            android:id="@+id/errorText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:padding="14dp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp"
+            tools:text="Ошибка выполнения" />
+    </com.google.android.material.card.MaterialCardView>
+</FrameLayout>
