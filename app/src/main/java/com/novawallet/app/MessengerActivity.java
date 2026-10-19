@@ -6,7 +6,7 @@ public class MessengerActivity extends Activity{
  ExecutorService ex=Executors.newCachedThreadPool(); LinearLayout chatsList,list; TextView status,chatStatus; ScrollView scroll;
  static final String PREFIX="NOVA1:"; static final String PREFIX_HEX=Util.hex(PREFIX.getBytes(StandardCharsets.UTF_8));
  static final int[] COLORS={0xFF5B5BD6,0xFF0E7A5F,0xFF9A5B13,0xFF7A3B69,0xFF33566E,0xFF6E3333,0xFF3E5C3A,0xFF574B90};
- String currentPeer=null; MediaRecorder recorder; File voiceFile; boolean recording=false; MediaPlayer player;
+ String currentPeer=null; java.math.BigDecimal attachedAmt=java.math.BigDecimal.ZERO; java.math.BigDecimal feeBalance=null; java.math.BigInteger feeGasPrice=null; MediaRecorder recorder; File voiceFile; boolean recording=false; MediaPlayer player;
  static class Msg{ String peer,txt,kind,mime,ts,hash; boolean out; BigDecimal value=BigDecimal.ZERO; String b64=""; }
  List<Msg> all=new ArrayList<>();
  String me(){ return Keys.evmAddress(this); }
@@ -18,15 +18,45 @@ public class MessengerActivity extends Activity{
   findViewById(R.id.btnNewChat).setOnClickListener(v->{ String p=peerInput(); if(valid(p))openChat(p); else toast("Введите корректный адрес 0x из 42 символов"); });
   findViewById(R.id.btnBack).setOnClickListener(v->showList());
   findViewById(R.id.btnSendMsg).setOnClickListener(v->sendText());
-  findViewById(R.id.btnPhoto).setOnClickListener(v->pick("image/*",1));
-  findViewById(R.id.btnVideo).setOnClickListener(v->pick("video/*",2));
-  findViewById(R.id.btnCircle).setOnClickListener(v->{ Intent i=new Intent(MediaStore.ACTION_VIDEO_CAPTURE); i.putExtra(MediaStore.EXTRA_DURATION_LIMIT,10); i.putExtra(MediaStore.EXTRA_VIDEO_QUALITY,0); try{startActivityForResult(i,3);}catch(Exception e){err(e);} });
-  findViewById(R.id.btnVoice).setOnClickListener(v->voice());
+  findViewById(R.id.btnAttach).setOnClickListener(v->attachSheet());
+  findViewById(R.id.btnLock).setOnClickListener(v->exchangeKeys());
+  ((EditText)findViewById(R.id.etMsg)).addTextChangedListener(new android.text.TextWatcher(){ public void beforeTextChanged(CharSequence s,int a,int b2,int c){} public void onTextChanged(CharSequence s,int a,int b2,int c){ updateFeeText(); } public void afterTextChanged(android.text.Editable s){} });
   String p=getIntent().getStringExtra("peer"); if(p!=null&&valid(p)){ ((EditText)findViewById(R.id.etPeer)).setText(p); openChat(p); }
   // автообновление переписки каждые 15 секунд пока экран открыт
-  refreshH=new android.os.Handler(android.os.Looper.getMainLooper()); refreshR=()->{ loadAll(); refreshH.postDelayed(refreshR,15000); }; refreshH.postDelayed(refreshR,15000); }
+  refreshH=new android.os.Handler(android.os.Looper.getMainLooper()); refreshR=()->{ loadAll(); refreshH.postDelayed(refreshR,currentPeer!=null?3000:8000); }; refreshH.postDelayed(refreshR,3000); }
  android.os.Handler refreshH; Runnable refreshR;
  protected void onDestroy(){ super.onDestroy(); if(refreshH!=null&&refreshR!=null)refreshH.removeCallbacks(refreshR); if(player!=null)player.release(); }
+
+ void attachSheet(){ String[] items={"Фото","Видео","Голосовое сообщение","Видео-кружок","Прикрепить SepoliaETH к сообщению",attachedAmt.signum()>0?"Убрать сумму":""};
+   java.util.List<String> listI=new java.util.ArrayList<>(); for(String s:items)if(!s.isEmpty())listI.add(s);
+   new android.app.AlertDialog.Builder(this).setItems(listI.toArray(new String[0]),(d,w)->{ String s=listI.get(w);
+     if(s.equals("Фото"))pick("image/*",1); else if(s.equals("Видео"))pick("video/*",2); else if(s.equals("Голосовое сообщение"))voice();
+     else if(s.equals("Видео-кружок")){ Intent i=new Intent(MediaStore.ACTION_VIDEO_CAPTURE); i.putExtra(MediaStore.EXTRA_DURATION_LIMIT,10); i.putExtra(MediaStore.EXTRA_VIDEO_QUALITY,0); try{startActivityForResult(i,3);}catch(Exception e){err(e);} }
+     else if(s.startsWith("Прикрепить"))amountDialog(); else if(s.equals("Убрать сумму")){ attachedAmt=java.math.BigDecimal.ZERO; amountChip(); updateFeeText(); }
+   }).show(); }
+ void amountDialog(){ EditText e=new EditText(this); e.setInputType(android.text.InputType.TYPE_CLASS_NUMBER|android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL); e.setHint("Например 0.01"); e.setText(attachedAmt.signum()>0?attachedAmt.toPlainString():""); e.setTextColor(0xFFFAFAFA);
+   new android.app.AlertDialog.Builder(this).setTitle("Сумма к сообщению (SepoliaETH)").setView(e).setPositiveButton("Прикрепить",(d,w)->{ try{ attachedAmt=new java.math.BigDecimal(e.getText().toString().trim().isEmpty()?"0":e.getText().toString().trim()); }catch(Exception ex){ toast("Неверная сумма"); } amountChip(); updateFeeText(); }).setNegativeButton("Отмена",null).show(); }
+ void amountChip(){ TextView c=findViewById(R.id.tvAmountChip); if(attachedAmt.signum()>0){ c.setVisibility(android.view.View.VISIBLE); c.setText("+ "+attachedAmt.stripTrailingZeros().toPlainString()+" SepoliaETH"); } else c.setVisibility(android.view.View.GONE); }
+ // Панель: баланс / самая дешёвая комиссия / итого
+ void updateFee(){ ex.execute(()->{ try{ Networks.Net n=Networks.ALL.get(0); feeBalance=Evm.balance(n,me()); String gp=Evm.rpcResult(n,"eth_gasPrice","[]"); feeGasPrice=new BigInteger(gp.replace("0x",""),16); runOnUiThread(this::updateFeeText); }catch(Exception ignored){} }); }
+ void updateFeeText(){ TextView tv=findViewById(R.id.tvFee); if(tv==null)return;
+   String draft=((EditText)findViewById(R.id.etMsg)).getText().toString(); int payloadLen=PREFIX.length()+draft.getBytes(StandardCharsets.UTF_8).length+(peerKey()!=null?140:0);
+   long gas=45000L+20L*payloadLen; String feeS="…", balS="…", totS="";
+   if(feeGasPrice!=null){ java.math.BigDecimal fee=new java.math.BigDecimal(feeGasPrice.multiply(java.math.BigInteger.valueOf(gas))).divide(new java.math.BigDecimal("1000000000000000000")); feeS=fee.stripTrailingZeros().toPlainString();
+     if(feeBalance!=null){ balS=feeBalance.stripTrailingZeros().toPlainString(); java.math.BigDecimal total=attachedAmt.add(fee); totS=" · Итого ≈ "+total.stripTrailingZeros().toPlainString();
+       if(feeBalance.compareTo(total)<0)totS+=" · НЕ ХВАТАЕТ СРЕДСТВ"; } }
+   tv.setText("Баланс: "+balS+" SepoliaETH · Комиссия (самая дешёвая) ≈ "+feeS+" SepoliaETH"+totS); tv.setTextColor(feeBalance!=null&&attachedAmt.signum()>0&&feeBalance.compareTo(attachedAmt)<0?0xFFF87171:0xFF71717A); }
+ // ---------- Сквозное шифрование: ECDH secp256k1 + AES-256-GCM ----------
+ String peerKey(){ if(currentPeer==null)return null; return Store.pub(this).getString("pk_"+currentPeer.toLowerCase(),null); }
+ void exchangeKeys(){ if(currentPeer==null)return; String myPub=Util.hex(WalletCore.pubUncompressed(Keys.evmPriv(this)));
+   sendPayload(("KEY1:"+myPub).getBytes(StandardCharsets.UTF_8),BigInteger.ZERO,"Ключ шифрования"); toast("Ключ отправлен собеседнику. Когда он тоже отправит свой ключ из этого чата, сообщения станут зашифрованными."); }
+ byte[] ecdh(BigInteger priv,byte[] pubBytes)throws Exception{ org.bouncycastle.math.ec.ECPoint p=WalletCore.CURVE.getCurve().decodePoint(pubBytes); org.bouncycastle.math.ec.ECPoint s=p.multiply(priv).normalize(); return Util.big(new BigInteger(1,s.getAffineXCoord().getEncoded()),32); }
+ String encryptText(String plain)throws Exception{ byte[] recipientPub=Util.hex(peerKey()); BigInteger eph; do{ eph=new BigInteger(256,new java.security.SecureRandom()); }while(eph.signum()==0||eph.compareTo(WalletCore.CURVE.getN())>=0);
+   byte[] shared=ecdh(eph,recipientPub); byte[] key=Util.sha256(shared); byte[] nonce=new byte[12]; new java.security.SecureRandom().nextBytes(nonce);
+   javax.crypto.Cipher c=javax.crypto.Cipher.getInstance("AES/GCM/NoPadding"); c.init(javax.crypto.Cipher.ENCRYPT_MODE,new javax.crypto.spec.SecretKeySpec(key,"AES"),new javax.crypto.spec.GCMParameterSpec(128,nonce)); byte[] ct=c.doFinal(plain.getBytes(StandardCharsets.UTF_8));
+   byte[] ephPub=WalletCore.pubUncompressed(eph); return "ENC1:"+Base64.encodeToString(Util.concat(ephPub,nonce,ct),Base64.NO_WRAP); }
+ String decryptText(String payload)throws Exception{ byte[] all=Base64.decode(payload.substring(5),Base64.DEFAULT); byte[] ephPub=java.util.Arrays.copyOfRange(all,0,65); byte[] nonce=java.util.Arrays.copyOfRange(all,65,77); byte[] ct=java.util.Arrays.copyOfRange(all,77,all.length);
+   byte[] shared=ecdh(Keys.evmPriv(this),ephPub); byte[] key=Util.sha256(shared); javax.crypto.Cipher c=javax.crypto.Cipher.getInstance("AES/GCM/NoPadding"); c.init(javax.crypto.Cipher.DECRYPT_MODE,new javax.crypto.spec.SecretKeySpec(key,"AES"),new javax.crypto.spec.GCMParameterSpec(128,nonce)); return new String(c.doFinal(ct),StandardCharsets.UTF_8); }
  String peerInput(){ return ((EditText)findViewById(R.id.etPeer)).getText().toString().trim(); }
  boolean valid(String p){ return p!=null&&p.startsWith("0x")&&p.length()==42; }
  // ---------- загрузка: 1) Blockscout 2) прямое сканирование блоков RPC (без сервера) ----------
@@ -70,6 +100,8 @@ public class MessengerActivity extends Activity{
    }
    Store.pub(this).edit().putLong("msg_last_block",head).apply(); }
  void fillPayload(Msg m,String rawHex){ try{ String payload=new String(Util.hex(rawHex.substring(2+PREFIX_HEX.length())),StandardCharsets.UTF_8);
+   if(payload.startsWith("KEY1:")){ m.kind="key"; m.txt=""; if(!m.out&&m.peer!=null)Store.pub(this).edit().putString("pk_"+m.peer.toLowerCase(),payload.substring(5)).apply(); return; }
+   if(payload.startsWith("ENC1:")){ m.kind="enc"; try{ m.txt=decryptText(payload); }catch(Exception e){ m.txt="Зашифрованное сообщение"; } return; }
    if(payload.startsWith("MED1|")){ String[] parts=payload.split("\\|",4); m.kind="media"; m.mime=parts.length>1?parts[1]:"bin"; m.b64=parts.length>2?parts[2]:""; m.txt=label(m.mime); }
    else { m.kind="text"; m.txt=payload; } }catch(Exception ignored){} }
  void renderFromCache(){ try{ String raw=Store.pub(this).getString("chats_cache",""); if(raw.isEmpty())return; JSONArray a=new JSONArray(raw); List<Msg> msgs=new ArrayList<>();
@@ -96,24 +128,25 @@ public class MessengerActivity extends Activity{
   col.addView(a); col.addView(b); r.addView(col);
   TextView c=new TextView(this); c.setText(cnt+" · >"); c.setTextColor(0xFF52525B); c.setTextSize(12); r.addView(c);
   r.setOnClickListener(v->openChat(m.peer)); return r; }
- String preview(Msg m){ return m.kind.equals("media")?label(m.mime):m.txt; }
+ String preview(Msg m){ if(m.kind.equals("key"))return "Обмен ключами шифрования"; if(m.kind.equals("enc"))return m.txt; return m.kind.equals("media")?label(m.mime):m.txt; }
  TextView avatar(String addr,int dp){ TextView t=new TextView(this); float d=getResources().getDisplayMetrics().density; int s=(int)(dp*d); t.setLayoutParams(new LinearLayout.LayoutParams(s,s)); t.setGravity(Gravity.CENTER); t.setTextColor(Color.WHITE); t.setTextSize(16); t.setTypeface(null,Typeface.BOLD);
   String clean=addr.replace("0x",""); t.setText(clean.isEmpty()?"?":clean.substring(0,1).toUpperCase());
   GradientDrawable g=new GradientDrawable(); g.setShape(GradientDrawable.OVAL); g.setColor(COLORS[Math.abs(addr.toLowerCase().hashCode())%COLORS.length]); t.setBackground(g); return t; }
  String shortAddr(String a){ return a.length()>16?a.substring(0,8)+"…"+a.substring(a.length()-6):a; }
  // ---------- один диалог ----------
+ void updateEncState(){ TextView s=findViewById(R.id.tvEncState); if(peerKey()!=null)s.setText("Сквозное шифрование включено · Sepolia"); else s.setText("Sepolia · нажмите замок, чтобы обменяться ключами"); }
  void showList(){ currentPeer=null; findViewById(R.id.chatView).setVisibility(View.GONE); findViewById(R.id.chatsView).setVisibility(View.VISIBLE); renderChats(); }
  void openChat(String peer){ currentPeer=peer; findViewById(R.id.chatsView).setVisibility(View.GONE); findViewById(R.id.chatView).setVisibility(View.VISIBLE);
-  ((TextView)findViewById(R.id.tvPeerName)).setText(shortAddr(peer)); TextView av=findViewById(R.id.tvAvatar); View av2=avatar(peer,42); av.setText(((TextView)av2).getText()); av.setBackground(av2.getBackground()); renderChat(); }
+  ((TextView)findViewById(R.id.tvPeerName)).setText(shortAddr(peer)); updateFee(); updateEncState(); TextView av=findViewById(R.id.tvAvatar); View av2=avatar(peer,42); av.setText(((TextView)av2).getText()); av.setBackground(av2.getBackground()); renderChat(); }
  void renderChat(){ list.removeAllViews(); boolean any=false;
-  for(Msg m:all){ if(!m.peer.equalsIgnoreCase(currentPeer))continue; any=true; bubble(m); }
+  for(Msg m:all){ if(!m.peer.equalsIgnoreCase(currentPeer))continue; if(m.kind.equals("key"))continue; any=true; bubble(m); }
   if(!any){ TextView t=new TextView(this); t.setText("Сообщений пока нет. Напишите первое — оно навсегда запишется в блокчейн Sepolia."); t.setTextColor(0xFF71717A); t.setPadding(8,16,8,0); list.addView(t); }
   scroll.post(()->scroll.fullScroll(View.FOCUS_DOWN)); }
  void bubble(Msg m){ LinearLayout wrap=new LinearLayout(this); wrap.setOrientation(LinearLayout.HORIZONTAL); wrap.setGravity(m.out?Gravity.END:Gravity.START); LinearLayout.LayoutParams wlp=new LinearLayout.LayoutParams(-1,-2); wlp.topMargin=8; wrap.setLayoutParams(wlp);
   LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(16,12,16,12); box.setBackgroundResource(m.out?R.drawable.bubble_out:R.drawable.bubble_in); box.setLayoutParams(new LinearLayout.LayoutParams(0,-2,3));
   if(m.kind.equals("media")&&m.mime.startsWith("image")&&!m.b64.isEmpty()){ try{ byte[] bytes=Base64.decode(m.b64,Base64.DEFAULT); Bitmap bmp=BitmapFactory.decodeByteArray(bytes,0,bytes.length); ImageView iv=new ImageView(this); iv.setImageBitmap(bmp); iv.setAdjustViewBounds(true); box.addView(iv); }catch(Exception ignored){} }
-  TextView tv=new TextView(this); String txt=m.kind.equals("media")?label(m.mime):m.txt; if(m.value.signum()>0)txt+="\n+ "+m.value.stripTrailingZeros().toPlainString()+" SepoliaETH";
-  txt+="\n"+(m.ts.length()>16?m.ts.substring(0,16).replace("T"," "):""); tv.setText(txt); tv.setTextColor(m.out?0xFF0A0A0C:Color.WHITE); tv.setTextSize(15); box.addView(tv);
+  TextView tv=new TextView(this); String txt=m.kind.equals("media")?label(m.mime):m.txt; tv.setText(txt); tv.setTextColor(m.out?0xFF0A0A0C:Color.WHITE); tv.setTextSize(15); box.addView(tv);
+  TextView meta=new TextView(this); String mt=(m.ts!=null&&m.ts.length()>16)?m.ts.substring(11,16):""; if(m.value.signum()>0)mt=(mt.isEmpty()?"":" · ")+"+"+m.value.setScale(6,java.math.RoundingMode.DOWN).stripTrailingZeros().toPlainString()+" SepoliaETH"; meta.setText(mt); meta.setTextColor(m.out?0xFF3F3F46:0xFF71717A); meta.setTextSize(10); meta.setGravity(Gravity.END); box.addView(meta);
   if(m.kind.equals("media")&&!m.mime.startsWith("image")){ TextView play=new TextView(this); play.setText(m.mime.startsWith("audio")?"Слушать":"Смотреть"); play.setTextColor(m.out?0xFF0A0A0C:0xFFFAFAFA); play.setPadding(0,10,0,0); play.setOnClickListener(v->playMedia(m)); box.addView(play); }
   box.setOnClickListener(v->{ if(!m.hash.isEmpty())startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://sepolia.etherscan.io/tx/"+m.hash))); });
   View sp=new View(this); sp.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1)); if(m.out){wrap.addView(sp); wrap.addView(box);} else {wrap.addView(box); wrap.addView(sp);} list.addView(wrap); }
@@ -122,13 +155,15 @@ public class MessengerActivity extends Activity{
    else { Intent i=new Intent(Intent.ACTION_VIEW); i.setDataAndType(androidx.core.content.FileProvider.getUriForFile(this,getPackageName()+".provider",f),"video/mp4"); i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); startActivity(i); }
   }catch(Exception e){ err(e); } }
  // ---------- отправка ----------
- BigInteger amountWei(){ String s=((EditText)findViewById(R.id.etAmt)).getText().toString().trim(); if(s.isEmpty())return BigInteger.ZERO; return new BigDecimal(s).multiply(new BigDecimal("1000000000000000000")).toBigIntegerExact(); }
- void sendText(){ String msg=((EditText)findViewById(R.id.etMsg)).getText().toString().trim(); if(currentPeer==null)return; if(msg.isEmpty()&&amountWei().signum()==0){toast("Введите сообщение или сумму");return;} if(msg.isEmpty())msg="Перевод SepoliaETH"; sendPayload(msg.getBytes(StandardCharsets.UTF_8),amountWei(),msg); }
+ BigInteger amountWei(){ return attachedAmt.multiply(new BigDecimal("1000000000000000000")).toBigIntegerExact(); }
+ void sendText(){ final String msg0=((EditText)findViewById(R.id.etMsg)).getText().toString().trim(); if(currentPeer==null)return; if(msg0.isEmpty()&&amountWei().signum()==0){toast("Введите сообщение или сумму");return;} final String msg=msg0.isEmpty()?"Перевод SepoliaETH":msg0;
+   if(peerKey()!=null){ ex.execute(()->{ try{ String enc=encryptText(msg); runOnUiThread(()->sendPayload(enc.getBytes(StandardCharsets.UTF_8),amountWei(),msg)); }catch(Exception e){ runOnUiThread(()->err(e)); } }); }
+   else sendPayload(msg.getBytes(StandardCharsets.UTF_8),amountWei(),msg); }
  void sendPayload(byte[] payload,BigInteger wei,String optimisticText){ chatStatus.setText("Записываю в блокчейн Sepolia…"); findViewById(R.id.btnSendMsg).setEnabled(false);
   ex.execute(()->{ try{ Networks.Net n=Networks.ALL.get(0); String hash=Evm.sendData(n,Keys.evmPriv(this),currentPeer,payloadWithPrefix(payload),wei);
-    Msg m=new Msg(); m.peer=currentPeer; m.out=true; m.kind=payloadText(payload).startsWith("MED1|")?"media":"text"; m.txt=optimisticText; m.hash=hash; m.ts=""; try{m.value=new BigDecimal(wei).divide(new BigDecimal("1000000000000000000"));}catch(Exception ignored){}
+    Msg m=new Msg(); m.peer=currentPeer; m.out=true; m.kind=payloadText(payload).startsWith("MED1|")?"media":payloadText(payload).startsWith("KEY1:")?"key":payloadText(payload).startsWith("ENC1:")?"enc":"text"; if(m.kind.equals("enc")||m.kind.equals("key"))m.txt=optimisticText; if(m.kind.equals("enc"))updateEncState(); m.txt=optimisticText; m.hash=hash; m.ts=""; try{m.value=new BigDecimal(wei).divide(new BigDecimal("1000000000000000000"));}catch(Exception ignored){}
     all.add(m); Store.pub(this).edit().putString("pending_hash",hash).putLong("pending_chain",11155111).apply();
-    runOnUiThread(()->{ ((EditText)findViewById(R.id.etMsg)).setText(""); findViewById(R.id.btnSendMsg).setEnabled(true); chatStatus.setText("Отправлено, жду подтверждение блока… Хэш: "+hash); renderChat(); });
+    runOnUiThread(()->{ ((EditText)findViewById(R.id.etMsg)).setText(""); attachedAmt=java.math.BigDecimal.ZERO; amountChip(); findViewById(R.id.btnSendMsg).setEnabled(true); chatStatus.setText("Отправлено, жду подтверждение блока… Хэш: "+hash); renderChat(); });
     for(int i=0;i<20;i++){ Thread.sleep(4000); String st=Evm.receiptStatus(n,hash); if(st==null)continue; final boolean ok=st.startsWith("confirmed"); runOnUiThread(()->chatStatus.setText(ok?"Подтверждено в блоке. Собеседник увидит при ближайшем обновлении (у него автообновление каждые 10–15 секунд).":"Транзакция отклонена сетью. Сумма вернулась, списалась только комиссия.")); if(ok)loadAll(); break; }
    }catch(Exception e){ runOnUiThread(()->{ findViewById(R.id.btnSendMsg).setEnabled(true); err(e); }); } }); }
  String payloadText(byte[] p){ return new String(p,StandardCharsets.UTF_8); }
@@ -137,9 +172,9 @@ public class MessengerActivity extends Activity{
  void toast(String s){ Toast.makeText(this,s,Toast.LENGTH_LONG).show(); }
  // ---------- медиа ----------
  void pick(String type,int req){ Intent i=new Intent(Intent.ACTION_GET_CONTENT); i.setType(type); i.addCategory(Intent.CATEGORY_OPENABLE); try{startActivityForResult(i,req);}catch(Exception e){err(e);} }
- void voice(){ if(recording){ try{ recorder.stop(); recorder.release(); }catch(Exception ignored){} recording=false; ((android.widget.Button)findViewById(R.id.btnVoice)).setText("Голос"); sendFile(voiceFile,"audio/mp4"); return; }
+ void voice(){ if(recording){ try{ recorder.stop(); recorder.release(); }catch(Exception ignored){} recording=false; chatStatus.setText("Голосовое готово"); sendFile(voiceFile,"audio/mp4"); return; }
   if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)!=android.content.pm.PackageManager.PERMISSION_GRANTED){ requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},77); return; }
-  try{ voiceFile=new File(getCacheDir(),"voice.m4a"); recorder=new MediaRecorder(); recorder.setAudioSource(MediaRecorder.AudioSource.MIC); recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC); recorder.setOutputFile(voiceFile.getAbsolutePath()); recorder.prepare(); recorder.start(); recording=true; ((android.widget.Button)findViewById(R.id.btnVoice)).setText("Стоп"); toast("Запись… нажмите «Стоп» для отправки"); }catch(Exception e){ err(e); } }
+  try{ voiceFile=new File(getCacheDir(),"voice.m4a"); recorder=new MediaRecorder(); recorder.setAudioSource(MediaRecorder.AudioSource.MIC); recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC); recorder.setOutputFile(voiceFile.getAbsolutePath()); recorder.prepare(); recorder.start(); recording=true; chatStatus.setText("Идёт запись… откройте скрепку и нажмите «Голосовое сообщение» ещё раз для отправки"); toast("Запись…"); }catch(Exception e){ err(e); } }
  protected void onActivityResult(int req,int res,Intent data){ super.onActivityResult(req,res,data); if(res!=RESULT_OK||data==null||data.getData()==null)return; Uri uri=data.getData();
   if(req==1)sendImage(uri); else sendUriFile(uri,req==3); }
  void sendImage(Uri uri){ ex.execute(()->{ try{ InputStream in=getContentResolver().openInputStream(uri); Bitmap bmp=BitmapFactory.decodeStream(in); if(bmp==null)throw new Exception("Не удалось прочитать изображение");
