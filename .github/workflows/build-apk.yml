@@ -320,18 +320,26 @@ jobs:
       - name: Загрузить ARM64 Android emulator
         run: |
           set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          report_emulator_failure() {
+            cat emulator-arm64.log
+            while IFS= read -r line; do
+              echo "::error title=Android ARM64 emulator startup::$line"
+            done < <(tail -n 25 emulator-arm64.log)
+          }
 
-          nohup "$ANDROID_HOME/emulator/emulator" \
-            -avd ls-arm64-test -no-window -no-audio -no-boot-anim -no-snapshot \
-            -gpu swiftshader_indirect -accel off > emulator-arm64.log 2>&1 &
+          "$SDK_ROOT/emulator/emulator" -version
+          nohup "$SDK_ROOT/emulator/emulator" \\
+            -avd ls-arm64-test -no-window -no-audio -no-boot-anim -no-snapshot \\
+            -verbose -show-kernel -gpu swiftshader_indirect -accel off > emulator-arm64.log 2>&1 &
           echo $! > emulator-arm64.pid
           sleep 10
           if ! kill -0 "$(cat emulator-arm64.pid)" 2>/dev/null; then
-            cat emulator-arm64.log
+            report_emulator_failure
             exit 1
           fi
           if ! timeout 600 adb wait-for-device; then
-            cat emulator-arm64.log
+            report_emulator_failure
             echo "Android emulator did not expose an ADB device within 10 minutes"
             exit 1
           fi
@@ -342,13 +350,13 @@ jobs:
               break
             fi
             if ! kill -0 "$(cat emulator-arm64.pid)" 2>/dev/null; then
-              cat emulator-arm64.log
+              report_emulator_failure
               exit 1
             fi
             sleep 5
           done
           if [ "$booted" != true ]; then
-            cat emulator-arm64.log
+            report_emulator_failure
             echo "Android ARM64 emulator did not finish booting"
             exit 1
           fi
