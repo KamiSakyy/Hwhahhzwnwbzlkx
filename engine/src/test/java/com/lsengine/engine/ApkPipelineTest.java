@@ -152,8 +152,8 @@ public class ApkPipelineTest {
             cursor += size;
         }
         assertEquals(patched.length, cursor);
-        assertTrue(indexOf(patched, "com.lsengine.runtime.RuntimeActivity".getBytes(StandardCharsets.UTF_8)) >= 0);
-        assertTrue(indexOf(patched, "com.example.arm64test".getBytes(StandardCharsets.UTF_8)) >= 0);
+        assertTrue(indexOf(patched, "com.lsengine.runtime.RuntimeActivity".getBytes(StandardCharsets.UTF_16LE)) >= 0);
+        assertTrue(indexOf(patched, "com.example.arm64test".getBytes(StandardCharsets.UTF_16LE)) >= 0);
     }
 
     @Test
