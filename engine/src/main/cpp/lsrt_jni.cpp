@@ -384,7 +384,7 @@ Java_com_lsengine_engine_aot_AotRuntime_nativeSetPlatform(JNIEnv *env, jclass cl
     g_mRect = env->GetMethodID(g_platformClass, "rect", "(FFFFI)V");
     g_mCircle = env->GetMethodID(g_platformClass, "circle", "(FFFI)V");
     g_mLine = env->GetMethodID(g_platformClass, "line", "(FFFFI)V");
-    g_mText = env->GetMethodID(g_platformClass, "text", "(FFSFI)V");
+    g_mText = env->GetMethodID(g_platformClass, "text", "(FFLjava/lang/String;FI)V");
     g_mInputX = env->GetMethodID(g_platformClass, "inputX", "()F");
     g_mInputY = env->GetMethodID(g_platformClass, "inputY", "()F");
     g_mInputDown = env->GetMethodID(g_platformClass, "inputDown", "()Z");
@@ -393,7 +393,7 @@ Java_com_lsengine_engine_aot_AotRuntime_nativeSetPlatform(JNIEnv *env, jclass cl
     g_mTimeNow = env->GetMethodID(g_platformClass, "timeNow", "()D");
     g_mTimeFrame = env->GetMethodID(g_platformClass, "timeFrame", "()J");
     g_mTimeDt = env->GetMethodID(g_platformClass, "timeDt", "()D");
-    g_mUiButton = env->GetMethodID(g_platformClass, "uiButton", "(FFFFS)Z");
+    g_mUiButton = env->GetMethodID(g_platformClass, "uiButton", "(FFFFLjava/lang/String;)Z");
     g_mBeep = env->GetMethodID(g_platformClass, "beep", "(II)V");
     g_mAppWidth = env->GetMethodID(g_platformClass, "appWidth", "()I");
     g_mAppHeight = env->GetMethodID(g_platformClass, "appHeight", "()I");
