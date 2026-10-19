@@ -18,7 +18,7 @@ import java.util.Map;
 public final class AppBundle {
 
     private static final byte[] MAGIC = {'L', 'S', 'B', '1'};
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
 
     public String appName = "LS App";
     public String packageName = "com.lsengine.app";
@@ -30,6 +30,8 @@ public final class AppBundle {
     public String entryFile = "main.ls";
     /** Скомпилированный байт-код LS (формат .lsb). */
     public byte[] bytecode = new byte[0];
+    /** Машинный код AArch64, хранится только внутри зашифрованного .c. */
+    public byte[] nativeCode = new byte[0];
     /** Исходные файлы проекта (для справочных целей и отладки). */
     public Map<String, byte[]> files = new LinkedHashMap<>();
 
@@ -47,6 +49,8 @@ public final class AppBundle {
             out.writeUTF(entryFile == null ? "main.ls" : entryFile);
             out.writeInt(bytecode.length);
             out.write(bytecode, 0, bytecode.length);
+            out.writeInt(nativeCode == null ? 0 : nativeCode.length);
+            if (nativeCode != null) out.write(nativeCode);
             out.writeInt(files.size());
             for (Map.Entry<String, byte[]> entry : files.entrySet()) {
                 out.writeUTF(entry.getKey());
@@ -69,7 +73,7 @@ public final class AppBundle {
                 }
             }
             int version = in.readByte();
-            if (version != VERSION) {
+            if (version != 1 && version != VERSION) {
                 throw new IOException("неподдерживаемая версия пакета: " + version);
             }
             bundle.appName = in.readUTF();
@@ -82,6 +86,12 @@ public final class AppBundle {
             int bytecodeLength = in.readInt();
             bundle.bytecode = new byte[bytecodeLength];
             in.readFully(bundle.bytecode);
+            if (version >= 2) {
+                int nativeCodeLength = in.readInt();
+                if (nativeCodeLength < 0 || nativeCodeLength > data.length) throw new IOException("повреждённый AOT-блок");
+                bundle.nativeCode = new byte[nativeCodeLength];
+                in.readFully(bundle.nativeCode);
+            }
             int fileCount = in.readInt();
             for (int i = 0; i < fileCount; i++) {
                 String name = in.readUTF();

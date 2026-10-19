@@ -131,7 +131,12 @@ jobs:
       - name: Сборка runtime и studio
         run: |
           set -o pipefail
-          ./gradlew --no-daemon :runtime:assembleRelease :app:assembleRelease 2>&1 | tee gradle-build.log
+          ./gradlew --no-daemon :engine:assembleRelease :runtime:assembleRelease :app:assembleRelease 2>&1 | tee gradle-build.log
+
+      - name: Интеграционная сборка реального пользовательского APK ARM64
+        run: |
+          set -euo pipefail
+          bash tools/run_apk_build_integration.sh 2>&1 | tee apk-integration.log
 
       - name: Проверка подписи APK (apksigner)
         run: |
@@ -154,6 +159,12 @@ jobs:
           set -euo pipefail
           unzip -l app/build/outputs/apk/release/app-release.apk | tee apk-contents.txt
           unzip -l runtime/build/outputs/apk/release/runtime-release-unsigned.apk | tee runtime-contents.txt
+          for apk in app/build/outputs/apk/release/app-release.apk runtime/build/outputs/apk/release/runtime-release-unsigned.apk; do
+            if unzip -Z1 "$apk" | grep -E '^lib/' | grep -Ev '^lib/arm64-v8a/'; then
+              echo "Найдена архитектура, отличная от Android ARM64: $apk"
+              exit 1
+            fi
+          done
 
       - name: Архив исходников
         run: |
@@ -172,6 +183,9 @@ jobs:
           path: |
             gradle-tests.log
             gradle-build.log
+            apk-integration.log
+            build/apk-integration/badging.txt
+            build/apk-integration/contents.txt
             apk-contents.txt
             runtime-contents.txt
             apksigner-report.txt

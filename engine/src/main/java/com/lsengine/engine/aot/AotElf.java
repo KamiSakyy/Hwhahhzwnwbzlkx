@@ -75,7 +75,8 @@ public final class AotElf {
         public int machine = AotModule.MACHINE_X64;
     }
 
-    private static final int PAGE = 0x1000;
+    // Android devices with 16 KB pages are supported from Android 15 onward.
+    private static final int PAGE = 0x4000;
 
     private AotElf() {
     }

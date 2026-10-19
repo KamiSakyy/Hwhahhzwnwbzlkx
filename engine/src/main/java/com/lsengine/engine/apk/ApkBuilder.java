@@ -13,18 +13,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-/**
- * Офлайн-сборщик APK: берёт подготовленную оболочку (shell.apk), подменяет в ней
- * манифест и добавляет зашифрованный контейнер .c с байт-кодом приложения.
- *
- * Ни сети, ни внешних инструментов: всё делается прямо на устройстве.
- */
+/** Offline APK repacker. Application machine code is stored only inside encrypted assets/lsapp.c. */
 public final class ApkBuilder {
+    private static final Pattern PACKAGE_NAME = Pattern.compile(
+            "[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+");
 
-    /** Параметры собираемого приложения. */
     public static final class Options {
         public String appName = "LS App";
         public String packageName = "com.lsengine.app0001";
@@ -32,63 +29,80 @@ public final class ApkBuilder {
         public int versionCode = 1;
         public String orientation = "portrait";
         public String description = "";
-        /** Нативные библиотеки приложения: путь внутри APK → содержимое. */
-        public final Map<String, byte[]> nativeLibs = new LinkedHashMap<>();
+        /** Optional launcher foreground image, normalized PNG bytes. */
+        public byte[] iconPng;
     }
 
-    /** Имя файла с контейнером .c внутри собранного APK. */
     public static final String BUNDLE_ASSET = "assets/lsapp.c";
-    /** Простой манифест приложения (для быстрого чтения рантаймом). */
     public static final String META_ASSET = "assets/lsapp.meta";
 
-    private ApkBuilder() {
-    }
+    private ApkBuilder() { }
 
-    /**
-     * Собирает подписанный APK.
-     *
-     * @param shellApk    байты оболочки (runtime APK)
-     * @param bundleBytes содержимое контейнера .c (уже зашифровано)
-     * @param options     параметры приложения
-     */
     public static byte[] build(byte[] shellApk, byte[] bundleBytes, Options options) throws Exception {
-        List<ZipWriter.Entry> entries = new ArrayList<>();
+        if (shellApk == null || shellApk.length == 0 || bundleBytes == null || options == null) {
+            throw new IllegalArgumentException("Оболочка, контейнер и параметры обязательны");
+        }
+        validateOptions(options);
 
-        // 1. Переносим содержимое оболочки, кроме подписей META-INF.
+        // Read the shell before writing: icon resources and their ZIP entry path must be replaced together.
+        Map<String, byte[]> shell = new LinkedHashMap<>();
         try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(shellApk))) {
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
-                if (entry.isDirectory()) {
-                    continue;
-                }
+                if (entry.isDirectory()) continue;
                 String name = entry.getName();
-                if (name.startsWith("META-INF/")) {
-                    continue;   // старая подпись нам не нужна — подписываем заново
+                if (name.startsWith("META-INF/") || name.equals(BUNDLE_ASSET) || name.equals(META_ASSET)) continue;
+                if (shell.put(name, readAll(zip)) != null) {
+                    throw new IOException("В Android shell дублируется ZIP-запись: " + name);
                 }
-                if (name.equals(BUNDLE_ASSET) || name.equals(META_ASSET)) {
-                    continue;
-                }
-                byte[] data = readAll(zip);
-                if (name.equals("AndroidManifest.xml")) {
-                    data = AxmlPatcher.patch(data, options.packageName, options.appName);
-                }
-                entries.add(new ZipWriter.Entry(name, data));
             }
         }
 
-        // 2. Кладём зашифрованный байт-код и метаданные.
+        byte[] manifest = shell.get("AndroidManifest.xml");
+        if (manifest == null) throw new IOException("В Android shell отсутствует AndroidManifest.xml");
+        shell.put("AndroidManifest.xml", AxmlPatcher.patch(manifest, options.packageName, options.appName));
+
+        byte[] resourceTable = shell.get("resources.arsc");
+        if (resourceTable == null) throw new IOException("В Android shell отсутствует resources.arsc");
+        if (options.iconPng != null && options.iconPng.length > 0) {
+            IconPatcher.Result icon = IconPatcher.patch(resourceTable, options.iconPng);
+            if (!shell.containsKey(icon.oldEntry)) {
+                throw new IOException("Файл иконки не найден в Android shell: " + icon.oldEntry);
+            }
+            shell.remove(icon.oldEntry);
+            shell.put(icon.newEntry, icon.png);
+            resourceTable = icon.resourcesTable;
+        }
+        // Package name must agree in the binary manifest and the compiled resource table.
+        shell.put("resources.arsc", IconPatcher.rewritePackageName(resourceTable, options.packageName));
+
+        List<ZipWriter.Entry> entries = new ArrayList<>();
+        for (Map.Entry<String, byte[]> item : shell.entrySet()) {
+            String name = item.getKey();
+            byte[] data = item.getValue();
+            boolean stored = "resources.arsc".equals(name) || (name.startsWith("lib/") && name.endsWith(".so"));
+            entries.add(new ZipWriter.Entry(name, data, stored));
+        }
         entries.add(new ZipWriter.Entry(BUNDLE_ASSET, bundleBytes));
         entries.add(new ZipWriter.Entry(META_ASSET, meta(options)));
 
-        // 3. Нативные библиотеки: машинный код программы (AOT) и оболочки.
-        for (Map.Entry<String, byte[]> lib : options.nativeLibs.entrySet()) {
-            entries.add(new ZipWriter.Entry(lib.getKey(), lib.getValue()));
-        }
-
-        // 4. Собираем ZIP и подписываем по схеме v2.
         ZipWriter.Result zip = ZipWriter.build(entries);
         PrivateKey key = loadPrivateKey();
         return ApkSignerV2.sign(zip, key, Codec.certificateDer(), Codec.publicKeyDer());
+    }
+
+    private static void validateOptions(Options options) {
+        if (options.appName == null || options.appName.trim().isEmpty() || options.appName.length() > 80) {
+            throw new IllegalArgumentException("Название приложения должно содержать от 1 до 80 символов");
+        }
+        if (options.packageName == null || !PACKAGE_NAME.matcher(options.packageName).matches()
+                || options.packageName.length() > 255) {
+            throw new IllegalArgumentException("Неверный идентификатор пакета Android");
+        }
+        if (options.versionName == null || options.versionName.trim().isEmpty() || options.versionName.length() > 64) {
+            throw new IllegalArgumentException("Неверный номер версии");
+        }
+        if (options.versionCode < 1) throw new IllegalArgumentException("versionCode должен быть положительным");
     }
 
     private static byte[] meta(Options options) {
@@ -112,9 +126,7 @@ public final class ApkBuilder {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] buffer = new byte[16384];
         int read;
-        while ((read = zip.read(buffer)) > 0) {
-            out.write(buffer, 0, read);
-        }
+        while ((read = zip.read(buffer)) != -1) out.write(buffer, 0, read);
         return out.toByteArray();
     }
 }

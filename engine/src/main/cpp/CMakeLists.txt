@@ -24,7 +24,11 @@ target_include_directories(lscodec PRIVATE
 )
 
 target_compile_options(lscodec PRIVATE -O2 -fvisibility=hidden -ffunction-sections -fdata-sections)
-target_link_options(lscodec PRIVATE -Wl,--gc-sections)
+target_link_options(lscodec PRIVATE
+        -Wl,--gc-sections
+        -Wl,-z,max-page-size=16384
+        -Wl,-z,common-page-size=16384
+)
 
 find_library(log-lib log)
 target_link_libraries(lscodec ${log-lib})
@@ -41,6 +45,10 @@ target_include_directories(lsrt PRIVATE
 )
 
 target_compile_options(lsrt PRIVATE -O2 -fvisibility=hidden -ffunction-sections -fdata-sections)
-target_link_options(lsrt PRIVATE -Wl,--gc-sections)
+target_link_options(lsrt PRIVATE
+        -Wl,--gc-sections
+        -Wl,-z,max-page-size=16384
+        -Wl,-z,common-page-size=16384
+)
 
 target_link_libraries(lsrt ${log-lib} dl)

@@ -31,6 +31,10 @@
     <string name="package_label">Идентификатор пакета</string>
     <string name="version_label">Версия</string>
     <string name="orientation_label">Ориентация</string>
+    <string name="app_icon">Иконка приложения</string>
+    <string name="choose_app_icon">Выбрать из Google Фото или галереи</string>
+    <string name="app_icon_picker_hint">Фото выбирается системным окном Android; разрешение на всю галерею не требуется.</string>
+    <string name="app_icon_selected">Иконка выбрана</string>
     <string name="build_action">Собрать</string>
     <string name="cancel">Отмена</string>
     <string name="close">Закрыть</string>

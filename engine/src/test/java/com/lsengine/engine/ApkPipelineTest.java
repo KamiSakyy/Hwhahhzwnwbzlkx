@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.lsengine.engine.apk.AxmlPatcher;
 import com.lsengine.engine.apk.ApkSignerV2;
+import com.lsengine.engine.apk.IconPatcher;
 import com.lsengine.engine.apk.ZipWriter;
 
 import org.junit.Test;
@@ -37,6 +38,8 @@ public class ApkPipelineTest {
         entries.add(new ZipWriter.Entry("AndroidManifest.xml", "manifest".getBytes(StandardCharsets.UTF_8)));
         entries.add(new ZipWriter.Entry("assets/lsapp.c", payload));
         entries.add(new ZipWriter.Entry("classes.dex", new byte[]{1, 2, 3}));
+        entries.add(new ZipWriter.Entry("resources.arsc", new byte[73], true));
+        entries.add(new ZipWriter.Entry("lib/arm64-v8a/libsample.so", new byte[100], true));
 
         ZipWriter.Result result = ZipWriter.build(entries);
         assertTrue(result.data.length > 0);
@@ -56,6 +59,10 @@ public class ApkPipelineTest {
         assertTrue(names.contains("AndroidManifest.xml"));
         assertTrue(names.contains("assets/lsapp.c"));
         assertTrue(names.contains("classes.dex"));
+        assertTrue(names.contains("resources.arsc"));
+        assertTrue(names.contains("lib/arm64-v8a/libsample.so"));
+        assertEquals(0, storedEntryDataOffset(result.data, "resources.arsc") % 4);
+        assertEquals(0, storedEntryDataOffset(result.data, "lib/arm64-v8a/libsample.so") % 16384);
     }
 
     // ---------------- подпись v2 ----------------
@@ -126,6 +133,69 @@ public class ApkPipelineTest {
         int next = headerSize + poolSize;
         assertTrue("ожидался корректный чанк после строкового пула",
                 u16(patched, next) == 0x0100 || u16(patched, next) == 0x0102);
+    }
+
+    @Test
+    public void realRuntimeManifestRemainsAlignedAfterPatch() throws Exception {
+        byte[] manifest;
+        try (InputStream in = getClass().getResourceAsStream("/runtime-manifest.axml")) {
+            assertNotNull(in);
+            manifest = readAll(in);
+        }
+        byte[] patched = AxmlPatcher.patch(manifest, "com.example.arm64test", "Очень длинное приложение 🌙");
+        assertEquals(patched.length, u32(patched, 4));
+        int cursor = u16(patched, 2);
+        while (cursor < patched.length) {
+            assertEquals("AXML chunk must remain 4-byte aligned", 0, cursor % 4);
+            int size = u32(patched, cursor + 4);
+            assertTrue("invalid AXML chunk size", size >= u16(patched, cursor + 2));
+            cursor += size;
+        }
+        assertEquals(patched.length, cursor);
+        assertTrue(indexOf(patched, "com.lsengine.runtime.RuntimeActivity".getBytes(StandardCharsets.UTF_8)) >= 0);
+        assertTrue(indexOf(patched, "com.example.arm64test".getBytes(StandardCharsets.UTF_8)) >= 0);
+    }
+
+    @Test
+    public void iconPatcherReplacesAndroidAdaptiveForegroundResource() throws Exception {
+        byte[] table;
+        try (InputStream in = getClass().getResourceAsStream("/runtime-resources.arsc")) {
+            assertNotNull(in);
+            table = readAll(in);
+        }
+        byte[] png = java.util.Base64.getDecoder().decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII=");
+        IconPatcher.Result result = IconPatcher.patch(table, png);
+        assertTrue(result.oldEntry.startsWith("res/"));
+        assertTrue(result.oldEntry.endsWith(".xml"));
+        assertEquals(result.oldEntry.substring(0, result.oldEntry.length() - 4) + ".png", result.newEntry);
+        assertTrue(indexOf(result.resourcesTable, result.newEntry.getBytes(StandardCharsets.UTF_8)) >= 0);
+        assertTrue(Arrays.equals(png, result.png));
+        byte[] renamed = IconPatcher.rewritePackageName(result.resourcesTable, "com.example.generated");
+        byte[] packageName = "com.example.generated".getBytes(StandardCharsets.UTF_16LE);
+        assertTrue(indexOf(renamed, packageName) >= 0);
+    }
+
+    private static int storedEntryDataOffset(byte[] zip, String wanted) {
+        int cursor = 0;
+        while (cursor + 30 <= zip.length && u32(zip, cursor) == 0x04034b50) {
+            int compressed = u32(zip, cursor + 18);
+            int nameLength = u16(zip, cursor + 26);
+            int extraLength = u16(zip, cursor + 28);
+            String name = new String(zip, cursor + 30, nameLength, StandardCharsets.UTF_8);
+            int data = cursor + 30 + nameLength + extraLength;
+            if (wanted.equals(name)) return data;
+            cursor = data + compressed;
+        }
+        throw new AssertionError("ZIP entry not found: " + wanted);
+    }
+
+    private static byte[] readAll(InputStream in) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int n;
+        while ((n = in.read(buffer)) != -1) out.write(buffer, 0, n);
+        return out.toByteArray();
     }
 
     private static int indexOf(byte[] data, byte[] pattern) {

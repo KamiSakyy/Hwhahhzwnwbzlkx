@@ -238,114 +238,60 @@ static int write_all(int fd, const unsigned char *data, size_t size) {
 typedef void *(*ls_get_namespace_fn)(const char *);
 typedef void *(*ls_dlopen_ext_fn)(const char *, int, void *);
 
-static void *load_module_bytes(const unsigned char *data, size_t size) {
-    /* Современные Android запрещают загружать код из каталога данных
-       приложения, поэтому библиотека кладётся в анонимный файловый
-       дескриптор и открывается через android_dlopen_ext. */
-    int fd = (int) syscall(__NR_memfd_create, "liblsapp.so", 0);
-    if (fd >= 0) {
-        if (write_all(fd, data, size) == 0) {
-            ls_get_namespace_fn get_ns =
-                    (ls_get_namespace_fn) dlsym(RTLD_DEFAULT, "android_get_exported_namespace");
-            ls_dlopen_ext_fn dlopen_ext =
-                    (ls_dlopen_ext_fn) dlsym(RTLD_DEFAULT, "android_dlopen_ext");
-            if (get_ns && dlopen_ext) {
-                void *ns = get_ns("default");
-                if (ns) {
-                    char path[64];
-                    snprintf(path, sizeof(path), "/proc/self/fd/%d", fd);
-                    void *handle = dlopen_ext(path, ANDROID_DLEXT_USE_NAMESPACE, ns);
-                    if (handle) {
-                        close(fd);
-                        return handle;
-                    }
-                }
-            }
-        }
-        close(fd);
-    }
-    /* Запасной путь: обычный dlopen (работает на Android < 10). */
-    const char *tmp = "/data/local/tmp/liblsapp.so";
-    FILE *f = fopen(tmp, "wb");
-    if (f) {
-        fwrite(data, 1, size, f);
-        fclose(f);
-        void *handle = dlopen(tmp, RTLD_NOW | RTLD_LOCAL);
-        remove(tmp);
-        return handle;
-    }
-    return NULL;
-}
+static char g_last_load_error[1024] = "";
 
-extern "C" JNIEXPORT jlong JNICALL
-Java_com_lsengine_engine_aot_AotRuntime_nativeLoad(JNIEnv *env, jclass clazz, jbyteArray bytes) {
-    (void) clazz;
-    if (bytes == NULL) {
-        return 0;
-    }
-    jsize len = env->GetArrayLength(bytes);
-    jbyte *data = env->GetByteArrayElements(bytes, NULL);
-    if (data == NULL) {
-        return 0;
-    }
-    void *handle = load_module_bytes((const unsigned char *) data, (size_t) len);
-    env->ReleaseByteArrayElements(bytes, data, JNI_ABORT);
+static jlong finish_module_load(void *handle) {
     if (!handle) {
+        const char *error = dlerror();
+        snprintf(g_last_load_error, sizeof(g_last_load_error), "%s",
+                 error ? error : "dlopen завершился без указания причины");
         return 0;
     }
     lsrt_init();
     ls_api_fn *table = (ls_api_fn *) dlsym(handle, "ls_app_api_table");
-    if (table) {
-        ls_register_api(table);
-    }
+    if (table) ls_register_api(table);
     ls_value (*entry)(ls_value *) = (ls_value (*)(ls_value *)) dlsym(handle, "ls_app_entry");
     if (!entry) {
+        const char *error = dlerror();
+        snprintf(g_last_load_error, sizeof(g_last_load_error), "нет ls_app_entry: %s",
+                 error ? error : "экспортированный символ не найден");
         dlclose(handle);
         return 0;
     }
     ls_module *module = (ls_module *) calloc(1, sizeof(ls_module));
     if (!module) {
+        snprintf(g_last_load_error, sizeof(g_last_load_error), "недостаточно памяти для AOT-модуля");
         dlclose(handle);
         return 0;
     }
     module->handle = handle;
     module->entry = entry;
+    g_last_load_error[0] = '\0';
     return (jlong) (intptr_t) module;
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_lsengine_engine_aot_AotRuntime_nativeLoadLibrary(JNIEnv *env, jclass clazz, jstring name) {
+Java_com_lsengine_engine_aot_AotRuntime_nativeLoadFile(JNIEnv *env, jclass clazz, jstring path) {
     (void) clazz;
-    if (name == NULL) {
+    if (path == NULL) {
+        snprintf(g_last_load_error, sizeof(g_last_load_error), "путь к ELF не задан");
         return 0;
     }
-    const char *utf = env->GetStringUTFChars(name, NULL);
+    const char *utf = env->GetStringUTFChars(path, NULL);
     if (!utf) {
+        snprintf(g_last_load_error, sizeof(g_last_load_error), "не удалось прочитать путь к ELF");
         return 0;
     }
+    dlerror();
     void *handle = dlopen(utf, RTLD_NOW | RTLD_LOCAL);
-    env->ReleaseStringUTFChars(name, utf);
-    if (!handle) {
-        return 0;
-    }
-    lsrt_init();
-    ls_api_fn *table = (ls_api_fn *) dlsym(handle, "ls_app_api_table");
-    if (table) {
-        ls_register_api(table);
-    }
-    ls_value (*entry)(ls_value *) = (ls_value (*)(ls_value *)) dlsym(handle, "ls_app_entry");
-    if (!entry) {
-        dlclose(handle);
-        return 0;
-    }
-    ls_module *module = (ls_module *) calloc(1, sizeof(ls_module));
-    if (!module) {
-        dlclose(handle);
-        return 0;
-    }
-    module->handle = handle;
-    module->entry = entry;
-    return (jlong) (intptr_t) module;
+    env->ReleaseStringUTFChars(path, utf);
+    return finish_module_load(handle);
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_lsengine_engine_aot_AotRuntime_nativeLastError(JNIEnv *env, jclass clazz) {
+    (void) clazz;
+    return env->NewStringUTF(g_last_load_error);
 }
 
 extern "C" JNIEXPORT void JNICALL

@@ -34,8 +34,10 @@ public final class AxmlPatcher {
         int chunkHeaderSize;
         int chunkSize;
         int stringCount;
+        int styleCount;
         int flags;
         int stringsStart;
+        int stylesStart;
         int[] offsets;
         List<String> strings = new ArrayList<>();
         List<byte[]> rawStrings = new ArrayList<>();
@@ -95,6 +97,12 @@ public final class AxmlPatcher {
                             replacements.put(rawValueIndex, appLabel);
                         }
                         patchPoints.add(new int[]{attrOffset, data, 0});
+                    } else if ("activity".equals(elementName) && "name".equals(attrName)
+                            && dataType == TYPE_STRING && ".RuntimeActivity".equals(indexOf(pool, data))) {
+                        // The shell code remains in its fixed Java package even when the appId is customized.
+                        replacements.put(data, "com.lsengine.runtime.RuntimeActivity");
+                        if (rawValueIndex >= 0) replacements.put(rawValueIndex, "com.lsengine.runtime.RuntimeActivity");
+                        patchPoints.add(new int[]{attrOffset, data, 0});
                     } else if ("application".equals(elementName)
                             && "extractNativeLibs".equals(attrName)
                             && dataType == TYPE_INT_BOOLEAN) {
@@ -146,8 +154,10 @@ public final class AxmlPatcher {
         pool.chunkHeaderSize = u16(data, pool.chunkStart + 2);
         pool.chunkSize = u32(data, pool.chunkStart + 4);
         pool.stringCount = u32(data, pool.chunkStart + 8);
+        pool.styleCount = u32(data, pool.chunkStart + 12);
         pool.flags = u32(data, pool.chunkStart + 16);
         pool.stringsStart = u32(data, pool.chunkStart + 20);
+        pool.stylesStart = u32(data, pool.chunkStart + 24);
 
         int offsetsStart = pool.chunkStart + pool.chunkHeaderSize;
         pool.offsets = new int[pool.stringCount];
@@ -198,25 +208,33 @@ public final class AxmlPatcher {
         }
 
         int offsetsStart = pool.chunkStart + pool.chunkHeaderSize;
-        int dataStart = offsetsStart + pool.stringCount * 4;
+        int newStringsStart = pool.chunkHeaderSize + (pool.stringCount + pool.styleCount) * 4;
         int[] newOffsets = new int[pool.stringCount];
-        int cursor = 0;
+        int stringsLength = 0;
         for (int i = 0; i < pool.stringCount; i++) {
-            newOffsets[i] = cursor;
-            cursor += encoded.get(i).length;
+            newOffsets[i] = stringsLength;
+            stringsLength += encoded.get(i).length;
         }
-        int newStringsStart = dataStart - pool.chunkStart;
-        int newChunkSize = dataStart - pool.chunkStart + cursor;
+
+        int newStylesStart = pool.styleCount == 0 ? 0 : align4(newStringsStart + stringsLength);
+        int oldStyleOffsets = offsetsStart + pool.stringCount * 4;
+        int styleDataLength = pool.stylesStart == 0 ? 0
+                : pool.chunkStart + pool.chunkSize - (pool.chunkStart + pool.stylesStart);
+        int newChunkSize = pool.styleCount == 0
+                ? align4(newStringsStart + stringsLength)
+                : newStylesStart + styleDataLength;
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(newChunkSize);
         out.write(data, pool.chunkStart, pool.chunkHeaderSize);
-        // строковые офсеты
-        for (int offset : newOffsets) {
-            writeIntLE(out, offset);
+        for (int offset : newOffsets) writeIntLE(out, offset);
+        // Preserve the style-offset array, if the source string pool has styled strings.
+        if (pool.styleCount > 0) {
+            out.write(data, oldStyleOffsets, pool.styleCount * 4);
         }
-        // данные строк
-        for (byte[] raw : encoded) {
-            out.write(raw, 0, raw.length);
+        for (byte[] raw : encoded) out.write(raw, 0, raw.length);
+        while (out.size() < (pool.styleCount == 0 ? newChunkSize : newStylesStart)) out.write(0);
+        if (pool.styleCount > 0 && styleDataLength > 0) {
+            out.write(data, pool.chunkStart + pool.stylesStart, styleDataLength);
         }
         byte[] result = out.toByteArray();
         if (result.length != newChunkSize) {
@@ -224,6 +242,7 @@ public final class AxmlPatcher {
         }
         writeIntLE(result, 4, newChunkSize);
         writeIntLE(result, 20, newStringsStart);
+        writeIntLE(result, 24, newStylesStart);
         return result;
     }
 
@@ -244,6 +263,10 @@ public final class AxmlPatcher {
         out.write(0);
         out.write(0);
         return out.toByteArray();
+    }
+
+    private static int align4(int value) {
+        return (value + 3) & ~3;
     }
 
     private static void writeLengthUtf8(ByteArrayOutputStream out, int length) {

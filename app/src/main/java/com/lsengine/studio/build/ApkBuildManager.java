@@ -1,6 +1,12 @@
 package com.lsengine.studio.build;
 
 import android.content.Context;
+import android.net.Uri;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -61,6 +67,10 @@ public final class ApkBuildManager {
     }
 
     public void build(ProjectStore.Project project, ApkBuilder.Options options, Callback callback) {
+        build(project, options, null, callback);
+    }
+
+    public void build(ProjectStore.Project project, ApkBuilder.Options options, Uri iconUri, Callback callback) {
         if (project == null || options == null || callback == null) {
             throw new IllegalArgumentException("project, options и callback обязательны");
         }
@@ -83,15 +93,18 @@ public final class ApkBuildManager {
                     throw new IllegalStateException(
                             "Нативный кодек не загружен; безопасная сборка APK недоступна");
                 }
-                AppBundle bundle = createBundle(project, options, entryFile, bytecode);
+                notifyStage(callback, "Компиляция машинного кода Android ARM64…");
+                byte[] nativeCode = AotModule.compileArm64(chunk);
+                AppBundle bundle = createBundle(project, options, entryFile, bytecode, nativeCode);
                 byte[] encryptedBundle = Codec.seal(bundle.toBytes());
-
-                notifyStage(callback, "Генерация машинного кода x86-64 и ARM64…");
-                options.nativeLibs.put("lib/x86_64/liblsapp.so", AotModule.compileX64(chunk));
-                options.nativeLibs.put("lib/arm64-v8a/liblsapp.so", AotModule.compileArm64(chunk));
 
                 notifyStage(callback, "Загрузка runtime shell…");
                 byte[] shell = readAsset("runtime/shell.apk");
+
+                if (iconUri != null) {
+                    notifyStage(callback, "Подготовка иконки приложения…");
+                    options.iconPng = loadIconPng(iconUri);
+                }
 
                 notifyStage(callback, "Перепаковка и подпись APK офлайн…");
                 byte[] apk = ApkBuilder.build(shell, encryptedBundle, options);
@@ -112,8 +125,55 @@ public final class ApkBuildManager {
         });
     }
 
+
+    private byte[] loadIconPng(Uri uri) throws Exception {
+        try (InputStream input = appContext.getContentResolver().openInputStream(uri);
+             ByteArrayOutputStream encoded = new ByteArrayOutputStream()) {
+            if (input == null) throw new IllegalStateException("Не удалось открыть выбранную фотографию");
+            byte[] buffer = new byte[16 * 1024];
+            int count;
+            while ((count = input.read(buffer)) != -1) {
+                if (encoded.size() + count > 24 * 1024 * 1024) {
+                    throw new IllegalStateException("Файл иконки слишком большой (лимит 24 МБ)");
+                }
+                encoded.write(buffer, 0, count);
+            }
+            byte[] bytes = encoded.toByteArray();
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+                throw new IllegalStateException("Выбранный файл не является изображением");
+            }
+            BitmapFactory.Options decode = new BitmapFactory.Options();
+            decode.inSampleSize = 1;
+            while (Math.max(bounds.outWidth / decode.inSampleSize,
+                    bounds.outHeight / decode.inSampleSize) > 1024) decode.inSampleSize *= 2;
+            decode.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap source = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, decode);
+            if (source == null) throw new IllegalStateException("Android не смог декодировать выбранное изображение");
+            Bitmap icon = Bitmap.createBitmap(432, 432, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(icon);
+            float scale = Math.max(432f / source.getWidth(), 432f / source.getHeight());
+            int width = Math.round(source.getWidth() * scale);
+            int height = Math.round(source.getHeight() * scale);
+            int left = (432 - width) / 2;
+            int top = (432 - height) / 2;
+            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+            canvas.drawBitmap(source, null, new Rect(left, top, left + width, top + height), paint);
+            source.recycle();
+            ByteArrayOutputStream png = new ByteArrayOutputStream(64 * 1024);
+            if (!icon.compress(Bitmap.CompressFormat.PNG, 100, png)) {
+                icon.recycle();
+                throw new IllegalStateException("Не удалось сохранить PNG иконку");
+            }
+            icon.recycle();
+            return png.toByteArray();
+        }
+    }
+
     private AppBundle createBundle(ProjectStore.Project project, ApkBuilder.Options options,
-                                   String entryFile, byte[] bytecode) {
+                                   String entryFile, byte[] bytecode, byte[] nativeCode) {
         AppBundle bundle = new AppBundle();
         bundle.appName = options.appName;
         bundle.packageName = options.packageName;
@@ -123,6 +183,7 @@ public final class ApkBuildManager {
         bundle.description = options.description;
         bundle.entryFile = entryFile;
         bundle.bytecode = bytecode;
+        bundle.nativeCode = nativeCode;
         for (Map.Entry<String, String> entry : project.files.entrySet()) {
             String name = safeFileName(entry.getKey());
             bundle.files.put(name, entry.getValue().getBytes(StandardCharsets.UTF_8));

@@ -92,6 +92,9 @@ public final class ZipWriter {
                     (byte) ((crc.getValue() >> 24) & 0xFF)});
 
             byte[] nameBytes = entry.name.getBytes("UTF-8");
+            int alignment = zipAlignment(entry.name, method);
+            int extraLength = alignedExtraLength(out.size() + 30 + nameBytes.length, alignment);
+            byte[] extra = alignment > 1 && extraLength > 0 ? alignmentExtra(extraLength) : new byte[0];
             writeIntLE(out, 0x04034b50);
             writeShortLE(out, 20);            // version needed
             writeShortLE(out, 0);             // flags
@@ -102,8 +105,9 @@ public final class ZipWriter {
             writeIntLE(out, payload.length);
             writeIntLE(out, raw.length);
             writeShortLE(out, nameBytes.length);
-            writeShortLE(out, 0);             // extra length
+            writeShortLE(out, extra.length);
             out.write(nameBytes, 0, nameBytes.length);
+            out.write(extra, 0, extra.length);
             out.write(payload, 0, payload.length);
         }
 
@@ -146,6 +150,32 @@ public final class ZipWriter {
         writeShortLE(out, 0);                 // comment length
 
         return new Result(out.toByteArray(), cdOffset, cdSize, eocdOffset);
+    }
+
+    private static int zipAlignment(String name, int method) {
+        if (method != 0) return 1;
+        if ("resources.arsc".equals(name)) return 4;
+        if (name.startsWith("lib/") && name.endsWith(".so")) return 16384;
+        return 1;
+    }
+
+    private static int alignedExtraLength(int dataOffset, int alignment) {
+        if (alignment <= 1) return 0;
+        int padding = (alignment - dataOffset % alignment) % alignment;
+        if (padding == 0) return 0;
+        while (padding < 4) padding += alignment;
+        return padding;
+    }
+
+    private static byte[] alignmentExtra(int length) {
+        byte[] extra = new byte[length];
+        // Android zipalign alignment extra field (0xd935), data is only padding.
+        extra[0] = 0x35;
+        extra[1] = (byte) 0xD9;
+        int payload = length - 4;
+        extra[2] = (byte) (payload & 0xff);
+        extra[3] = (byte) ((payload >>> 8) & 0xff);
+        return extra;
     }
 
     private static byte[] deflate(byte[] data) {

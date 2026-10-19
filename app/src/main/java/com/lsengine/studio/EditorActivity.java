@@ -14,6 +14,9 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
@@ -24,7 +27,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.lsengine.engine.apk.ApkBuilder;
 import com.lsengine.engine.aot.AotModule;
-import com.lsengine.engine.lang.BytecodeFile;
 import com.lsengine.engine.lang.Chunk;
 import com.lsengine.engine.lang.Compiler;
 import com.lsengine.engine.lang.LsError;
@@ -52,10 +54,21 @@ public class EditorActivity extends AppCompatActivity {
     private TextView compileStatus;
     private String currentFile;
     private boolean dirty;
+    private ActivityResultLauncher<PickVisualMediaRequest> iconPicker;
+    private Uri selectedAppIcon;
+    private android.widget.ImageView buildIconPreview;
+    private com.google.android.material.button.MaterialButton chooseIconButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        iconPicker = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (uri != null) {
+                selectedAppIcon = uri;
+                if (buildIconPreview != null) buildIconPreview.setImageURI(uri);
+                if (chooseIconButton != null) chooseIconButton.setText(R.string.app_icon_selected);
+            }
+        });
         setContentView(R.layout.activity_editor);
 
         store = new ProjectStore(getFilesDir());
@@ -216,23 +229,17 @@ public class EditorActivity extends AppCompatActivity {
         try {
             Compiler compiler = new Compiler();
             Chunk chunk = compiler.compile(source == null ? "" : source);
-            byte[] bytecode = BytecodeFile.write(chunk);
             compileStatus.setText("Готово");
-            log("Байт-код собран: " + bytecode.length + " байт");
-            byte[] library = null;
-            try {
-                long started = System.currentTimeMillis();
-                library = AotModule.compile(chunk, isArm64Device());
-                log("Машинный код собран: " + library.length + " байт за "
-                        + (System.currentTimeMillis() - started) + " мс");
-            } catch (Throwable error) {
-                log("AOT недоступен, используется виртуальная машина");
+            log("Исходный код скомпилирован");
+            if (!isArm64Device()) {
+                throw new IllegalStateException("Для LIVE-просмотра требуется устройство Android ARM64 (arm64-v8a)");
             }
+            long started = System.currentTimeMillis();
+            byte[] library = AotModule.compileArm64(chunk);
+            log("Машинный код Android ARM64: " + library.length + " байт за "
+                    + (System.currentTimeMillis() - started) + " мс");
             Intent intent = new Intent(this, PreviewActivity.class);
-            intent.putExtra(PreviewActivity.EXTRA_BYTECODE, bytecode);
-            if (library != null) {
-                intent.putExtra(PreviewActivity.EXTRA_AOT_LIBRARY, library);
-            }
+            intent.putExtra(PreviewActivity.EXTRA_AOT_LIBRARY, library);
             intent.putExtra(PreviewActivity.EXTRA_NAME, project.name);
             intent.putExtra(PreviewActivity.EXTRA_PROJECT_ID, project.id);
             startActivity(intent);
@@ -257,11 +264,26 @@ public class EditorActivity extends AppCompatActivity {
     // ---------------- сборка APK ----------------
 
     private void showBuildDialog() {
+        if (!isArm64Device()) {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.build_dialog_title)
+                    .setMessage("Сборка доступна только на Android ARM64 (arm64-v8a). APK не содержит архитектур для эмуляторов.")
+                    .setPositiveButton(R.string.close, null)
+                    .show();
+            return;
+        }
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_build, null);
         TextInputEditText nameInput = view.findViewById(R.id.appNameInput);
         TextInputEditText packageInput = view.findViewById(R.id.packageInput);
         TextInputEditText versionInput = view.findViewById(R.id.versionInput);
         RadioGroup orientation = view.findViewById(R.id.orientationGroup);
+        buildIconPreview = view.findViewById(R.id.appIconPreview);
+        chooseIconButton = view.findViewById(R.id.chooseAppIcon);
+        if (selectedAppIcon != null) buildIconPreview.setImageURI(selectedAppIcon);
+        chooseIconButton.setOnClickListener(v -> iconPicker.launch(
+                new PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                        .build()));
         nameInput.setText(project.name);
         packageInput.setText(project.packageName);
         versionInput.setText(project.versionName);
@@ -280,12 +302,12 @@ public class EditorActivity extends AppCompatActivity {
                     options.orientation = orientation.getCheckedRadioButtonId() == R.id.orientationLandscape
                             ? "landscape" : "portrait";
                     options.description = "Приложение создано в LS Studio";
-                    startBuild(options);
+                    startBuild(options, selectedAppIcon);
                 })
                 .show();
     }
 
-    private void startBuild(ApkBuilder.Options options) {
+    private void startBuild(ApkBuilder.Options options, Uri iconUri) {
         View progress = LayoutInflater.from(this).inflate(R.layout.dialog_build_progress, null);
         final TextView stage = progress.findViewById(R.id.progressStage);
         final android.widget.ProgressBar bar = progress.findViewById(R.id.progressBar);
@@ -298,7 +320,7 @@ public class EditorActivity extends AppCompatActivity {
                 .create();
         dialog.show();
 
-        new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
+        new ApkBuildManager(this).build(project, options, iconUri, new ApkBuildManager.Callback() {
             @Override
             public void onStage(String text) {
                 runOnUiThread(() -> stage.setText(text));

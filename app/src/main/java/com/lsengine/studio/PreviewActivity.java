@@ -15,8 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.lsengine.engine.aot.AotRuntime;
-import com.lsengine.engine.lang.BytecodeFile;
-import com.lsengine.engine.lang.Chunk;
 import com.lsengine.engine.runtime.AotHost;
 import com.lsengine.engine.runtime.LsRuntime;
 import com.lsengine.studio.ui.LsSurfaceView;
@@ -27,14 +25,12 @@ import com.lsengine.studio.ui.LsSurfaceView;
  */
 public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host {
 
-    public static final String EXTRA_BYTECODE = "bytecode";
     /** Машинный код программы (ELF), если он собран AOT-компилятором. */
     public static final String EXTRA_AOT_LIBRARY = "aot_library";
     public static final String EXTRA_NAME = "name";
     public static final String EXTRA_PROJECT_ID = "project_id";
 
     private LsSurfaceView surface;
-    private LsRuntime runtime;
     private AotRuntime aotRuntime;
     private AotHost aotHost;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -44,7 +40,6 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
     private ToneGenerator tone;
     private int frames;
     private long lastFpsUpdate;
-    private byte[] bytecode;
 
     private final Runnable fpsTicker = new Runnable() {
         @Override
@@ -86,11 +81,6 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
             finish();
         });
 
-        bytecode = getIntent().getByteArrayExtra(EXTRA_BYTECODE);
-        if (bytecode == null) {
-            finish();
-            return;
-        }
         try {
             tone = new ToneGenerator(AudioManager.STREAM_MUSIC, 80);
         } catch (Exception ignored) {
@@ -103,30 +93,22 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
         errorCard.setVisibility(View.GONE);
         errorText.setText("");
         byte[] library = getIntent().getByteArrayExtra(EXTRA_AOT_LIBRARY);
-        if (library != null && library.length > 0 && AotRuntime.isAvailable()) {
-            startAot(library);
+        if (library == null || library.length == 0) {
+            showError("Не получен машинный код Android ARM64");
             return;
         }
-        runtime = new LsRuntime();
-        runtime.setSurface(surface);
-        runtime.setHost(this);
-        runtime.setAppInfo(getIntent().getStringExtra(EXTRA_NAME), "1.0");
-        runtime.setLogSink(this::log);
-        surface.setDriver(runtime);
-        try {
-            Chunk chunk = BytecodeFile.read(bytecode);
-            runtime.load(chunk);
-            surface.startRendering();
-        } catch (Exception e) {
-            showError(e.getMessage() == null ? e.toString() : e.getMessage());
+        if (!AotRuntime.isAvailable()) {
+            showError("Не загружен нативный рантайм ARM64 (liblsrt.so)");
+            return;
         }
+        startAot(library);
     }
 
     /** Запуск машинного кода: без байт-кода и без интерпретатора. */
     private void startAot(byte[] library) {
-        AotRuntime loaded = AotRuntime.load(library);
+        AotRuntime loaded = AotRuntime.load(library, getCodeCacheDir());
         if (loaded == null) {
-            showError("Не удалось загрузить машинный код программы");
+            showError("Не удалось загрузить машинный код Android ARM64: " + AotRuntime.lastError());
             return;
         }
         AotHost host = new AotHost(loaded);
@@ -145,9 +127,6 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
     }
 
     private void restart() {
-        if (runtime != null) {
-            runtime.stop();
-        }
         if (aotRuntime != null) {
             aotRuntime.close();
             aotRuntime = null;
@@ -204,9 +183,6 @@ public class PreviewActivity extends AppCompatActivity implements LsRuntime.Host
             aotRuntime = null;
         }
         super.onDestroy();
-        if (runtime != null) {
-            runtime.stop();
-        }
         if (tone != null) {
             tone.release();
         }
