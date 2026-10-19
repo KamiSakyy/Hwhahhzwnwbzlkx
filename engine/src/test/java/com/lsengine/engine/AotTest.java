@@ -110,6 +110,10 @@ public class AotTest {
         }
         write(new File(dir, "liblsapp.so"), elf);
 
+        // AArch64 Bionic is stricter than desktop glibc about ELF section
+        // alignment, especially .dynsym and .dynamic.
+        assertSectionAlignment(elf);
+
         // Библиотека не должна содержать символьной таблицы и отладочных секций:
         // декомпилировать такой машинный код заметно сложнее.
         List<String> sections = sectionNames(elf);
@@ -131,6 +135,7 @@ public class AotTest {
         assertEquals(183, arm[18] & 0xFF); // EM_AARCH64
         assertEquals(183, (arm[18] & 0xFF) | ((arm[19] & 0xFF) << 8));
         write(new File(dir, "liblsapp-arm64.so"), arm);
+        assertSectionAlignment(arm);
         assertFalse("в ARM64-библиотеке тоже нет символьной таблицы",
                 sectionNames(arm).contains(".symtab"));
         StringBuilder expected = new StringBuilder();
@@ -138,6 +143,21 @@ public class AotTest {
             expected.append(line).append('\n');
         }
         write(new File(dir, "expected.txt"), expected.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** Every ELF section's file offset and virtual address must honor sh_addralign. */
+    private static void assertSectionAlignment(byte[] elf) {
+        int shoff = (int) readLong(elf, 40);
+        int shentsize = (elf[58] & 0xFF) | ((elf[59] & 0xFF) << 8);
+        int shnum = (elf[60] & 0xFF) | ((elf[61] & 0xFF) << 8);
+        for (int i = 1; i < shnum; i++) {
+            int base = shoff + i * shentsize;
+            long address = readLong(elf, base + 16);
+            long offset = readLong(elf, base + 24);
+            long alignment = readLong(elf, base + 48);
+            assertTrue("section " + i + " has invalid sh_addralign " + alignment,
+                    alignment == 0 || (address % alignment == 0 && offset % alignment == 0));
+        }
     }
 
     /** Имена секций ELF-библиотеки. */

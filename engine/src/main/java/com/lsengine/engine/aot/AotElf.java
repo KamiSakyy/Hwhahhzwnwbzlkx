@@ -157,14 +157,18 @@ public final class AotElf {
         }
         byte[] dynstrBytes = dynstr.toString().getBytes(StandardCharsets.US_ASCII);
         int dynstrOffsetInSeg = align(dataSize, 8);
-        int dynsymOffsetInSeg = dynstrOffsetInSeg + dynstrBytes.length;
+        // ELF64 dynamic symbol records require 8-byte alignment. Some host
+        // linkers tolerate an unaligned table, but Android's linker validates it.
+        int dynsymOffsetInSeg = align(dynstrOffsetInSeg + dynstrBytes.length, 8);
         int dynsymSize = 24 * symbolNames.size();
         int hashOffsetInSeg = align(dynsymOffsetInSeg + dynsymSize, 8);
 
         int nbucket = 8;
         int nchain = symbolNames.size();
         int hashSize = 8 + nbucket * 4 + nchain * 4;
-        int dynamicOffsetInSeg = hashOffsetInSeg + hashSize;
+        // Each Elf64_Dyn entry is 8-byte aligned; Bionic rejects a misaligned
+        // PT_DYNAMIC/.dynamic even when a desktop glibc happens to load it.
+        int dynamicOffsetInSeg = align(hashOffsetInSeg + hashSize, 8);
         int dynamicSize = 8 * 16;
 
         int dataSegmentSize = align(dynamicOffsetInSeg + dynamicSize, 16);
