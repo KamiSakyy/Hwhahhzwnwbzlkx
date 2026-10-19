@@ -85,6 +85,34 @@ public class ApkPipelineTest {
         byte[] magic = "APK Sig Block 42".getBytes(StandardCharsets.US_ASCII);
         assertTrue("блок подписи должен присутствовать", indexOf(signed, magic) >= 0);
 
+        // APK v2 length-prefixes both the signers sequence and each signer, then
+        // the digest/signature sequences and their individual records.
+        int valueOffset = zip.centralDirectoryOffset + 20; // block sizes + v2 block ID
+        int signersSize = u32(signed, valueOffset);
+        int signersOffset = valueOffset + 4;
+        assertTrue(signersSize > 4 && signersOffset + signersSize <= signed.length);
+        int signerSize = u32(signed, signersOffset);
+        int signerOffset = signersOffset + 4;
+        assertEquals(signersSize - 4, signerSize);
+        int signedDataSize = u32(signed, signerOffset);
+        int signedDataOffset = signerOffset + 4;
+        int digestsSize = u32(signed, signedDataOffset);
+        int digestsOffset = signedDataOffset + 4;
+        assertEquals(digestsSize - 4, u32(signed, digestsOffset));
+        assertEquals(0x0103, u32(signed, digestsOffset + 4));
+        assertEquals(32, u32(signed, digestsOffset + 8)); // length-prefixed SHA-256 digest
+        int certificatesSizeOffset = signedDataOffset + 4 + digestsSize;
+        int certificatesSize = u32(signed, certificatesSizeOffset);
+        int attributesSizeOffset = certificatesSizeOffset + 4 + certificatesSize;
+        assertEquals(0, u32(signed, attributesSizeOffset));
+        assertEquals(signedDataSize, attributesSizeOffset + 4 + u32(signed, attributesSizeOffset) - signedDataOffset);
+        int signaturesSizeOffset = signedDataOffset + 4 + signedDataSize;
+        int signaturesSize = u32(signed, signaturesSizeOffset);
+        int signaturesOffset = signaturesSizeOffset + 4;
+        assertEquals(signaturesSize - 4, u32(signed, signaturesOffset));
+        assertEquals(0x0103, u32(signed, signaturesOffset + 4));
+        assertEquals(256, u32(signed, signaturesOffset + 8)); // length-prefixed RSA-2048 signature
+
         // после подписи архив остаётся читаемым
         int count = 0;
         try (ZipInputStream in = new ZipInputStream(new ByteArrayInputStream(signed))) {

@@ -51,10 +51,11 @@ public final class ApkSignerV2 {
         byte[] contentDigest = chunkedDigest(beforeCentralDir, centralDir, eocd);
 
         // --- signed data ---
+        ByteArrayOutputStream digestRecord = new ByteArrayOutputStream();
+        writeIntLE(digestRecord, ALGORITHM_RSA_PKCS1_SHA256);
+        writeLengthPrefixed(digestRecord, contentDigest);
         ByteArrayOutputStream digests = new ByteArrayOutputStream();
-        writeIntLE(digests, ALGORITHM_RSA_PKCS1_SHA256);
-        writeIntLE(digests, contentDigest.length);
-        digests.write(contentDigest, 0, contentDigest.length);
+        writeLengthPrefixed(digests, digestRecord.toByteArray());
 
         ByteArrayOutputStream certificates = new ByteArrayOutputStream();
         writeIntLE(certificates, certDer.length);
@@ -72,10 +73,11 @@ public final class ApkSignerV2 {
         signature.update(signedDataBytes);
         byte[] signatureBytes = signature.sign();
 
+        ByteArrayOutputStream signatureRecord = new ByteArrayOutputStream();
+        writeIntLE(signatureRecord, ALGORITHM_RSA_PKCS1_SHA256);
+        writeLengthPrefixed(signatureRecord, signatureBytes);
         ByteArrayOutputStream signatures = new ByteArrayOutputStream();
-        writeIntLE(signatures, ALGORITHM_RSA_PKCS1_SHA256);
-        writeIntLE(signatures, signatureBytes.length);
-        signatures.write(signatureBytes, 0, signatureBytes.length);
+        writeLengthPrefixed(signatures, signatureRecord.toByteArray());
 
         ByteArrayOutputStream signer = new ByteArrayOutputStream();
         writeLengthPrefixed(signer, signedDataBytes);
@@ -85,8 +87,10 @@ public final class ApkSignerV2 {
 
         ByteArrayOutputStream signersSequence = new ByteArrayOutputStream();
         writeLengthPrefixed(signersSequence, signerBytes);
+        ByteArrayOutputStream v2BlockValueStream = new ByteArrayOutputStream();
+        writeLengthPrefixed(v2BlockValueStream, signersSequence.toByteArray());
 
-        byte[] v2BlockValue = signersSequence.toByteArray();
+        byte[] v2BlockValue = v2BlockValueStream.toByteArray();
 
         // --- блок подписи ---
         ByteArrayOutputStream block = new ByteArrayOutputStream();
