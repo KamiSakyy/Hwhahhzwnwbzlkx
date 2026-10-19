@@ -13,7 +13,7 @@ pairs =	3
 list =	1	4	9
 concat =	abc
 bool =	true	true	true
-[Inferior 1 (process 4041) exited normally]
+[Inferior 1 (process 4022) exited normally]
 No stack.
 No registers.
 No registers.

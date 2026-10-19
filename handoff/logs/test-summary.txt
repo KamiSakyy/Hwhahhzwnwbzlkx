@@ -3,3 +3,4 @@ com.lsengine.engine.ApkPipelineTest                          tests=4 failures=0 
 com.lsengine.engine.BytecodeFileTest                         tests=3 failures=0 errors=0 skipped=0
 com.lsengine.engine.CodecTest                                tests=4 failures=0 errors=0 skipped=0
 com.lsengine.engine.LanguageTest                             tests=12 failures=0 errors=0 skipped=0
+com.lsengine.engine.aot.AotArm64EncodingTest                 tests=2 failures=0 errors=0 skipped=0
