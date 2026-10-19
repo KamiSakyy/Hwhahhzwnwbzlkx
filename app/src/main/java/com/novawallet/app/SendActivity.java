@@ -13,7 +13,7 @@ public class SendActivity extends Activity{ ExecutorService ex=Executors.newSing
     else if(token!=null)hash=Evm.sendErc20(Networks.current(this),Keys.evmPriv(this),token,to,amt,decimals);
     else hash=Evm.sendEth(Networks.current(this),Keys.evmPriv(this),to,amt);
     String link=mode.equals("btc")?"https://mempool.space/tx/"+hash:mode.equals("sol")?"https://solscan.io/tx/"+hash:Networks.current(this).explorer+"/tx/"+hash;
-    runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText("✅ Отправлено!\nХэш: "+hash+"\n"+link); done(); });
-   }catch(Exception e){ runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText("❌ "+e.getMessage()); done(); }); } }); }
+    runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText(" Отправлено!\nХэш: "+hash+"\n"+link); done(); });
+   }catch(Exception e){ runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText(" "+e.getMessage()); done(); }); } }); }
  void done(){ findViewById(R.id.prog).setVisibility(View.GONE); ((Button)findViewById(R.id.btnSend)).setEnabled(true); }
  void toast(String s){Toast.makeText(this,s,Toast.LENGTH_SHORT).show();} }

@@ -33,6 +33,8 @@ public class Evm{
  static int pad32(int len){return ((len+31)/32)*32;}
  static String padNum(BigInteger v){return String.format("%064x",v);}
  static String padBytes(byte[] b){ StringBuilder sb=new StringBuilder(Util.hex(b)); while(sb.length()<pad32(b.length)*2)sb.append("00"); return sb.toString(); }
+ public static String sendData(Networks.Net n,BigInteger priv,String to,byte[] data)throws Exception{ Web3j w=web3(n); Credentials c=creds(priv); RawTransactionManager m=new RawTransactionManager(w,c,n.chainId); String dataHex=org.web3j.utils.Numeric.toHexString(data); BigInteger gl=estimate(w,c.getAddress(),to,BigInteger.ZERO,dataHex); BigInteger min=BigInteger.valueOf(35000+16L*data.length); if(gl.compareTo(min)<0)gl=min;
+   RawTransaction rt=RawTransaction.createTransaction(null,gasPrice(w),gl,to,BigInteger.ZERO,dataHex); EthSendTransaction tx=m.signAndSend(rt); if(tx.hasError())throw new Exception(tx.getError().getMessage()); return tx.getTransactionHash(); }
  public static String nftBalance(Networks.Net n,String addr,String contract)throws Exception{ Function f=new Function("balanceOf",Arrays.asList(new Address(addr)),Arrays.asList(new TypeReference<Uint256>(){})); return callStr(n,addr,contract,f); }
  public static double priceUsd(String coingeckoId) { try{ String j=Http.get("https://api.coingecko.com/api/v3/simple/price?ids="+coingeckoId+"&vs_currencies=usd"); org.json.JSONObject o=new org.json.JSONObject(j).getJSONObject(coingeckoId); return o.optDouble("usd",0);}catch(Exception e){return 0;} }
 }
