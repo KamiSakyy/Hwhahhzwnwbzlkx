@@ -34,8 +34,8 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:javaPreCompileDebug
 > Task :engine:javaPreCompileDebugUnitTest
 > Task :engine:processDebugJavaRes NO-SOURCE
-> Task :engine:parseDebugLocalResources
 > Task :engine:processDebugUnitTestJavaRes
+> Task :engine:parseDebugLocalResources
 > Task :engine:generateDebugRFile
 > Task :engine:compileDebugJavaWithJavac
 > Task :engine:bundleLibCompileToJarDebug
@@ -43,7 +43,7 @@ Installing NDK (Side by side) 27.0.12077973 in /usr/local/lib/android/sdk/ndk/27
 > Task :engine:generateDebugUnitTestStubRFile
 > Task :engine:compileDebugUnitTestJavaWithJavac
 > Task :engine:testDebugUnitTest
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792402979766.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792403252566.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
