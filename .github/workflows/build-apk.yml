@@ -210,6 +210,7 @@ jobs:
             app/build/outputs/apk/release/app-release.apk
             apksigner-report.txt
             apk-contents.txt
+            build/apk-integration/LS-Android-ARM64-test.apk
           if-no-files-found: error
 
       - name: Сборка отчёта о сборке
@@ -267,3 +268,100 @@ jobs:
             sleep 5
           done
           echo "Логи не отправлены"
+
+  install-arm64:
+    name: Проверка установки и запуска APK на Android ARM64
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Скачать APK из сборки
+        uses: actions/download-artifact@v4
+        with:
+          name: ls-engine-apk
+          path: artifacts
+
+      - name: Установить JDK 17 для Android SDK tools
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Установить Android SDK и system image ARM64
+        uses: android-actions/setup-android@v3
+
+      - name: Создать ARM64 Android Virtual Device
+        run: |
+          set -euo pipefail
+          printf 'y\n%.0s' {1..20} | sdkmanager --licenses >/dev/null
+          sdkmanager --install \
+            "platform-tools" \
+            "emulator" \
+            "platforms;android-36" \
+            "system-images;android-36;google_apis;arm64-v8a"
+          echo no | avdmanager create avd --force --name ls-arm64-test \
+            --package "system-images;android-36;google_apis;arm64-v8a" --device pixel_6
+
+      - name: Загрузить ARM64 Android emulator
+        run: |
+          set -euo pipefail
+
+          nohup "$ANDROID_HOME/emulator/emulator" \
+            -avd ls-arm64-test -no-window -no-audio -no-boot-anim -no-snapshot \
+            -gpu swiftshader_indirect -accel off > emulator-arm64.log 2>&1 &
+          echo $! > emulator-arm64.pid
+          adb wait-for-device
+          booted=false
+          for attempt in $(seq 1 120); do
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\\r')" = "1" ]; then
+              booted=true
+              break
+            fi
+            if ! kill -0 "$(cat emulator-arm64.pid)" 2>/dev/null; then
+              cat emulator-arm64.log
+              exit 1
+            fi
+            sleep 5
+          done
+          if [ "$booted" != true ]; then
+            cat emulator-arm64.log
+            echo "Android ARM64 emulator did not finish booting"
+            exit 1
+          fi
+          adb shell getprop ro.product.cpu.abi | grep -Fx arm64-v8a
+          adb shell getprop ro.build.version.sdk | awk '$1 >= 26 { ok=1 } END { exit !ok }'
+
+      - name: Установить APK и запустить ARM64 AOT приложение
+        run: |
+          set -euo pipefail
+          apk=$(find artifacts -name 'LS-Android-ARM64-test.apk' -print -quit)
+          test -n "$apk"
+          adb install -r "$apk"
+          adb logcat -c
+          adb shell am start -W -n \
+            com.lsengine.integration/com.lsengine.runtime.RuntimeActivity
+          started=false
+          for attempt in $(seq 1 30); do
+            adb logcat -d -s LsRuntime:I AndroidRuntime:E > app-logcat.txt
+            if grep -Fq 'запуск машинного кода Android ARM64 из расшифрованного .c' app-logcat.txt; then
+              started=true
+              break
+            fi
+            sleep 2
+          done
+          cat app-logcat.txt
+          if [ "$started" != true ]; then
+            echo "Runtime did not report successful ARM64 AOT startup"
+            exit 1
+          fi
+          adb shell pidof com.lsengine.integration
+
+      - name: Сохранить лог Android ARM64 emulator
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-arm64-install-test
+          path: |
+            emulator-arm64.log
+            app-logcat.txt
+          if-no-files-found: ignore
