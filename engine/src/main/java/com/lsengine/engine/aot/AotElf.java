@@ -342,6 +342,7 @@ public final class AotElf {
         u64(out, 10);           // DT_STRSZ
         u64(out, dynstrBytes.length);
         u64(out, 11);           // DT_SYMENT
+        u64(out, 24);           // sizeof(Elf64_Sym)
         u64(out, 14);           // DT_SONAME
         u64(out, dynstrAddr + sonameOffset);
         u64(out, 24);           // DT_DEBUG

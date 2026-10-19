@@ -114,6 +114,7 @@ public class AotTest {
         // alignment, especially .dynsym and .dynamic.
         assertSectionAlignment(elf);
         assertProgramHeadersMapped(elf);
+        assertDynamicSymbolEntrySize(elf);
 
         // Библиотека не должна содержать символьной таблицы и отладочных секций:
         // декомпилировать такой машинный код заметно сложнее.
@@ -138,6 +139,7 @@ public class AotTest {
         write(new File(dir, "liblsapp-arm64.so"), arm);
         assertSectionAlignment(arm);
         assertProgramHeadersMapped(arm);
+        assertDynamicSymbolEntrySize(arm);
         assertFalse("в ARM64-библиотеке тоже нет символьной таблицы",
                 sectionNames(arm).contains(".symtab"));
         StringBuilder expected = new StringBuilder();
@@ -145,6 +147,34 @@ public class AotTest {
             expected.append(line).append('\n');
         }
         write(new File(dir, "expected.txt"), expected.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** DT_SYMENT must describe the 24-byte ELF64 symbol records. */
+    private static void assertDynamicSymbolEntrySize(byte[] elf) {
+        long phoff = readLong(elf, 32);
+        int phentsize = (elf[54] & 0xFF) | ((elf[55] & 0xFF) << 8);
+        int phnum = (elf[56] & 0xFF) | ((elf[57] & 0xFF) << 8);
+        boolean found = false;
+        for (int i = 0; i < phnum; i++) {
+            int base = (int) phoff + i * phentsize;
+            if (readInt(elf, base) != 2) { // PT_DYNAMIC
+                continue;
+            }
+            long offset = readLong(elf, base + 8);
+            long size = readLong(elf, base + 32);
+            for (long pos = offset; pos + 16 <= offset + size; pos += 16) {
+                long tag = readLong(elf, (int) pos);
+                long value = readLong(elf, (int) pos + 8);
+                if (tag == 11) { // DT_SYMENT
+                    assertEquals("DT_SYMENT must be sizeof(Elf64_Sym)", 24L, value);
+                    found = true;
+                }
+                if (tag == 0) { // DT_NULL
+                    break;
+                }
+            }
+        }
+        assertTrue("ELF must declare DT_SYMENT", found);
     }
 
     /** Every ELF section's file offset and virtual address must honor sh_addralign. */
