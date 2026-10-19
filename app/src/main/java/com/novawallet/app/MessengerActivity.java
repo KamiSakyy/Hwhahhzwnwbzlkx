@@ -68,6 +68,9 @@ public class MessengerActivity extends Activity{
  void fillPayload(Msg m,String rawHex){ try{ String payload=new String(Util.hex(rawHex.substring(2+PREFIX_HEX.length())),StandardCharsets.UTF_8);
    if(payload.startsWith("MED1|")){ String[] parts=payload.split("\\|",4); m.kind="media"; m.mime=parts.length>1?parts[1]:"bin"; m.b64=parts.length>2?parts[2]:""; m.txt=label(m.mime); }
    else { m.kind="text"; m.txt=payload; } }catch(Exception ignored){} }
+ void renderFromCache(){ try{ String raw=Store.pub(this).getString("chats_cache",""); if(raw.isEmpty())return; JSONArray a=new JSONArray(raw); List<Msg> msgs=new ArrayList<>();
+   for(int i=0;i<a.length();i++){ JSONObject c=a.getJSONObject(i); Msg m=new Msg(); m.peer=c.optString("p"); m.out=c.optBoolean("o"); m.txt=c.optString("x"); m.ts=c.optString("ts"); m.hash=c.optString("h"); m.kind=c.optString("k","text"); m.mime=c.optString("mi",""); if(m.kind.equals("media")&&m.txt.isEmpty())m.txt=label(m.mime.isEmpty()?"bin":m.mime); try{m.value=new BigDecimal(c.optString("v","0"));}catch(Exception ignored){} msgs.add(m); }
+   all=msgs; renderChats(); }catch(Exception ignored){} }
  String label(String mime){ if(mime!=null&&mime.startsWith("image"))return "Фотография"; if(mime!=null&&mime.startsWith("video"))return "Видео"; if(mime!=null&&mime.startsWith("audio"))return "Голосовое сообщение"; return "Файл"; }
  Msg parse(JSONObject tx){ try{ String raw=tx.optString("raw_input",""); if(raw.isEmpty())raw=tx.optString("input",""); if(raw==null||!raw.toLowerCase().startsWith("0x"+PREFIX_HEX))return null;
    String from=tx.optJSONObject("from")!=null?tx.optJSONObject("from").optString("hash",tx.optString("from","")):tx.optString("from",""); String to=tx.optJSONObject("to")!=null?tx.optJSONObject("to").optString("hash",""):tx.optString("to","");
