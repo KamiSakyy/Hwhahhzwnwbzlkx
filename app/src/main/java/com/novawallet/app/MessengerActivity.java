@@ -68,6 +68,7 @@ public class MessengerActivity extends Activity{
  void fillPayload(Msg m,String rawHex){ try{ String payload=new String(Util.hex(rawHex.substring(2+PREFIX_HEX.length())),StandardCharsets.UTF_8);
    if(payload.startsWith("MED1|")){ String[] parts=payload.split("\\|",4); m.kind="media"; m.mime=parts.length>1?parts[1]:"bin"; m.b64=parts.length>2?parts[2]:""; m.txt=label(m.mime); }
    else { m.kind="text"; m.txt=payload; } }catch(Exception ignored){} }
+ String label(String mime){ if(mime!=null&&mime.startsWith("image"))return "Фотография"; if(mime!=null&&mime.startsWith("video"))return "Видео"; if(mime!=null&&mime.startsWith("audio"))return "Голосовое сообщение"; return "Файл"; }
  Msg parse(JSONObject tx){ try{ String raw=tx.optString("raw_input",""); if(raw.isEmpty())raw=tx.optString("input",""); if(raw==null||!raw.toLowerCase().startsWith("0x"+PREFIX_HEX))return null;
    String from=tx.optJSONObject("from")!=null?tx.optJSONObject("from").optString("hash",tx.optString("from","")):tx.optString("from",""); String to=tx.optJSONObject("to")!=null?tx.optJSONObject("to").optString("hash",""):tx.optString("to","");
    // Blockscout object form vs RPC string form
