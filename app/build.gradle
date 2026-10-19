@@ -12,7 +12,7 @@ tasks.register('copyRuntimeApk', Copy) {
     from("${rootDir}/runtime/build/outputs/apk/release/runtime-release-unsigned.apk") {
         rename { 'shell.apk' }
     }
-    into(runtimeApkProvider.dir('runtime'))
+    into(layout.buildDirectory.dir('generated/runtimeAssets/runtime'))
 }
 
 android {
