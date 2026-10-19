@@ -308,12 +308,6 @@ jobs:
       - name: Создать ARM64 Android Virtual Device
         run: |
           set -euo pipefail
-          printf 'y\n%.0s' {1..20} | sdkmanager --licenses >/dev/null
-          sdkmanager --install \
-            "platform-tools" \
-            "emulator" \
-            "platforms;android-36" \
-            "system-images;android-36;google_apis;arm64-v8a"
           echo no | avdmanager create avd --force --name ls-arm64-test \
             --package "system-images;android-36;google_apis;arm64-v8a" --device pixel_6
 
@@ -328,9 +322,21 @@ jobs:
             done < <(tail -n 25 emulator-arm64.log)
           }
 
-          "$SDK_ROOT/emulator/emulator" -version
-          nohup "$SDK_ROOT/emulator/emulator" \\
-            -avd ls-arm64-test -no-window -no-audio -no-boot-anim -no-snapshot \\
+          EMULATOR="$SDK_ROOT/emulator/emulator"
+          export PATH="$SDK_ROOT/platform-tools:$SDK_ROOT/emulator:$PATH"
+          echo "Android SDK root: $SDK_ROOT"
+          ls -la "$SDK_ROOT/emulator" "$SDK_ROOT/platform-tools" || true
+          if [ ! -x "$EMULATOR" ]; then
+            echo "::error title=Android ARM64 emulator::Missing executable: $EMULATOR"
+            find "$SDK_ROOT" -maxdepth 4 -iname '*emulator*' -print | head -n 30
+            exit 1
+          fi
+          if ! "$EMULATOR" -version; then
+            report_emulator_failure
+            exit 1
+          fi
+          nohup "$EMULATOR" \
+            -avd ls-arm64-test -no-window -no-audio -no-boot-anim -no-snapshot \
             -verbose -show-kernel -gpu swiftshader_indirect -accel off > emulator-arm64.log 2>&1 &
           echo $! > emulator-arm64.pid
           sleep 10
