@@ -2,8 +2,8 @@ To honour the JVM settings for this build a single-use Daemon process will be fo
 Daemon will be stopped at the end of the build 
 > Task :runtime:preBuild UP-TO-DATE
 > Task :engine:preBuild UP-TO-DATE
-> Task :runtime:preReleaseBuild UP-TO-DATE
 > Task :engine:preReleaseBuild UP-TO-DATE
+> Task :runtime:preReleaseBuild UP-TO-DATE
 > Task :engine:checkReleaseAarMetadata
 > Task :engine:mergeReleaseJniLibFolders
 > Task :engine:mergeReleaseNativeLibs NO-SOURCE
@@ -47,12 +47,12 @@ C/C++: 1 warning generated.
 > Task :runtime:extractDeepLinksRelease
 > Task :runtime:desugarReleaseFileDependencies
 > Task :runtime:mergeReleaseStartupProfile
+> Task :runtime:parseReleaseLocalResources
+> Task :runtime:mergeExtDexRelease
 > Task :runtime:mergeReleaseResources
 > Task :runtime:mergeReleaseShaders
 > Task :runtime:compileReleaseShaders NO-SOURCE
 > Task :runtime:generateReleaseAssets UP-TO-DATE
-> Task :runtime:mergeExtDexRelease
-> Task :runtime:parseReleaseLocalResources
 > Task :runtime:extractReleaseVersionControlInfo
 > Task :runtime:extractProguardFiles
 > Task :runtime:processReleaseJavaRes NO-SOURCE
@@ -77,40 +77,40 @@ C/C++: 1 warning generated.
 > Task :engine:processReleaseJavaRes NO-SOURCE
 > Task :engine:writeReleaseAarMetadata
 > Task :engine:mapReleaseSourceSetPaths
-> Task :engine:mergeReleaseResources
-> Task :engine:copyReleaseJniLibsProjectOnly
-> Task :runtime:mergeReleaseJavaResource
-> Task :engine:mergeReleaseJavaResource
-> Task :runtime:mergeReleaseNativeLibs
 > Task :engine:processReleaseManifest
-> Task :engine:bundleLibRuntimeToDirRelease
+> Task :engine:mergeReleaseResources
 > Task :runtime:checkReleaseAarMetadata
-> Task :runtime:stripReleaseDebugSymbols
+> Task :engine:mergeReleaseJavaResource
+> Task :runtime:mergeReleaseJavaResource
 > Task :engine:syncReleaseLibJars
 > Task :engine:bundleReleaseAar
-> Task :runtime:extractReleaseNativeSymbolTables
-> Task :runtime:mergeReleaseNativeDebugMetadata
-> Task :engine:bundleLibCompileToJarRelease
-> Task :engine:compileReleaseLibraryResources
-> Task :engine:extractDeepLinksRelease
-> Task :runtime:processReleaseMainManifest
-> Task :runtime:processReleaseManifest
-> Task :runtime:processReleaseManifestForPackage
+> Task :engine:copyReleaseJniLibsProjectOnly
 > Task :engine:verifyReleaseResources
 > Task :engine:assembleRelease
+> Task :engine:compileReleaseLibraryResources
+> Task :engine:extractDeepLinksRelease
+> Task :engine:bundleLibCompileToJarRelease
 > Task :engine:bundleLibRuntimeToJarRelease
+> Task :runtime:mergeReleaseNativeLibs
+> Task :engine:extractProguardFiles
+> Task :engine:bundleLibRuntimeToDirRelease
+> Task :runtime:processReleaseMainManifest
+> Task :runtime:stripReleaseDebugSymbols
+> Task :runtime:extractReleaseNativeSymbolTables
+> Task :runtime:mergeReleaseNativeDebugMetadata
+> Task :runtime:processReleaseManifest
+> Task :runtime:processReleaseManifestForPackage
 > Task :runtime:processReleaseResources
+> Task :engine:generateReleaseLintVitalModel
 > Task :runtime:compileReleaseJavaWithJavac
 > Task :runtime:dexBuilderRelease
-> Task :engine:extractProguardFiles
-> Task :engine:generateReleaseLintVitalModel
-> Task :runtime:mergeReleaseGlobalSynthetics
 > Task :engine:createFullJarRelease
+> Task :runtime:mergeReleaseGlobalSynthetics
 > Task :engine:generateReleaseLintModel
-> Task :runtime:generateReleaseLintVitalReportModel
 > Task :engine:bundleReleaseLocalLintAar
-> Task :engine:writeReleaseLintModelMetadata
+> Task :runtime:generateReleaseLintVitalReportModel
 > Task :runtime:optimizeReleaseResources
+> Task :engine:writeReleaseLintModelMetadata
 > Task :runtime:mergeDexRelease
 > Task :runtime:compileReleaseArtProfile
 > Task :engine:lintVitalAnalyzeRelease
@@ -139,8 +139,8 @@ C/C++: 1 warning generated.
 > Task :app:checkReleaseDuplicateClasses
 > Task :app:stripReleaseDebugSymbols
 > Task :app:checkReleaseAarMetadata
-> Task :app:processReleaseNavigationResources
 > Task :app:extractReleaseNativeSymbolTables
+> Task :app:processReleaseNavigationResources
 > Task :app:compileReleaseNavigationResources FROM-CACHE
 > Task :app:generateReleaseResValues FROM-CACHE
 > Task :app:mergeReleaseNativeDebugMetadata
@@ -152,10 +152,10 @@ C/C++: 1 warning generated.
 > Task :app:parseReleaseLocalResources
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
+> Task :app:processReleaseManifestForPackage
 > Task :app:desugarReleaseFileDependencies FROM-CACHE
 > Task :app:mergeReleaseStartupProfile
 > Task :app:mergeReleaseResources
-> Task :app:processReleaseManifestForPackage
 > Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
@@ -167,8 +167,8 @@ C/C++: 1 warning generated.
 > Task :app:compressReleaseAssets
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
-> Task :app:processReleaseResources
 > Task :app:mergeReleaseJavaResource
+> Task :app:processReleaseResources
 > Task :app:validateSigningRelease
 > Task :app:mergeExtDexRelease
 > Task :app:compileReleaseJavaWithJavac
@@ -179,14 +179,14 @@ C/C++: 1 warning generated.
 > Task :app:writeReleaseSigningConfigVersions
 > Task :app:optimizeReleaseResources
 > Task :app:mergeDexRelease
-> Task :app:compileReleaseArtProfile
 > Task :app:lintVitalAnalyzeRelease
 > Task :app:lintVitalReportRelease
 > Task :app:lintVitalRelease
+> Task :app:compileReleaseArtProfile
 > Task :app:packageRelease
 > Task :app:createReleaseApkListingFileRedirect
 > Task :app:assembleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_7-1792403321512.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_7-1792403699161.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
@@ -196,5 +196,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 58s
+BUILD SUCCESSFUL in 1m 16s
 142 actionable tasks: 128 executed, 14 from cache
