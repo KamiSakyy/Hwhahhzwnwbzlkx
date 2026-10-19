@@ -196,10 +196,11 @@ public final class AotArm64 extends AotBackend {
     @Override
     public void movImm(int reg, long value) {
         int r = reg(reg);
-        u32(0xD2800000 | (((int) value & 0xFFFF) << 5) | r);
-        u32(0xF2800000 | ((((int) (value >>> 16)) & 0xFFFF) << 5) | r);
-        u32(0xF2800000 | ((((int) (value >>> 32)) & 0xFFFF) << 5) | r);
-        u32(0xF2800000 | ((((int) (value >>> 48)) & 0xFFFF) << 5) | r);
+        u32(0xD2800000 | (((int) value & 0xFFFF) << 5) | r); // MOVZ LSL #0
+        for (int half = 1; half < 4; half++) {
+            int imm16 = (int) ((value >>> (half * 16)) & 0xFFFF);
+            u32(0xF2800000 | (half << 21) | (imm16 << 5) | r); // MOVK LSL #16/#32/#48
+        }
     }
 
     @Override
@@ -312,24 +313,36 @@ public final class AotArm64 extends AotBackend {
      * Возвращает {N, immr, imms} либо null, если константа не подходит.
      */
     static int[] encodeBitMask(long value) {
-        int ones = Long.bitCount(value);
-        if (ones == 0) {
-            return null;
+        if (value == 0 || value == -1L) {
+            return null; // AND/OR с такими масками кодируется отдельным путём.
         }
-        if (ones == 64) {
-            return new int[]{1, 0, 63};   // все единицы
+        // Ищем все допустимые элементы 2, 4, 8, 16, 32 или 64 бита,
+        // состоящие из непрерывной серии единиц, повёрнутой вправо, и
+        // повторённые до 64 бит. Это также надёжно обрабатывает wrap-around.
+        for (int elementSize = 2; elementSize <= 64; elementSize <<= 1) {
+            long elementMask = elementSize == 64 ? -1L : (1L << elementSize) - 1;
+            for (int ones = 1; ones < elementSize; ones++) {
+                long run = (1L << ones) - 1;
+                for (int rotate = 0; rotate < elementSize; rotate++) {
+                    long rotated;
+                    if (rotate == 0) {
+                        rotated = run;
+                    } else {
+                        rotated = ((run >>> rotate) | (run << (elementSize - rotate))) & elementMask;
+                    }
+                    long repeated = 0;
+                    for (int bit = 0; bit < 64; bit += elementSize) {
+                        repeated |= rotated << bit;
+                    }
+                    if (repeated == value) {
+                        int n = elementSize == 64 ? 1 : 0;
+                        int imms = ((~(elementSize * 2 - 1)) & 0x3F) | (ones - 1);
+                        return new int[]{n, rotate, imms};
+                    }
+                }
+            }
         }
-        int lowest = Long.numberOfTrailingZeros(value);
-        int highest = 63 - Long.numberOfLeadingZeros(value);
-        int start;
-        if (highest - lowest + 1 == ones) {
-            start = lowest;
-        } else {
-            // Единицы «переходят» через границу 64 бита.
-            start = (highest - ones + 1) & 63;
-        }
-        int immr = (64 - ones - start) & 63;
-        return new int[]{1, immr, ones - 1};
+        return null;
     }
 
     @Override
@@ -347,8 +360,8 @@ public final class AotArm64 extends AotBackend {
 
     @Override
     public void shiftRightImm(int reg, int bits) {
-        // lsr xd, xn, #bits
-        insn(0xD3400000 | (bits << 16) | (reg(reg) << 5) | reg(reg));
+        // lsr xd, xn, #bits == ubfm xd, xn, #bits, #63
+        insn(0xD340FC00 | (bits << 16) | (reg(reg) << 5) | reg(reg));
     }
 
     @Override
@@ -386,7 +399,7 @@ public final class AotArm64 extends AotBackend {
     @Override
     public void intToDouble(int dreg, int reg) {
         // fmov dd, xn
-        insn(0x9E660000 | (reg(reg) << 5) | fp(dreg));
+        insn(0x9E670000 | (reg(reg) << 5) | fp(dreg));
     }
 
     @Override
@@ -415,8 +428,8 @@ public final class AotArm64 extends AotBackend {
 
     @Override
     public void compareDouble(int a, int b) {
-        // fcmp dn, dm (сравнение с нулём при Rn = 31)
-        insn(0x1E602000 | (fp(b) << 16) | (XZR << 5));
+        // fcmp dn, dm
+        insn(0x1E602000 | (fp(b) << 16) | (fp(a) << 5));
     }
 
     // ---------------- вызовы ----------------
