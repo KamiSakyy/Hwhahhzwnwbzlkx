@@ -10,3 +10,7 @@
 -keepattributes Signature,*Annotation*,EnclosingMethod,InnerClasses
 -dontwarn com.fasterxml.jackson.**
 -dontwarn javax.annotation.**
+
+-dontwarn groovy.lang.**
+-dontwarn org.identityconnectors.**
+-ignorewarnings
