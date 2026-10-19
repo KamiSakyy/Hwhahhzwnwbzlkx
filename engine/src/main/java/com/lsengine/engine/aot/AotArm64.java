@@ -77,6 +77,9 @@ public final class AotArm64 extends AotBackend {
         insn(0xA9800000 | ((-2 & 0x7F) << 15) | (X20 << 10) | (SPX << 5) | X19);
         // stp x21, xzr, [sp, #-16]!
         insn(0xA9800000 | ((-2 & 0x7F) << 15) | (XZR << 10) | (SPX << 5) | X21);
+        // Выравниваем frameBase=-48: callBase должен совпасть с SP,
+        // иначе argc/closure окажутся ниже SP и могут быть затёрты прологом C API.
+        insn(0xD10043FF); // sub sp, sp, #16
         // sub sp, sp, #frameSize
         if (frameSize <= 4095) {
             insn(0xD10003FF | (frameSize << 10));
@@ -95,6 +98,7 @@ public final class AotArm64 extends AotBackend {
             movImm(TMP, currentFrameSize);
             insn(0x8B0003E3 | (TMP << 16) | (SPX << 5) | SPX);
         }
+        insn(0x910043FF); // add sp, sp, #16 — снять frameBase padding
         // ldp x21, xzr, [sp], #16
         insn(0xA8C10000 | ((2 & 0x7F) << 15) | (XZR << 10) | (SPX << 5) | X21);
         // ldp x19, x20, [sp], #16

@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public final class AotArm64EncodingTest {
 
@@ -29,6 +30,23 @@ public final class AotArm64EncodingTest {
         assertEquals(0xF2AAACC0, word(code, 4));  // movk x0, #0x5566, lsl #16
         assertEquals(0xF2C66880, word(code, 8));  // movk x0, #0x3344, lsl #32
         assertEquals(0xF2E22440, word(code, 12)); // movk x0, #0x1122, lsl #48
+    }
+
+    @Test
+    public void prologueAndEpilogueReserveApiCallAreaBelowStackPointer() {
+        AotArm64 backend = new AotArm64();
+        backend.prologue(64);
+        backend.epilogue();
+        byte[] code = backend.code();
+        boolean subtractPadding = false;
+        boolean restorePadding = false;
+        for (int i = 0; i < code.length; i += 4) {
+            int instruction = word(code, i);
+            subtractPadding |= instruction == 0xD10043FF; // sub sp, sp, #16
+            restorePadding |= instruction == 0x910043FF;   // add sp, sp, #16
+        }
+        assertTrue("пролог должен выделить слот вызова", subtractPadding);
+        assertTrue("эпилог должен освободить слот вызова", restorePadding);
     }
 
     private static int word(byte[] bytes, int offset) {
