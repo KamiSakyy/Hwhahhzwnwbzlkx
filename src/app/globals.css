@@ -1,0 +1,275 @@
+@import "tailwindcss";
+
+:root {
+  --dyn-acc: #a8e62e;
+  --dyn-acc2: #c6f766;
+  --dyn-accink: #131a04;
+  --dyn-panel-alpha: 0.88;
+  --dyn-font-scale: 1;
+  --dyn-radius: 14px;
+}
+
+@theme {
+  --color-ink: #06080b;
+  --color-panel: #0b0e13;
+  --color-panel2: #10151c;
+  --color-panel3: #151b24;
+  --color-line: #1a212b;
+  --color-line2: #27313e;
+  --color-fg: #e9edf2;
+  --color-sub: #8b95a2;
+  --color-dim: #5a6470;
+  --color-acc: var(--dyn-acc);
+  --color-acc2: var(--dyn-acc2);
+  --color-accink: var(--dyn-accink);
+  --color-ok: #3fd68c;
+  --color-bad: #ff5d5d;
+  --color-warn: #f0b34e;
+  --color-info: #4fd8e8;
+}
+
+@theme inline {
+  /* Hermetic font stacks: zero network/build-time font fetching.
+     Guarantees the production build never depends on Google Fonts and
+     renders instantly on Android devices. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+html,
+body {
+  height: 100%;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  font-size: calc(16px * var(--dyn-font-scale));
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body[data-font="inter"] {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.011em;
+}
+body[data-font="mono"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+body[data-font="serif"] {
+  font-family: Georgia, "Times New Roman", serif;
+}
+body[data-font="system"] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--dyn-acc) 32%, transparent);
+  color: #ffffff;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #232b36 transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #232b36;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2e3946;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Custom Range Sliders (Полоски настройки) */
+input[type="range"].obsidian-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--dyn-acc) 0%, #1f2835 100%);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"].obsidian-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--dyn-acc);
+  border: 2px solid #06080b;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--dyn-acc) 70%, transparent);
+  transition: transform 0.15s ease;
+}
+input[type="range"].obsidian-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type="range"].obsidian-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--dyn-acc);
+  border: 2px solid #06080b;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--dyn-acc) 70%, transparent);
+}
+
+/* Glassmorphic dynamic card surface */
+.glass-panel {
+  background-color: color-mix(in srgb, #0b0e13 calc(var(--dyn-panel-alpha) * 100%), transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--dyn-radius);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale3d(0.96, 0.96, 1) translate3d(0, 4px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -420px 0;
+  }
+  100% {
+    background-position: 420px 0;
+  }
+}
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes rec-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 93, 93, 0.55);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 10px rgba(255, 93, 93, 0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+.animate-fade-in {
+  animation: fade-in 0.18s ease both;
+}
+.animate-scale-in {
+  animation: scale-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+.animate-pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+.animate-rec {
+  animation: rec-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #10151c 25%, #161d27 37%, #10151c 63%);
+  background-size: 420px 100%;
+  animation: shimmer 1.3s infinite linear;
+}
+
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--dyn-acc) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.safe-pb {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth horizontal scroll container */
+.horizontal-scroll-touch {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+.horizontal-scroll-touch > * {
+  scroll-snap-align: start;
+}
+
+/* Minimal subtle neon glow */
+.glow-acc {
+  box-shadow: 0 0 20px -4px color-mix(in srgb, var(--dyn-acc) 45%, transparent);
+}
+.glow-acc-sm {
+  box-shadow: 0 0 10px -2px color-mix(in srgb, var(--dyn-acc) 35%, transparent);
+}

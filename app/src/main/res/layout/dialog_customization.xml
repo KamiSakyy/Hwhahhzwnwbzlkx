@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="24dp">
+
+    <!-- Размер текста сообщений -->
+    <TextView
+        android:id="@+id/customization_text_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/customization_text_size"
+        android:textColor="@color/tsuyu_white"
+        android:textSize="15sp" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/customization_text_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/customization_text_size"
+        android:stepSize="1"
+        android:value="15"
+        android:valueFrom="12"
+        android:valueTo="22"
+        app:labelBehavior="floating"
+        app:thumbColor="@color/tsuyu_green"
+        app:trackColorActive="@color/tsuyu_green"
+        app:trackColorInactive="@color/tsuyu_border" />
+
+    <!-- Размер иконок и аватаров -->
+    <TextView
+        android:id="@+id/customization_icon_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/customization_icon_size"
+        android:textColor="@color/tsuyu_white"
+        android:textSize="15sp" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/customization_icon_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/customization_icon_size"
+        android:stepSize="2"
+        android:value="54"
+        android:valueFrom="40"
+        android:valueTo="64"
+        app:labelBehavior="floating"
+        app:thumbColor="@color/tsuyu_green"
+        app:trackColorActive="@color/tsuyu_green"
+        app:trackColorInactive="@color/tsuyu_border" />
+
+    <!-- Размер медиа в чате -->
+    <TextView
+        android:id="@+id/customization_media_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/customization_media_size"
+        android:textColor="@color/tsuyu_white"
+        android:textSize="15sp" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/customization_media_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/customization_media_size"
+        android:stepSize="5"
+        android:value="100"
+        android:valueFrom="60"
+        android:valueTo="100"
+        app:labelBehavior="floating"
+        app:thumbColor="@color/tsuyu_green"
+        app:trackColorActive="@color/tsuyu_green"
+        app:trackColorInactive="@color/tsuyu_border" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hairline"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/tsuyu_border" />
+
+    <!-- Переключатели шрифта -->
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/customization_bold"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/customization_bold"
+        android:textColor="@color/tsuyu_white"
+        app:buttonTint="@color/tsuyu_green" />
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/customization_italic"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:fontFamily="sans-serif"
+        android:text="@string/customization_italic"
+        android:textColor="@color/tsuyu_white"
+        app:buttonTint="@color/tsuyu_green" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/customization_send_dark"
+        style="@style/Widget.Tsuyu.DrawerSwitch"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:fontFamily="sans-serif"
+        android:text="@string/customization_send_dark"
+        android:textColor="@color/tsuyu_white" />
+
+    <!-- Кнопка обоев -->
+    <LinearLayout
+        android:id="@+id/customization_wallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_sheet_item"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription=""
+            android:src="@drawable/ic_photo"
+            app:tint="@color/tsuyu_green" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/customization_wallpaper"
+            android:textColor="@color/tsuyu_white"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription=""
+            android:src="@drawable/ic_chevron_right"
+            app:tint="@color/tsuyu_secondary" />
+    </LinearLayout>
+</LinearLayout>
