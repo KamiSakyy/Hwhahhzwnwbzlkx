@@ -24,29 +24,57 @@ public class MessengerActivity extends Activity{
   findViewById(R.id.btnVoice).setOnClickListener(v->voice());
   String p=getIntent().getStringExtra("peer"); if(p!=null&&valid(p)){ ((EditText)findViewById(R.id.etPeer)).setText(p); openChat(p); }
   // автообновление переписки каждые 15 секунд пока экран открыт
-  android.os.Handler h=new android.os.Handler(android.os.Looper.getMainLooper()); Runnable[] r=new Runnable[1]; r[0]=()->{ loadAll(); h.postDelayed(r[0],15000); }; h.postDelayed(r[0],15000); }
+  refreshH=new android.os.Handler(android.os.Looper.getMainLooper()); refreshR=()->{ loadAll(); refreshH.postDelayed(refreshR,15000); }; refreshH.postDelayed(refreshR,15000); }
+ android.os.Handler refreshH; Runnable refreshR;
+ protected void onDestroy(){ super.onDestroy(); if(refreshH!=null&&refreshR!=null)refreshH.removeCallbacks(refreshR); if(player!=null)player.release(); }
  String peerInput(){ return ((EditText)findViewById(R.id.etPeer)).getText().toString().trim(); }
  boolean valid(String p){ return p!=null&&p.startsWith("0x")&&p.length()==42; }
- // ---------- загрузка и кэш ----------
- void loadAll(){ ex.execute(()->{ try{ String resp=Http.get("https://eth-sepolia.blockscout.com/api/v2/addresses/"+me()+"/transactions?page_size=100"); JSONObject root=new JSONObject(resp); JSONArray items=root.optJSONArray("items"); if(items==null)throw new Exception("Blockscout не вернул данные");
-   List<Msg> msgs=new ArrayList<>(); JSONArray cache=new JSONArray();
-   for(int i=0;i<items.length();i++){ Msg m=parse(items.getJSONObject(i)); if(m==null)continue; msgs.add(m);
-     if(!m.kind.equals("media")){ JSONObject c=new JSONObject(); c.put("p",m.peer); c.put("o",m.out); c.put("x",m.txt); c.put("ts",m.ts); c.put("h",m.hash); c.put("v",m.value.toPlainString()); cache.put(c); } }
-   Collections.reverse(msgs); all=msgs; Store.pub(this).edit().putString("chats_cache",cache.toString()).apply();
+ // ---------- загрузка: 1) Blockscout 2) прямое сканирование блоков RPC (без сервера) ----------
+ volatile boolean syncing=false;
+ void loadAll(){ if(syncing)return; syncing=true; ex.execute(()->{ java.util.Set<String> seen=new java.util.HashSet<>(); List<Msg> merged=new ArrayList<>();
+   // источник 1: Blockscout (история), с догрузкой деталей, если нет raw_input
+   try{ String resp=Http.get("https://eth-sepolia.blockscout.com/api/v2/addresses/"+me()+"/transactions?page_size=100"); JSONObject root=new JSONObject(resp); JSONArray items=root.optJSONArray("items");
+     if(items!=null)for(int i=0;i<items.length();i++){ JSONObject tx=items.getJSONObject(i); String raw=tx.optString("raw_input",""); if(raw.isEmpty())raw=tx.optString("input","");
+       if(raw.isEmpty()&&i<30){ try{ JSONObject d=new JSONObject(Http.get("https://eth-sepolia.blockscout.com/api/v2/transactions/"+tx.optString("hash"))); String dr=d.optString("raw_input",""); if(!dr.isEmpty())tx.put("raw_input",dr); }catch(Exception ignored){} }
+       Msg m=parse(tx); if(m!=null&&seen.add(m.hash)){ merged.add(m); } }
+   }catch(Exception ignored){}
+   // источник 2: прямое сканирование блоков через публичные RPC (не зависит от индексаторов)
+   try{ scanBlocks(merged,seen); }catch(Exception ignored){}
+   Collections.sort(merged,(a,b)->a.ts.compareTo(b.ts)); all=merged; saveCache();
+   syncing=false;
    runOnUiThread(()->{ renderChats(); if(currentPeer!=null)renderChat(); status.setText("Обновлено · ваш адрес: "+me()); });
-  }catch(Exception e){ runOnUiThread(()->status.setText(Errors.human(e))); } }); }
- void renderFromCache(){ try{ String raw=Store.pub(this).getString("chats_cache",""); if(raw.isEmpty())return; JSONArray a=new JSONArray(raw); List<Msg> msgs=new ArrayList<>();
-   for(int i=0;i<a.length();i++){ JSONObject c=a.getJSONObject(i); Msg m=new Msg(); m.peer=c.optString("p"); m.out=c.optBoolean("o"); m.txt=c.optString("x"); m.ts=c.optString("ts"); m.hash=c.optString("h"); m.kind="text"; try{m.value=new BigDecimal(c.optString("v","0"));}catch(Exception ignored){} msgs.add(m); }
-   all=msgs; renderChats(); }catch(Exception ignored){} }
- Msg parse(JSONObject tx){ try{ String raw=tx.optString("raw_input",""); if(raw==null||!raw.toLowerCase().startsWith("0x"+PREFIX_HEX))return null;
-   String payload=new String(Util.hex(raw.substring(2+PREFIX_HEX.length())),StandardCharsets.UTF_8);
-   String from=tx.optJSONObject("from").optString("hash",""); String to=tx.optJSONObject("to")!=null?tx.optJSONObject("to").optString("hash",""):"";
+  }); }
+ void saveCache(){ try{ JSONArray cache=new JSONArray(); for(Msg m:all){ JSONObject c=new JSONObject(); c.put("p",m.peer); c.put("o",m.out); c.put("x",m.kind.equals("media")?"":m.txt); c.put("k",m.kind); c.put("mi",m.mime==null?"":m.mime); c.put("ts",m.ts); c.put("h",m.hash); c.put("v",m.value.toPlainString()); cache.put(c); } Store.pub(this).edit().putString("chats_cache",cache.toString()).apply(); }catch(Exception ignored){} }
+ // Пакетное сканирование блоков: eth_getBlockByNumber батчами по 40 блоков
+ void scanBlocks(List<Msg> merged,java.util.Set<String> seen)throws Exception{
+   Networks.Net n=Networks.ALL.get(0);
+   String headHex=Evm.rpcResult(n,"eth_blockNumber","[]"); long head=Long.parseLong(headHex.replace("0x",""),16);
+   long stored=Store.pub(this).getLong("msg_last_block",0); long from=stored==0?Math.max(0,head-300):stored+1; if(head-from>800)from=Math.max(0,head-800);
+   if(from>head)return;
+   for(long batchStart=from;batchStart<=head;batchStart+=40){
+     long batchEnd=Math.min(head,batchStart+39);
+     JSONArray req=new JSONArray(); for(long bnum=batchStart;bnum<=batchEnd;bnum++){ JSONObject r=new JSONObject(); r.put("jsonrpc","2.0"); r.put("id",(int)(bnum-batchStart+1)); r.put("method","eth_getBlockByNumber"); JSONArray pa=new JSONArray(); pa.put("0x"+Long.toHexString(bnum)); pa.put(true); r.put("params",pa); req.put(r); }
+     String resp=Http.post(n.rpc,req.toString()); Object parsed=new JSONTokener(resp).nextValue(); if(!(parsed instanceof JSONArray))continue; JSONArray arr=(JSONArray)parsed;
+     for(int i=0;i<arr.length();i++){ JSONObject r=arr.getJSONObject(i); JSONObject block=r.optJSONObject("result"); if(block==null)continue; JSONArray txs=block.optJSONArray("transactions"); if(txs==null)continue;
+       for(int j=0;j<txs.length();j++){ JSONObject tx=txs.getJSONObject(j); String input=tx.optString("input",""); if(!input.toLowerCase().startsWith("0x"+PREFIX_HEX))continue;
+         String fromA=tx.optString("from",""), toA=tx.optString("to",""); if(!fromA.equalsIgnoreCase(me())&&!toA.equalsIgnoreCase(me()))continue;
+         String hash=tx.optString("hash",""); if(hash.isEmpty()||seen.contains(hash))continue;
+         Msg m=new Msg(); m.out=fromA.equalsIgnoreCase(me()); m.peer=m.out?toA:fromA; m.hash=hash;
+         try{ long ep=Long.parseLong(block.optString("timestamp","0x0").replace("0x",""),16); java.text.SimpleDateFormat f=new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss",java.util.Locale.US); f.setTimeZone(java.util.TimeZone.getTimeZone("UTC")); m.ts=f.format(new java.util.Date(ep*1000)); }catch(Exception e){ m.ts=""; }
+         try{ m.value=new BigDecimal(new BigInteger(tx.optString("value","0x0").replace("0x",""),16)).divide(new BigDecimal("1000000000000000000")); }catch(Exception ignored){}
+         fillPayload(m,input); seen.add(hash); merged.add(m); } }
+   }
+   Store.pub(this).edit().putLong("msg_last_block",head).apply(); }
+ void fillPayload(Msg m,String rawHex){ try{ String payload=new String(Util.hex(rawHex.substring(2+PREFIX_HEX.length())),StandardCharsets.UTF_8);
+   if(payload.startsWith("MED1|")){ String[] parts=payload.split("\\|",4); m.kind="media"; m.mime=parts.length>1?parts[1]:"bin"; m.b64=parts.length>2?parts[2]:""; m.txt=label(m.mime); }
+   else { m.kind="text"; m.txt=payload; } }catch(Exception ignored){} }
+ Msg parse(JSONObject tx){ try{ String raw=tx.optString("raw_input",""); if(raw.isEmpty())raw=tx.optString("input",""); if(raw==null||!raw.toLowerCase().startsWith("0x"+PREFIX_HEX))return null;
+   String from=tx.optJSONObject("from")!=null?tx.optJSONObject("from").optString("hash",tx.optString("from","")):tx.optString("from",""); String to=tx.optJSONObject("to")!=null?tx.optJSONObject("to").optString("hash",""):tx.optString("to","");
+   // Blockscout object form vs RPC string form
+   if(tx.opt("from") instanceof String)from=tx.optString("from",""); if(tx.opt("to") instanceof String)to=tx.optString("to","");
    Msg m=new Msg(); m.out=from.equalsIgnoreCase(me()); m.peer=m.out?to:from; m.ts=tx.optString("timestamp",""); m.hash=tx.optString("hash","");
    try{ m.value=new BigDecimal(new BigInteger(tx.optString("value","0"))).divide(new BigDecimal("1000000000000000000")); }catch(Exception ignored){}
-   if(payload.startsWith("MED1|")){ String[] parts=payload.split("\\|",4); m.kind="media"; m.mime=parts.length>1?parts[1]:"bin"; m.b64=parts.length>2?parts[2]:""; m.txt=label(m.mime); }
-   else { m.kind="text"; m.txt=payload; }
-   return m; }catch(Exception e){ return null; } }
- String label(String mime){ if(mime.startsWith("image"))return "Фотография"; if(mime.startsWith("video"))return "Видео"; if(mime.startsWith("audio"))return "Голосовое сообщение"; return "Файл"; }
+   fillPayload(m,raw); return m; }catch(Exception e){ return null; } }
  // ---------- список диалогов ----------
  void renderChats(){ chatsList.removeAllViews(); Map<String,Msg> last=new LinkedHashMap<>(); Map<String,Integer> count=new HashMap<>();
   for(Msg m:all){ last.put(m.peer.toLowerCase(),m); count.put(m.peer.toLowerCase(),count.getOrDefault(m.peer.toLowerCase(),0)+1); }

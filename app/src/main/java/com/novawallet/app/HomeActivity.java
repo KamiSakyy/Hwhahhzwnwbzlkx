@@ -19,7 +19,7 @@ public class HomeActivity extends Activity{
   click(R.id.btnNft,()->{ Intent i=new Intent(this,ToolsActivity.class); i.putExtra("mode","nft"); startActivity(i); });
   click(R.id.btnMore,()->{ Intent i=new Intent(this,ToolsActivity.class); i.putExtra("mode","menu"); startActivity(i); });
   click(R.id.btnAddToken,()->startActivity(new Intent(this,AddTokenActivity.class)));
-  click(R.id.btnHistory,()->{ String u; if(mode.equals("btc"))u="https://mempool.space/address/"+addr(); else if(mode.equals("sol"))u="https://solscan.io/account/"+addr(); else u=Networks.current(this).explorer+"/address/"+addr(); startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(u))); });
+  click(R.id.btnHistory,()->{ Intent i=new Intent(this,HistoryActivity.class); i.putExtra("mode",mode); startActivity(i); });
   refresh(); }
  String addr(){ return mode.equals("btc")?Keys.btcAddress(this):mode.equals("sol")?Keys.solAddress(this):Keys.evmAddress(this); }
  void chip(int id,String m){ findViewById(id).setOnClickListener(v->{mode=m; updateChips(); refresh();}); }
