@@ -113,6 +113,7 @@ public class AotTest {
         // AArch64 Bionic is stricter than desktop glibc about ELF section
         // alignment, especially .dynsym and .dynamic.
         assertSectionAlignment(elf);
+        assertProgramHeadersMapped(elf);
 
         // Библиотека не должна содержать символьной таблицы и отладочных секций:
         // декомпилировать такой машинный код заметно сложнее.
@@ -136,6 +137,7 @@ public class AotTest {
         assertEquals(183, (arm[18] & 0xFF) | ((arm[19] & 0xFF) << 8));
         write(new File(dir, "liblsapp-arm64.so"), arm);
         assertSectionAlignment(arm);
+        assertProgramHeadersMapped(arm);
         assertFalse("в ARM64-библиотеке тоже нет символьной таблицы",
                 sectionNames(arm).contains(".symtab"));
         StringBuilder expected = new StringBuilder();
@@ -158,6 +160,28 @@ public class AotTest {
             assertTrue("section " + i + " has invalid sh_addralign " + alignment,
                     alignment == 0 || (address % alignment == 0 && offset % alignment == 0));
         }
+    }
+
+    /** Android's linker needs the ELF and program headers inside a PT_LOAD. */
+    private static void assertProgramHeadersMapped(byte[] elf) {
+        long phoff = readLong(elf, 32);
+        int phentsize = (elf[54] & 0xFF) | ((elf[55] & 0xFF) << 8);
+        int phnum = (elf[56] & 0xFF) | ((elf[57] & 0xFF) << 8);
+        long tableEnd = phoff + (long) phentsize * phnum;
+        boolean mapped = false;
+        for (int i = 0; i < phnum; i++) {
+            int base = (int) phoff + i * phentsize;
+            if (readInt(elf, base) != 1) { // PT_LOAD
+                continue;
+            }
+            long offset = readLong(elf, base + 8);
+            long fileSize = readLong(elf, base + 32);
+            if (phoff >= offset && tableEnd <= offset + fileSize) {
+                mapped = true;
+                break;
+            }
+        }
+        assertTrue("ELF/program headers must be mapped by a PT_LOAD segment", mapped);
     }
 
     /** Имена секций ELF-библиотеки. */

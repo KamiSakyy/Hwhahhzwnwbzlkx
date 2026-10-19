@@ -196,7 +196,9 @@ public final class AotElf {
         // --- итоговый файл ---
         int headerSize = 64;
         int phoff = headerSize;
-        int phnum = 4;
+        // The ELF and program-header tables must themselves belong to a
+        // PT_LOAD segment; Android's linker relies on the mapped phdr address.
+        int phnum = 5;
         int phentsize = 56;
         int shoff = align(dataOffset + dataSegmentSize, 8);
         int shnum = 9;
@@ -229,6 +231,15 @@ public final class AotElf {
 
         // Заголовки программ: p_type, p_flags, p_offset, p_vaddr, p_paddr,
         // p_filesz, p_memsz, p_align (ровно 56 байт каждый).
+        // Map the ELF header and complete program-header table read-only.
+        u32(out, 1);
+        u32(out, 4);          // PT_LOAD, PF_R
+        u64(out, 0);
+        u64(out, 0);
+        u64(out, 0);
+        u64(out, textOffset);
+        u64(out, textOffset);
+        u64(out, PAGE);
         u32(out, 1);
         u32(out, 5);          // PF_R | PF_X
         u64(out, textOffset);
