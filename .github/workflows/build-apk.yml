@@ -359,7 +359,7 @@ jobs:
           fi
           booted=false
           for attempt in $(seq 1 120); do
-            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\\r')" = "1" ]; then
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
               booted=true
               break
             fi
@@ -383,13 +383,27 @@ jobs:
           set -euo pipefail
           apk=$(find artifacts -name 'LS-Android-ARM64-test.apk' -print -quit)
           test -n "$apk"
-          adb install --abi arm64-v8a -r "$apk"
+          echo "Installing ARM64 APK: $apk"
+          if ! adb install --abi arm64-v8a -r "$apk" > install-output.txt 2>&1; then
+            install_message="$(tr '\n' ' ' < install-output.txt | cut -c1-3500)"
+            echo "::error title=Android rejected ARM64 APK::$install_message"
+            cat install-output.txt
+            exit 1
+          fi
+          cat install-output.txt
           adb logcat -c
-          adb shell am start -W -n \
-            com.lsengine.integration/com.lsengine.runtime.RuntimeActivity
+          echo "Launching RuntimeActivity"
+          if ! adb shell am start -W -n \
+            com.lsengine.integration/com.lsengine.runtime.RuntimeActivity > activity-start.txt 2>&1; then
+            start_message="$(tr '\n' ' ' < activity-start.txt | cut -c1-3500)"
+            echo "::error title=Could not start Android activity::$start_message"
+            cat activity-start.txt
+            exit 1
+          fi
+          cat activity-start.txt
           started=false
           for attempt in $(seq 1 30); do
-            adb logcat -d -s LsRuntime:I AndroidRuntime:E > app-logcat.txt
+            adb logcat -d -s LsRuntime:I AndroidRuntime:E linker:E libc:F DEBUG:E > app-logcat.txt
             if grep -Fq 'запуск машинного кода Android ARM64 из расшифрованного .c' app-logcat.txt; then
               started=true
               break
@@ -398,6 +412,8 @@ jobs:
           done
           cat app-logcat.txt
           if [ "$started" != true ]; then
+            diagnostic_message="$(tr '\n' ' ' < app-logcat.txt | cut -c1-6000)"
+            echo "::error title=ARM64 AOT runtime did not start::$diagnostic_message"
             echo "Runtime did not report successful ARM64 AOT startup"
             exit 1
           fi
