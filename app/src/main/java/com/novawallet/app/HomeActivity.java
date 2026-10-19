@@ -6,7 +6,7 @@ public class HomeActivity extends Activity{
  ExecutorService ex=Executors.newCachedThreadPool(); String mode="evm"; TextView tvBal,tvFiat,tvAddr,tvNet; LinearLayout list; Spinner sp;
  protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_home); tvBal=findViewById(R.id.tvBalance); tvFiat=findViewById(R.id.tvFiat); tvAddr=findViewById(R.id.tvAddress); tvNet=findViewById(R.id.tvNetName); list=findViewById(R.id.tokenList); sp=findViewById(R.id.spNet);
   List<String> names=new ArrayList<>(); for(Networks.Net n:Networks.ALL)names.add((n.test?"🧪 ":"")+n.name); ArrayAdapter<String> ad=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,names); sp.setAdapter(ad); sp.setSelection(Store.pub(this).getInt("net",0));
-  sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){ public void onItemSelected(AdapterView<?> p,View v,int i,long id){ Store.pub(HomeActivity.this).edit().putInt("net",i).apply(); if(mode.equals("evm"))refresh(); } public void onNothingSelected(AdapterView<?> p){} });
+  sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){ public void onItemSelected(AdapterView<?> p,View v,int i,long id){ Store.pub(HomeActivity.this).edit().putInt("net",i).apply(); if(mode.equals("evm"))updateChips(); refresh(); } public void onNothingSelected(AdapterView<?> p){} });
   chip(R.id.chipEvm,"evm"); chip(R.id.chipBtc,"btc"); chip(R.id.chipSol,"sol");
   tvAddr.setOnClickListener(v->{ copy(addr()); toast("Адрес скопирован"); });
   click(R.id.btnSend,()->{ Intent i=new Intent(this,SendActivity.class); i.putExtra("mode",mode); startActivity(i); });
@@ -21,7 +21,9 @@ public class HomeActivity extends Activity{
   click(R.id.btnHistory,()->{ String u; if(mode.equals("btc"))u="https://mempool.space/address/"+addr(); else if(mode.equals("sol"))u="https://solscan.io/account/"+addr(); else u=Networks.current(this).explorer+"/address/"+addr(); startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(u))); });
   refresh(); }
  String addr(){ return mode.equals("btc")?Keys.btcAddress(this):mode.equals("sol")?Keys.solAddress(this):Keys.evmAddress(this); }
- void chip(int id,String m){ findViewById(id).setOnClickListener(v->{mode=m; refresh();}); }
+ void chip(int id,String m){ findViewById(id).setOnClickListener(v->{mode=m; updateChips(); refresh();}); }
+ void updateChips(){ setChip(R.id.chipEvm,mode.equals("evm")); setChip(R.id.chipBtc,mode.equals("btc")); setChip(R.id.chipSol,mode.equals("sol")); }
+ void setChip(int id,boolean on){ android.widget.Button b=findViewById(id); b.setBackgroundResource(on?R.drawable.btn_primary:R.drawable.btn_action); b.setTextColor(on?0xFFFFFFFF:0xFFDDDDDD); }
  void click(int id,Runnable r){ findViewById(id).setOnClickListener(v->r.run()); }
  void copy(String s){((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("a",s));}
  void toast(String s){Toast.makeText(this,s,Toast.LENGTH_SHORT).show();}
@@ -33,11 +35,11 @@ public class HomeActivity extends Activity{
   Networks.Net n=Networks.current(this); tvNet.setText(n.name+" • ChainID "+n.chainId); row("◆ "+n.name,n.symbol,"…",null);
   List<Networks.Token> toks=new ArrayList<>(); toks.addAll(Networks.known(n.chainId)); toks.addAll(Networks.tokens(this,n.chainId));
   for(Networks.Token t:toks) row("🪙 "+t.name,t.symbol,"…",t);
-  ex.execute(()->{ try{ BigDecimal bal=Evm.balance(n,addr()); String cg=n.symbol.equals("ETH")?"ethereum":n.symbol.equals("BNB")?"binancecoin":n.symbol.equals("POL")?"matic-network":n.symbol.equals("AVAX")?"avalanche-2":"ethereum"; double pr=n.test?0:Evm.priceUsd(cg); runOnUiThread(()->{ tvBal.setText(Util.fmt(bal)+" "+n.symbol); tvFiat.setText(n.test?"Тестовая сеть — монеты без цены":"≈ $"+String.format(Locale.US,"%.2f",bal.doubleValue()*pr)); replaceRow(0,"◆ "+n.name,n.symbol,Util.fmt(bal),null); }); }catch(Exception e){ runOnUiThread(()->tvBal.setText("Ошибка сети")); }
+  ex.execute(()->{ try{ BigDecimal bal=Evm.balance(n,addr()); String cg=n.symbol.equals("ETH")?"ethereum":n.symbol.equals("BNB")?"binancecoin":n.symbol.equals("POL")?"matic-network":n.symbol.equals("AVAX")?"avalanche-2":"ethereum"; double pr=n.test?0:Evm.priceUsd(cg); runOnUiThread(()->{ tvBal.setText(Util.fmt(bal)+" "+n.symbol); tvFiat.setText(n.test?"Тестовая сеть — монеты без цены":"≈ $"+String.format(Locale.US,"%.2f",bal.doubleValue()*pr)); replaceRow(0,"◆ "+n.name,n.symbol,Util.fmt(bal),null); }); }catch(Exception e){ runOnUiThread(()->{ tvBal.setText("Нет соединения"); tvFiat.setText("⚠ "+e.getMessage()+" — нажмите на баланс, чтобы повторить"); tvBal.setOnClickListener(v->refresh()); }); }
    for(int i=0;i<toks.size();i++){ Networks.Token t=toks.get(i); int idx=i+1; try{ BigDecimal bal=Evm.erc20Balance(n,addr(),t.address,t.decimals); runOnUiThread(()->replaceRow(idx,"🪙 "+t.name,t.symbol,Util.fmt(bal),t)); }catch(Exception ignored){} } }); }
  String shortAddr(String a){ return a.length()>18?a.substring(0,10)+"…"+a.substring(a.length()-6):a; }
  void row(String name,String sym,String bal,Networks.Token t){ LinearLayout r=new LinearLayout(this); r.setOrientation(LinearLayout.HORIZONTAL); r.setPadding(16,14,16,14); r.setBackgroundResource(R.drawable.bg_chip); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2); lp.topMargin=8; r.setLayoutParams(lp);
-  TextView a=new TextView(this); a.setText(name+"\n"+sym); a.setTextColor(Color.WHITE); a.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1)); TextView b2=new TextView(this); b2.setText(bal); b2.setTextColor(0xFF00E5FF); r.addView(a); r.addView(b2); r.setTag(b2);
+  TextView a=new TextView(this); a.setText(name+"\n"+sym); a.setTextColor(Color.WHITE); a.setTextSize(15); a.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1)); TextView b2=new TextView(this); b2.setText(bal); b2.setTextColor(0xFFFFFFFF); b2.setTextSize(16); b2.setTypeface(null,android.graphics.Typeface.BOLD); r.addView(a); r.addView(b2); r.setTag(b2);
   if(t!=null)r.setOnClickListener(v->{ Intent i=new Intent(this,SendActivity.class); i.putExtra("mode","evm"); i.putExtra("token",t.address); i.putExtra("symbol",t.symbol); i.putExtra("decimals",t.decimals); startActivity(i); }); list.addView(r); }
  void replaceRow(int idx,String name,String sym,String bal,Networks.Token t){ if(idx<list.getChildCount()){ LinearLayout r=(LinearLayout)list.getChildAt(idx); ((TextView)r.getChildAt(0)).setText(name+"\n"+sym); ((TextView)r.getChildAt(1)).setText(bal); } }
 }

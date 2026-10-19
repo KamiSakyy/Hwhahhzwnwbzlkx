@@ -1,8 +1,11 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_gradient"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="28dp">
-<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="◆ NOVA" android:textColor="#00E5FF" android:textSize="18sp" android:textStyle="bold"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="40dp" android:text="Твой крипто-\nкошелёк.\nВсё. В одном." style="@style/H1" android:textSize="40sp"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Ethereum • Sepolia • Base • Arbitrum • Polygon • BNB • Bitcoin • Solana • DeFi • NFT • Твой токен за 1 минуту" style="@style/Sub"/>
-<Button android:id="@+id/btnCreate" android:layout_width="match_parent" android:layout_height="60dp" android:layout_marginTop="48dp" android:text="✦  Создать новый кошелёк" android:backgroundTint="#7C4DFF"/>
-<Button android:id="@+id/btnImport" android:layout_width="match_parent" android:layout_height="60dp" android:layout_marginTop="14dp" style="@style/BtnOutline" android:text="Импортировать (фраза / ключ)"/>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="28dp" android:text="🔒 Non-custodial: ключи только на вашем устройстве. Мы не имеем к ним доступа." style="@style/Sub" android:gravity="center"/>
-</LinearLayout></ScrollView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#000000" android:orientation="vertical" android:padding="28dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+<TextView android:layout_width="84dp" android:layout_height="84dp" android:background="@drawable/logo_box" android:gravity="center" android:text="◆" android:textColor="#FFF" android:textSize="38sp" android:textStyle="bold"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="NOVA WALLET" android:textColor="#FFF" android:textSize="15sp" android:letterSpacing="0.25"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:gravity="center" android:text="Все ваши активы.\nОдин кошелёк." android:textColor="#FFF" android:textSize="34sp" android:textStyle="bold"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:gravity="center" android:text="Ethereum • Sepolia • Base • Arbitrum • Polygon\nBitcoin • Solana • DeFi • NFT • Свои токены" android:textColor="#6E6E8A" android:textSize="13sp" android:lineSpacingMultiplier="1.4"/>
+</LinearLayout>
+<Button android:id="@+id/btnCreate" android:layout_width="match_parent" android:layout_height="62dp" android:text="Создать кошелёк" android:background="@drawable/btn_primary" android:textColor="#FFF" android:textSize="16sp"/>
+<Button android:id="@+id/btnImport" android:layout_width="match_parent" android:layout_height="62dp" android:layout_marginTop="12dp" android:text="У меня уже есть кошелёк" android:background="@drawable/btn_ghost" android:textColor="#FFF"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:gravity="center" android:text="Non-custodial — ключи хранятся только на вашем устройстве" android:textColor="#44445E" android:textSize="11sp"/>
+</LinearLayout>

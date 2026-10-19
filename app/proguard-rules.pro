@@ -5,3 +5,8 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -keep class com.novawallet.app.** { *; }
+-keep class com.fasterxml.jackson.** { *; }
+-keep class org.web3j.protocol.core.methods.response.** { *; }
+-keepattributes Signature,*Annotation*,EnclosingMethod,InnerClasses
+-dontwarn com.fasterxml.jackson.**
+-dontwarn javax.annotation.**

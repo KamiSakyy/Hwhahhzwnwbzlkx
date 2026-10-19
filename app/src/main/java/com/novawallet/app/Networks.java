@@ -1,7 +1,7 @@
 package com.novawallet.app;
 import java.util.*;
 public class Networks{
- public static class Net{public String name,symbol,rpc,explorer; public long chainId; public boolean test; Net(String n,String s,long id,String r,String e,boolean t){name=n;symbol=s;chainId=id;rpc=r;explorer=e;test=t;}}
+ public static class Net{public String name,symbol,rpc,explorer; public String[] rpcs; public long chainId; public boolean test; Net(String n,String s,long id,String r,String e,boolean t){name=n;symbol=s;chainId=id;rpc=r;rpcs=new String[]{r};explorer=e;test=t;}}
  public static final List<Net> ALL=Arrays.asList(
   new Net("Sepolia Testnet","SepoliaETH",11155111,"https://ethereum-sepolia-rpc.publicnode.com","https://sepolia.etherscan.io",true),
   new Net("Ethereum","ETH",1,"https://ethereum-rpc.publicnode.com","https://etherscan.io",false),
@@ -19,6 +19,13 @@ public class Networks{
   new Net("Gnosis","xDAI",100,"https://gnosis-rpc.publicnode.com","https://gnosisscan.io",false),
   new Net("Goerli Testnet","ETH",5,"https://ethereum-goerli-rpc.publicnode.com","https://goerli.etherscan.io",true)
  );
+ static {
+   ALL.get(0).rpcs=new String[]{"https://ethereum-sepolia-rpc.publicnode.com","https://sepolia.drpc.org","https://eth-sepolia.public.blastapi.io","https://ethereum-sepolia.blockpi.network/v1/rpc/public","https://sepolia.gateway.tenderly.co","https://rpc.sepolia.org"};
+   ALL.get(1).rpcs=new String[]{"https://ethereum-rpc.publicnode.com","https://eth.drpc.org","https://ethereum.blockpi.network/v1/rpc/public","https://cloudflare-eth.com"};
+   ALL.get(3).rpcs=new String[]{"https://arbitrum-one-rpc.publicnode.com","https://arbitrum.drpc.org","https://arb1.arbitrum.io/rpc"};
+   ALL.get(5).rpcs=new String[]{"https://polygon-bor-rpc.publicnode.com","https://polygon.drpc.org","https://polygon-rpc.com"};
+   ALL.get(6).rpcs=new String[]{"https://bsc-rpc.publicnode.com","https://bsc.drpc.org","https://bsc-dataseed.bnbchain.org"};
+ }
  public static Net current(android.content.Context c){ int i=Store.pub(c).getInt("net",0); return ALL.get(Math.min(i,ALL.size()-1)); }
  public static class Token{public String address,name,symbol; public int decimals; public long chainId; Token(String a,String n,String s,int d,long c){address=a;name=n;symbol=s;decimals=d;chainId=c;}}
  public static List<Token> tokens(android.content.Context c,long chain){ List<Token> out=new ArrayList<>(); // well-known per-chain defaults handled in UI; custom below
