@@ -106,7 +106,7 @@ public class ApkPipelineTest {
         int attributesSizeOffset = certificatesSizeOffset + 4 + certificatesSize;
         assertEquals(0, u32(signed, attributesSizeOffset));
         assertEquals(signedDataSize, attributesSizeOffset + 4 + u32(signed, attributesSizeOffset) - signedDataOffset);
-        int signaturesSizeOffset = signedDataOffset + 4 + signedDataSize;
+        int signaturesSizeOffset = signerOffset + 4 + signedDataSize;
         int signaturesSize = u32(signed, signaturesSizeOffset);
         int signaturesOffset = signaturesSizeOffset + 4;
         assertEquals(signaturesSize - 4, u32(signed, signaturesOffset));
