@@ -7,7 +7,7 @@ android {
         release { minifyEnabled true; shrinkResources true; signingConfig signingConfigs.debug; proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro' }
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
-    packaging { resources { pickFirsts += ['META-INF/DISCLAIMER','META-INF/LICENSE*','META-INF/NOTICE*','META-INF/DEPENDENCIES','META-INF/*.kotlin_module']; excludes += ['META-INF/*.SF','META-INF/*.DSA','META-INF/*.RSA'] } }
+    packaging { resources { pickFirsts += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF','META-INF/versions/**','META-INF/DISCLAIMER','META-INF/LICENSE*','META-INF/NOTICE*','META-INF/DEPENDENCIES','META-INF/*.kotlin_module']; excludes += ['META-INF/*.SF','META-INF/*.DSA','META-INF/*.RSA'] } }
 }
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
