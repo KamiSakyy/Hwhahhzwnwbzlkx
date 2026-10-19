@@ -2,7 +2,10 @@
 .gradle/
 .idea/
 local.properties
-build/
+/build/
+/app/build/
+/engine/build/
+/runtime/build/
 captures/
 .externalNativeBuild/
 .cxx/

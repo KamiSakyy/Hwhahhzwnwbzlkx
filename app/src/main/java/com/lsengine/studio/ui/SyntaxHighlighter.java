@@ -29,10 +29,11 @@ public final class SyntaxHighlighter {
     }
 
     public static void highlight(TextView view) {
-        Spannable spannable = view.getText();
-        if (!(spannable instanceof Spanned)) {
+        CharSequence textValue = view.getText();
+        if (!(textValue instanceof Spannable)) {
             return;
         }
+        Spannable spannable = (Spannable) textValue;
         // Убираем прежнюю подсветку.
         ForegroundColorSpan[] old = spannable.getSpans(0, spannable.length(), ForegroundColorSpan.class);
         for (ForegroundColorSpan span : old) {

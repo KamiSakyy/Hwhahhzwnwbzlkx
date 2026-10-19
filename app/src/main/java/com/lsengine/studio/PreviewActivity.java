@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.chip.Chip;
-import com.google.android.material.toolbar.MaterialToolbar;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.lsengine.engine.aot.AotRuntime;
 import com.lsengine.engine.lang.BytecodeFile;
 import com.lsengine.engine.lang.Chunk;

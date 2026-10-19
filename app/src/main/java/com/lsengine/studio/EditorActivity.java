@@ -276,6 +276,7 @@ public class EditorActivity extends AppCompatActivity {
                     options.appName = text(nameInput, project.name);
                     options.packageName = text(packageInput, project.packageName);
                     options.versionName = text(versionInput, "1.0.0");
+                    options.versionCode = project.versionCode;
                     options.orientation = orientation.getCheckedRadioButtonId() == R.id.orientationLandscape
                             ? "landscape" : "portrait";
                     options.description = "Приложение создано в LS Studio";
