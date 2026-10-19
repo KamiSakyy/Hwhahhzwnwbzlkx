@@ -40,7 +40,7 @@ public class MessengerActivity extends Activity{
  // Панель: баланс / самая дешёвая комиссия / итого
  void updateFee(){ ex.execute(()->{ try{ Networks.Net n=Networks.ALL.get(0); feeBalance=Evm.balance(n,me()); String gp=Evm.rpcResult(n,"eth_gasPrice","[]"); feeGasPrice=new BigInteger(gp.replace("0x",""),16); runOnUiThread(this::updateFeeText); }catch(Exception ignored){} }); }
  void updateFeeText(){ TextView tv=findViewById(R.id.tvFee); if(tv==null)return;
-   String draft=((EditText)findViewById(R.id.etMsg)).getText().toString(); int payloadLen=PREFIX.length()+draft.getBytes(StandardCharsets.UTF_8).length+(peerKey()!=null?140:0);
+   String draft=((EditText)findViewById(R.id.etMsg)).getText().toString(); int payloadLen=PREFIX.length()+140+draft.getBytes(StandardCharsets.UTF_8).length+(peerKey()!=null?140:0);
    long gas=45000L+20L*payloadLen; String feeS="…", balS="…", totS="";
    if(feeGasPrice!=null){ java.math.BigDecimal fee=new java.math.BigDecimal(feeGasPrice.multiply(java.math.BigInteger.valueOf(gas))).divide(new java.math.BigDecimal("1000000000000000000")); feeS=fee.stripTrailingZeros().toPlainString();
      if(feeBalance!=null){ balS=feeBalance.stripTrailingZeros().toPlainString(); java.math.BigDecimal total=attachedAmt.add(fee); totS=" · Итого ≈ "+total.stripTrailingZeros().toPlainString();
@@ -48,7 +48,7 @@ public class MessengerActivity extends Activity{
    tv.setText("Баланс: "+balS+" SepoliaETH · Комиссия (самая дешёвая) ≈ "+feeS+" SepoliaETH"+totS); tv.setTextColor(feeBalance!=null&&attachedAmt.signum()>0&&feeBalance.compareTo(attachedAmt)<0?0xFFF87171:0xFF71717A); }
  // ---------- Сквозное шифрование: ECDH secp256k1 + AES-256-GCM ----------
  String peerKey(){ if(currentPeer==null)return null; return Store.pub(this).getString("pk_"+currentPeer.toLowerCase(),null); }
- void exchangeKeys(){ if(currentPeer==null)return; String myPub=Util.hex(WalletCore.pubUncompressed(Keys.evmPriv(this)));
+ void exchangeKeys(){ if(currentPeer==null)return; String myPub=myPubHex();
    sendPayload(("KEY1:"+myPub).getBytes(StandardCharsets.UTF_8),BigInteger.ZERO,"Ключ шифрования"); toast("Ключ отправлен собеседнику. Когда он тоже отправит свой ключ из этого чата, сообщения станут зашифрованными."); }
  byte[] ecdh(BigInteger priv,byte[] pubBytes)throws Exception{ org.bouncycastle.math.ec.ECPoint p=WalletCore.CURVE.getCurve().decodePoint(pubBytes); org.bouncycastle.math.ec.ECPoint s=p.multiply(priv).normalize(); return Util.big(new BigInteger(1,s.getAffineXCoord().getEncoded()),32); }
  String encryptText(String plain)throws Exception{ byte[] recipientPub=Util.hex(peerKey()); BigInteger eph; do{ eph=new BigInteger(256,new java.security.SecureRandom()); }while(eph.signum()==0||eph.compareTo(WalletCore.CURVE.getN())>=0);
@@ -100,6 +100,7 @@ public class MessengerActivity extends Activity{
    }
    Store.pub(this).edit().putLong("msg_last_block",head).apply(); }
  void fillPayload(Msg m,String rawHex){ try{ String payload=new String(Util.hex(rawHex.substring(2+PREFIX_HEX.length())),StandardCharsets.UTF_8);
+   if(payload.startsWith("K:")){ int sep=payload.indexOf('|'); if(sep>2){ String pub=payload.substring(2,sep); if(!m.out&&m.peer!=null&&pub.length()>=128)Store.pub(this).edit().putString("pk_"+m.peer.toLowerCase(),pub).apply(); payload=payload.substring(sep+1); } }
    if(payload.startsWith("KEY1:")){ m.kind="key"; m.txt=""; if(!m.out&&m.peer!=null)Store.pub(this).edit().putString("pk_"+m.peer.toLowerCase(),payload.substring(5)).apply(); return; }
    if(payload.startsWith("ENC1:")){ m.kind="enc"; try{ m.txt=decryptText(payload); }catch(Exception e){ m.txt="Зашифрованное сообщение"; } return; }
    if(payload.startsWith("MED1|")){ String[] parts=payload.split("\\|",4); m.kind="media"; m.mime=parts.length>1?parts[1]:"bin"; m.b64=parts.length>2?parts[2]:""; m.txt=label(m.mime); }
@@ -134,7 +135,7 @@ public class MessengerActivity extends Activity{
   GradientDrawable g=new GradientDrawable(); g.setShape(GradientDrawable.OVAL); g.setColor(COLORS[Math.abs(addr.toLowerCase().hashCode())%COLORS.length]); t.setBackground(g); return t; }
  String shortAddr(String a){ return a.length()>16?a.substring(0,8)+"…"+a.substring(a.length()-6):a; }
  // ---------- один диалог ----------
- void updateEncState(){ TextView s=findViewById(R.id.tvEncState); if(peerKey()!=null)s.setText("Сквозное шифрование включено · Sepolia"); else s.setText("Sepolia · нажмите замок, чтобы обменяться ключами"); }
+ void updateEncState(){ TextView s=findViewById(R.id.tvEncState); if(peerKey()!=null)s.setText("Сквозное шифрование включено · Sepolia"); else s.setText("Sepolia · ключ собеседника придёт с его первым сообщением"); }
  void showList(){ currentPeer=null; findViewById(R.id.chatView).setVisibility(View.GONE); findViewById(R.id.chatsView).setVisibility(View.VISIBLE); renderChats(); }
  void openChat(String peer){ currentPeer=peer; findViewById(R.id.chatsView).setVisibility(View.GONE); findViewById(R.id.chatView).setVisibility(View.VISIBLE);
   ((TextView)findViewById(R.id.tvPeerName)).setText(shortAddr(peer)); updateFee(); updateEncState(); TextView av=findViewById(R.id.tvAvatar); View av2=avatar(peer,42); av.setText(((TextView)av2).getText()); av.setBackground(av2.getBackground()); renderChat(); }
@@ -167,7 +168,8 @@ public class MessengerActivity extends Activity{
     for(int i=0;i<20;i++){ Thread.sleep(4000); String st=Evm.receiptStatus(n,hash); if(st==null)continue; final boolean ok=st.startsWith("confirmed"); runOnUiThread(()->chatStatus.setText(ok?"Подтверждено в блоке. Собеседник увидит при ближайшем обновлении (у него автообновление каждые 10–15 секунд).":"Транзакция отклонена сетью. Сумма вернулась, списалась только комиссия.")); if(ok)loadAll(); break; }
    }catch(Exception e){ runOnUiThread(()->{ findViewById(R.id.btnSendMsg).setEnabled(true); err(e); }); } }); }
  String payloadText(byte[] p){ return new String(p,StandardCharsets.UTF_8); }
- byte[] payloadWithPrefix(byte[] payload){ return (PREFIX+payloadText(payload)).getBytes(StandardCharsets.UTF_8); }
+ byte[] payloadWithPrefix(byte[] payload){ String myPub=Util.hex(WalletCore.pubUncompressed(Keys.evmPriv(this))); return (PREFIX+"K:"+myPub+"|"+payloadText(payload)).getBytes(StandardCharsets.UTF_8); }
+ String myPubHex(){ return Util.hex(WalletCore.pubUncompressed(Keys.evmPriv(this))); }
  void err(Exception e){ chatStatus.setText(Errors.human(e)); status.setText(Errors.human(e)); }
  void toast(String s){ Toast.makeText(this,s,Toast.LENGTH_LONG).show(); }
  // ---------- медиа ----------
