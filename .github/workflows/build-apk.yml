@@ -345,7 +345,7 @@ jobs:
           fi
           nohup "$EMULATOR" \
             -avd ls-arm64-translated -no-window -no-audio -no-boot-anim -no-snapshot \
-            -verbose -show-kernel -gpu swiftshader_indirect -accel off > emulator-arm64.log 2>&1 &
+            -verbose -show-kernel -gpu swiftshader_indirect -accel on > emulator-arm64.log 2>&1 &
           echo $! > emulator-arm64.pid
           sleep 10
           if ! kill -0 "$(cat emulator-arm64.pid)" 2>/dev/null; then
@@ -384,9 +384,10 @@ jobs:
           apk=$(find artifacts -name 'LS-Android-ARM64-test.apk' -print -quit)
           test -n "$apk"
           echo "Installing ARM64 APK: $apk"
-          if ! adb install --abi arm64-v8a -r "$apk" > install-output.txt 2>&1; then
+          if ! adb install --no-streaming --abi arm64-v8a -r "$apk" > install-output.txt 2>&1; then
             install_message="$(tr '\n' ' ' < install-output.txt | cut -c1-3500)"
-            echo "::error title=Android rejected ARM64 APK::$install_message"
+            package_state="$(adb shell 'getprop sys.boot_completed; service check package' 2>&1 | tr '\n' ' ' | cut -c1-1000 || true)"
+            echo "::error title=Android rejected ARM64 APK::$install_message; PackageManager state: $package_state"
             cat install-output.txt
             exit 1
           fi
