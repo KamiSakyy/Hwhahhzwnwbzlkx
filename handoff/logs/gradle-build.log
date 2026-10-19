@@ -1,7 +1,7 @@
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
-> Task :runtime:preBuild UP-TO-DATE
 > Task :engine:preBuild UP-TO-DATE
+> Task :runtime:preBuild UP-TO-DATE
 > Task :engine:preReleaseBuild UP-TO-DATE
 > Task :runtime:preReleaseBuild UP-TO-DATE
 > Task :engine:mergeReleaseJniLibFolders
@@ -17,17 +17,20 @@ Daemon will be stopped at the end of the build
 > Task :engine:compileReleaseJavaWithJavac FROM-CACHE
 > Task :engine:bundleLibCompileToJarRelease
 > Task :engine:bundleLibRuntimeToDirRelease
-> Task :engine:compileReleaseLibraryResources
 > Task :engine:writeReleaseAarMetadata
+> Task :engine:compileReleaseLibraryResources
 > Task :engine:extractDeepLinksRelease
-> Task :engine:processReleaseManifest
-> Task :engine:prepareReleaseArtProfile
-> Task :engine:bundleLibRuntimeToJarRelease
 
 > Task :runtime:configureCMakeRelWithDebInfo[arm64-v8a]
 Checking the license for package CMake 3.22.1 in /usr/local/lib/android/sdk/licenses
 License for package CMake 3.22.1 accepted.
 Preparing "Install CMake 3.22.1 v.3.22.1".
+
+> Task :engine:processReleaseManifest
+> Task :engine:prepareReleaseArtProfile
+> Task :engine:bundleLibRuntimeToJarRelease
+
+> Task :runtime:configureCMakeRelWithDebInfo[arm64-v8a]
 "Install CMake 3.22.1 v.3.22.1" ready.
 Installing CMake 3.22.1 in /usr/local/lib/android/sdk/cmake/3.22.1
 "Install CMake 3.22.1 v.3.22.1" complete.
@@ -69,23 +72,23 @@ C/C++: /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/cpp/lzm
 C/C++: 1 warning generated.
 
 > Task :runtime:mergeReleaseJniLibFolders
-> Task :runtime:checkReleaseDuplicateClasses
 > Task :runtime:javaPreCompileRelease FROM-CACHE
+> Task :runtime:mergeReleaseNativeLibs
+> Task :runtime:checkReleaseDuplicateClasses
 > Task :runtime:checkReleaseAarMetadata
 > Task :runtime:processReleaseNavigationResources
-> Task :runtime:mergeReleaseNativeLibs
-> Task :runtime:compileReleaseNavigationResources
 > Task :runtime:generateReleaseResValues FROM-CACHE
 > Task :runtime:mapReleaseSourceSetPaths
 > Task :runtime:generateReleaseResources
+> Task :runtime:compileReleaseNavigationResources
 > Task :runtime:stripReleaseDebugSymbols
 > Task :runtime:packageReleaseResources
-> Task :runtime:parseReleaseLocalResources
 > Task :runtime:mergeReleaseResources
 > Task :runtime:createReleaseCompatibleScreenManifests
 > Task :runtime:extractDeepLinksRelease
 > Task :runtime:extractReleaseNativeSymbolTables
 > Task :runtime:processReleaseMainManifest
+> Task :runtime:parseReleaseLocalResources
 > Task :runtime:mergeReleaseNativeDebugMetadata
 > Task :runtime:processReleaseManifest
 > Task :runtime:desugarReleaseFileDependencies
@@ -102,31 +105,31 @@ C/C++: 1 warning generated.
 > Task :runtime:extractReleaseVersionControlInfo
 > Task :runtime:compileReleaseJavaWithJavac
 > Task :runtime:dexBuilderRelease
-> Task :runtime:mergeReleaseGlobalSynthetics
 > Task :runtime:extractProguardFiles
+> Task :runtime:mergeReleaseGlobalSynthetics
 > Task :runtime:processReleaseJavaRes NO-SOURCE
 > Task :runtime:collectReleaseDependencies
-> Task :runtime:optimizeReleaseResources
 > Task :runtime:sdkReleaseDependencyData
+> Task :runtime:optimizeReleaseResources
 > Task :runtime:writeReleaseAppMetadata
 > Task :runtime:writeReleaseSigningConfigVersions
 > Task :runtime:mergeDexRelease
 > Task :runtime:compileReleaseArtProfile
-> Task :engine:prepareLintJarForPublish
 > Task :engine:processReleaseJavaRes NO-SOURCE
+> Task :engine:prepareLintJarForPublish
 > Task :engine:createFullJarRelease
 > Task :engine:generateReleaseLintModel
-> Task :engine:checkReleaseAarMetadata
 > Task :engine:stripReleaseDebugSymbols NO-SOURCE
+> Task :engine:checkReleaseAarMetadata
 > Task :engine:copyReleaseJniLibsProjectAndLocalJars
 > Task :engine:extractDeepLinksForAarRelease
-> Task :runtime:generateReleaseLintVitalReportModel
-> Task :runtime:mergeReleaseJavaResource
 > Task :engine:extractReleaseAnnotations
+> Task :runtime:generateReleaseLintVitalReportModel
 > Task :engine:mergeReleaseGeneratedProguardFiles
 > Task :engine:mergeReleaseConsumerProguardFiles
-> Task :engine:mergeReleaseJavaResource
+> Task :runtime:mergeReleaseJavaResource
 > Task :engine:writeReleaseLintModelMetadata
+> Task :engine:mergeReleaseJavaResource
 > Task :engine:syncReleaseLibJars
 > Task :engine:bundleReleaseLocalLintAar
 > Task :engine:lintVitalAnalyzeRelease
@@ -175,24 +178,24 @@ C/C++: 1 warning generated.
 > Task :app:checkReleaseDuplicateClasses
 > Task :app:stripReleaseDebugSymbols
 > Task :app:checkReleaseAarMetadata
-> Task :app:extractReleaseNativeSymbolTables
 > Task :app:processReleaseNavigationResources
 > Task :app:compileReleaseNavigationResources FROM-CACHE
 > Task :app:generateReleaseResValues FROM-CACHE
-> Task :app:mergeReleaseNativeDebugMetadata
+> Task :app:extractReleaseNativeSymbolTables
 > Task :app:mapReleaseSourceSetPaths
 > Task :app:generateReleaseResources
+> Task :app:mergeReleaseNativeDebugMetadata
 > Task :app:packageReleaseResources
 > Task :app:createReleaseCompatibleScreenManifests
-> Task :app:extractDeepLinksRelease
 > Task :app:parseReleaseLocalResources
+> Task :app:extractDeepLinksRelease
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
 > Task :app:desugarReleaseFileDependencies FROM-CACHE
 > Task :app:mergeReleaseStartupProfile
 > Task :app:mergeReleaseResources
-> Task :app:mergeReleaseArtProfile
 > Task :app:processReleaseManifestForPackage
+> Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
@@ -203,101 +206,28 @@ C/C++: 1 warning generated.
 > Task :app:compressReleaseAssets
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
-> Task :app:processReleaseResources
 > Task :app:mergeReleaseJavaResource
+> Task :app:processReleaseResources
 > Task :app:validateSigningRelease
 > Task :app:mergeExtDexRelease
-
-> Task :app:compileReleaseJavaWithJavac FAILED
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:16: error: package com.google.android.material.toolbar does not exist
-import com.google.android.material.toolbar.MaterialToolbar;
-                                          ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:32: error: package com.lsengine.studio.build does not exist
-import com.lsengine.studio.build.ApkBuildManager;
-                                ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:324: error: package ApkBuildManager does not exist
-    private void showBuildResult(ApkBuildManager.Result result) {
-                                                ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:338: error: package ApkBuildManager does not exist
-    private void installApk(ApkBuildManager.Result result) {
-                                           ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:77: error: cannot find symbol
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        ^
-  symbol:   class MaterialToolbar
-  location: class PreviewActivity
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: package ApkBuildManager does not exist
-        new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
-                                                                             ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:307: error: package ApkBuildManager does not exist
-            public void onResult(ApkBuildManager.Result result) {
-                                                ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:301: error: method does not override or implement a method from a supertype
-            @Override
-            ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:306: error: method does not override or implement a method from a supertype
-            @Override
-            ^
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: cannot find symbol
-        new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
-            ^
-  symbol:   class ApkBuildManager
-  location: class EditorActivity
-/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/ui/SyntaxHighlighter.java:32: error: incompatible types: CharSequence cannot be converted to Spannable
-        Spannable spannable = view.getText();
-                                          ^
-11 errors
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_7-1792398834225.json
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:dexBuilderRelease
+> Task :app:mergeReleaseGlobalSynthetics FROM-CACHE
+> Task :app:generateReleaseLintVitalReportModel
+> Task :app:writeReleaseAppMetadata
+> Task :app:writeReleaseSigningConfigVersions
+> Task :app:optimizeReleaseResources
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:mergeDexRelease
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:compileReleaseArtProfile
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:assembleRelease
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_7-1792399186938.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileReleaseJavaWithJavac'.
-> Compilation failed; see the compiler output below.
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/ui/SyntaxHighlighter.java:32: error: incompatible types: CharSequence cannot be converted to Spannable
-          Spannable spannable = view.getText();
-                                            ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:77: error: cannot find symbol
-          MaterialToolbar toolbar = findViewById(R.id.toolbar);
-          ^
-    symbol:   class MaterialToolbar
-    location: class PreviewActivity
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: cannot find symbol
-          new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
-              ^
-    symbol:   class ApkBuildManager
-    location: class EditorActivity
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:301: error: method does not override or implement a method from a supertype
-              @Override
-              ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:306: error: method does not override or implement a method from a supertype
-              @Override
-              ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:16: error: package com.google.android.material.toolbar does not exist
-  import com.google.android.material.toolbar.MaterialToolbar;
-                                            ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:32: error: package com.lsengine.studio.build does not exist
-  import com.lsengine.studio.build.ApkBuildManager;
-                                  ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:324: error: package ApkBuildManager does not exist
-      private void showBuildResult(ApkBuildManager.Result result) {
-                                                  ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:338: error: package ApkBuildManager does not exist
-      private void installApk(ApkBuildManager.Result result) {
-                                             ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: package ApkBuildManager does not exist
-          new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
-                                                                               ^
-  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:307: error: package ApkBuildManager does not exist
-              public void onResult(ApkBuildManager.Result result) {
-                                                  ^
-  11 errors
-
-* Try:
-> Check your code and dependencies to fix the compilation error(s)
-> Run with --scan to get full insights.
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
 
@@ -305,5 +235,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 1m 16s
-133 actionable tasks: 120 executed, 13 from cache
+BUILD SUCCESSFUL in 1m 19s
+146 actionable tasks: 132 executed, 14 from cache
