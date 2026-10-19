@@ -53,8 +53,10 @@ public final class AotCompiler {
         for (int f = 0; f < functionCount; f++) {
             Chunk.FuncProto proto = chunk.functions.get(f);
             int count = proto.instructionCount();
-            funcLabels[f] = new int[count];
-            for (int i = 0; i < count; i++) {
+            // Нужна отдельная метка после последней инструкции: допустимая
+            // цель перехода может указывать на конец функции.
+            funcLabels[f] = new int[count + 1];
+            for (int i = 0; i <= count; i++) {
                 funcLabels[f][i] = nextLabel++;
             }
         }
@@ -168,12 +170,12 @@ public final class AotCompiler {
     }
 
     private void pop(int reg) {
-        backend.load(reg, AotIsa.SP, -8);
+        backend.load(reg, AotIsa.SP, 0);
         backend.addImm(AotIsa.SP, 8);
     }
 
     private void peek(int reg) {
-        backend.load(reg, AotIsa.SP, -8);
+        backend.load(reg, AotIsa.SP, 0);
     }
 
     private void callApi(int index, int count) {
@@ -257,12 +259,14 @@ public final class AotCompiler {
         }
 
         for (int ip = 0; ip < count; ip++) {
+            backend.label(funcLabels[currentFunction][ip]);
             int off = ip * Opcodes.INSTRUCTION_SIZE;
             int op = proto.code[off] & 0xFF;
             int a = proto.code[off + 1] & 0xFF;
             int b = (proto.code[off + 2] & 0xFF) | ((proto.code[off + 3] & 0xFF) << 8);
             translateInstruction(proto, ip, op, a, b);
         }
+        backend.label(funcLabels[currentFunction][count]);
     }
 
     private int jumpTarget(int ip, int b) {
@@ -363,9 +367,11 @@ public final class AotCompiler {
                 break;
             }
             case Opcodes.SET_FIELD: {
+                // Создание строки может использовать R1 как временный регистр,
+                // поэтому сначала вычисляем ключ, а затем снимаем объект со стека.
+                emitStringConstant(chunk.constantString(b), AotIsa.R0);
                 pop(AotIsa.R2);
                 pop(AotIsa.R1);
-                emitStringConstant(chunk.constantString(b), AotIsa.R0);
                 backend.store(AotIsa.FP, argsDisp, AotIsa.R1);
                 backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R0);
                 backend.store(AotIsa.FP, argsDisp + 16, AotIsa.R2);
@@ -460,7 +466,7 @@ public final class AotCompiler {
                 translateCall(a);
                 break;
             case Opcodes.RETURN:
-                backend.load(AotIsa.R0, AotIsa.SP, -8);
+                backend.load(AotIsa.R0, AotIsa.SP, 0);
                 backend.epilogue();
                 break;
             case Opcodes.CLOSURE:
@@ -471,7 +477,7 @@ public final class AotCompiler {
                 break;
             case Opcodes.PRINT: {
                 for (int i = 0; i < a; i++) {
-                    backend.load(AotIsa.R0, AotIsa.SP, -8 * (a - i));
+                    backend.load(AotIsa.R0, AotIsa.SP, 8 * (a - i - 1));
                     backend.store(AotIsa.FP, argsDisp + 8 * i, AotIsa.R0);
                 }
                 callApi(AotApi.PRINT, a);
@@ -487,10 +493,10 @@ public final class AotCompiler {
                 push(AotIsa.R0);
                 break;
             case Opcodes.SWAP: {
-                backend.load(AotIsa.R0, AotIsa.SP, -8);
-                backend.load(AotIsa.R1, AotIsa.SP, -16);
-                backend.store(AotIsa.SP, -8, AotIsa.R1);
-                backend.store(AotIsa.SP, -16, AotIsa.R0);
+                backend.load(AotIsa.R0, AotIsa.SP, 0);
+                backend.load(AotIsa.R1, AotIsa.SP, 8);
+                backend.store(AotIsa.SP, 0, AotIsa.R1);
+                backend.store(AotIsa.SP, 8, AotIsa.R0);
                 break;
             }
             case Opcodes.FOR_PREP: {
@@ -506,8 +512,8 @@ public final class AotCompiler {
             case Opcodes.FOR_ITER: {
                 int target = funcLabels[currentFunction][jumpTarget(ip, b)];
                 int done = nextLabel++;
-                backend.load(AotIsa.R0, AotIsa.SP, -24);
-                backend.load(AotIsa.R1, AotIsa.SP, -8);
+                backend.load(AotIsa.R0, AotIsa.SP, 16);
+                backend.load(AotIsa.R1, AotIsa.SP, 0);
                 backend.store(AotIsa.FP, argsDisp, AotIsa.R0);
                 backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R1);
                 backend.lea(AotIsa.R0, AotIsa.FP, backend.scratchSlotOffset(localCount));
@@ -516,7 +522,7 @@ public final class AotCompiler {
                 backend.store(AotIsa.FP, callBase + 8, AotIsa.R0);
                 backend.callApi(AotApi.FOR_ITER, argsDisp);
                 backend.jumpIfEq(AotIsa.R0, AotValues.NIL, target);
-                backend.store(AotIsa.SP, -8, AotIsa.R0);
+                backend.store(AotIsa.SP, 0, AotIsa.R0);
                 push(AotIsa.R0);
                 backend.load(AotIsa.R1, AotIsa.FP, backend.scratchSlotOffset(localCount));
                 push(AotIsa.R1);
@@ -549,14 +555,14 @@ public final class AotCompiler {
     private void translateCall(int argc) {
         int lblError = nextLabel++;
         int lblAfter = nextLabel++;
-        backend.load(AotIsa.R0, AotIsa.SP, -8 * (argc + 1));
+        backend.load(AotIsa.R0, AotIsa.SP, 8 * argc);
         backend.payload(AotIsa.R0);
         backend.load(AotIsa.R1, AotIsa.R0, AotValues.OBJ_CLOSURE_CODE);
         backend.store(AotIsa.FP, callBase, AotIsa.R0);
         backend.movImm(AotIsa.R0, argc);
         backend.store(AotIsa.FP, callBase + 8, AotIsa.R0);
         for (int i = 0; i < argc; i++) {
-            backend.load(AotIsa.R0, AotIsa.SP, -8 * (argc - i));
+            backend.load(AotIsa.R0, AotIsa.SP, 8 * (argc - i - 1));
             backend.store(AotIsa.FP, callBase + 16 + 8 * i, AotIsa.R0);
         }
         backend.jumpIfZero(AotIsa.R1, lblError);
@@ -584,10 +590,12 @@ public final class AotCompiler {
         backend.movImm(AotIsa.R0, AotValues.num(target.upvalues.size()));
         backend.store(AotIsa.FP, argsDisp + 16, AotIsa.R0);
         callApi(AotApi.NEW_CLOSURE, 3);
-        backend.movReg(AotIsa.R2, AotIsa.R0);
+        // API использует системный ABI и может испортить caller-saved RDX;
+        // closure переживает несколько API-вызовов, поэтому держим её в кадре.
+        backend.store(AotIsa.FP, backend.scratchSlotOffset(localCount), AotIsa.R0);
         for (int i = 0; i < target.upvalues.size(); i++) {
             Chunk.Upval u = target.upvalues.get(i);
-            backend.movReg(AotIsa.R0, AotIsa.R2);
+            backend.load(AotIsa.R0, AotIsa.FP, backend.scratchSlotOffset(localCount));
             backend.store(AotIsa.FP, argsDisp, AotIsa.R0);
             backend.movImm(AotIsa.R0, AotValues.num(i));
             backend.store(AotIsa.FP, argsDisp + 8, AotIsa.R0);
@@ -601,7 +609,7 @@ public final class AotCompiler {
             backend.store(AotIsa.FP, argsDisp + 16, AotIsa.R1);
             callApi(AotApi.CLOSURE_SET_UPVAL, 3);
         }
-        backend.movReg(AotIsa.R0, AotIsa.R2);
+        backend.load(AotIsa.R0, AotIsa.FP, backend.scratchSlotOffset(localCount));
         backend.box(AotIsa.R0, AotValues.TAG_FUNC);
         push(AotIsa.R0);
     }

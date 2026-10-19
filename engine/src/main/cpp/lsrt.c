@@ -400,6 +400,10 @@ static void table_rehash(ls_table_obj *t, uint32_t new_size) {
     uint32_t old_size = t->hsize;
     t->hash_keys = (ls_value *)calloc(new_size, sizeof(ls_value));
     t->hash_values = (ls_value *)calloc(new_size, sizeof(ls_value));
+    for (uint32_t i = 0; i < new_size; i++) {
+        t->hash_keys[i] = LS_NIL;
+        t->hash_values[i] = LS_NIL;
+    }
     t->hsize = new_size;
     t->hcount = 0;
     for (uint32_t i = 0; i < old_size; i++) {
@@ -427,6 +431,10 @@ ls_table *lsrt_new_table(void) {
     t->hsize = 8;
     t->hash_keys = (ls_value *)calloc(t->hsize, sizeof(ls_value));
     t->hash_values = (ls_value *)calloc(t->hsize, sizeof(ls_value));
+    for (uint32_t i = 0; i < t->hsize; i++) {
+        t->hash_keys[i] = LS_NIL;
+        t->hash_values[i] = LS_NIL;
+    }
     return (ls_table *)t;
 }
 

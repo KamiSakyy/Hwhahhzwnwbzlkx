@@ -18,6 +18,14 @@ int main(int argc, char **argv) {
     }
     lsrt_init();
 
+    /* Контракт базового рантайма: глобальная таблица должна содержать
+       нативные функции. Защищает от неверной инициализации LS_NIL-слотов. */
+    ls_value print_fn = lsrt_table_get_str(lsrt_globals(), "print");
+    if (!ls_is_box(print_fn) || ls_tag(print_fn) != LS_TAG_NATIVE) {
+        fprintf(stderr, "runtime init failed: global 'print' is not native\n");
+        return 6;
+    }
+
     void *handle = dlopen(argv[1], RTLD_NOW | RTLD_LOCAL);
     if (!handle) {
         fprintf(stderr, "dlopen failed: %s\n", dlerror());

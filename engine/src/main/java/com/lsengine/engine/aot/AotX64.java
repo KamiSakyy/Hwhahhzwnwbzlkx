@@ -93,6 +93,8 @@ public final class AotX64 extends AotBackend {
         u8(0x53);                       // push rbx
         u8(0x41);
         u8(0x54);                       // push r12
+        u8(0x41);
+        u8(0x55);                       // push r13 (текущая closure)
         rex(true, RAX, RAX);
         u8(0x81);
         u8(0xEC);                       // sub rsp, imm32
@@ -101,12 +103,20 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public void epilogue() {
+        // Кадр начинается после сохранённых rbx/r12/r13; сначала вернуться
+        // к этим слотам, иначе pop прочитает мусор из нижней части кадра.
+        rex(true, RBP, RSP);
+        u8(0x89);
+        modrmReg(RBP, RSP);             // mov rsp, rbp
+        rex(true, 0, RSP);
+        u8(0x83);
+        u8(0xEC);                       // sub rsp, 24
+        u8(24);
+        u8(0x41);
+        u8(0x5D);                       // pop r13
         u8(0x41);
         u8(0x5C);                       // pop r12
         u8(0x5B);                       // pop rbx
-        rex(true, RBP, RSP);
-        u8(0x89);
-        modrmReg(RBP, RSP);             // mov rsp, rbp (89 /r: reg — источник)
         u8(0x5D);                       // pop rbp
         u8(0xC3);                       // ret
     }
@@ -435,37 +445,39 @@ public final class AotX64 extends AotBackend {
 
     @Override
     public int frameBase() {
-        return -16;   // push rbx, push r12
+        return -24;   // push rbx, r12, r13
     }
 
     @Override
     public int localOffset(int slot) {
-        return AotFrame.localOffset(slot);
+        return -32 - 8 * slot;
     }
 
     @Override
     public int closureSlotOffset(int localCount) {
-        return AotFrame.closureOffset(localCount);
+        return -(32 + 8 * localCount);
     }
 
     @Override
     public int scratchSlotOffset(int localCount) {
-        return AotFrame.scratchOffset(localCount);
+        return -(40 + 8 * localCount);
     }
 
     @Override
     public int argsPtrOffset(int localCount) {
-        return AotFrame.argsPtrOffset(localCount);
+        return -(48 + 8 * localCount);
     }
 
     @Override
     public int stackTopOffset(int localCount) {
-        return AotFrame.stackTop(localCount);
+        return -(56 + 8 * localCount);
     }
 
     @Override
     public int frameSize(int localCount, int maxStack, int maxArgs) {
-        return AotFrame.frameSize(localCount, maxStack, maxArgs);
+        // Дополнительные 8 байт компенсируют третий push и сохраняют
+        // 16-байтовое выравнивание RSP непосредственно перед CALL.
+        return AotFrame.frameSize(localCount, maxStack, maxArgs) + 8;
     }
 
     @Override
