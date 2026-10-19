@@ -153,10 +153,9 @@ public final class ZipWriter {
     }
 
     private static int zipAlignment(String name, int method) {
-        if (method != 0) return 1;
-        if ("resources.arsc".equals(name)) return 4;
-        if (name.startsWith("lib/") && name.endsWith(".so")) return 16384;
-        return 1;
+        if (method == 0 && name.startsWith("lib/") && name.endsWith(".so")) return 16384;
+        // zipalign's APK mode requires every entry to be 4-byte aligned, including deflated data.
+        return 4;
     }
 
     private static int alignedExtraLength(int dataOffset, int alignment) {

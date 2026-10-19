@@ -51,6 +51,7 @@ public final class ApkBuilder {
             while ((entry = zip.getNextEntry()) != null) {
                 if (entry.isDirectory()) continue;
                 String name = entry.getName();
+                if (name.startsWith("lib/") && !name.startsWith("lib/arm64-v8a/")) continue;
                 if (name.startsWith("META-INF/") || name.equals(BUNDLE_ASSET) || name.equals(META_ASSET)) continue;
                 if (shell.put(name, readAll(zip)) != null) {
                     throw new IOException("В Android shell дублируется ZIP-запись: " + name);

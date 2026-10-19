@@ -58,6 +58,9 @@ public final class ApkBuildIntegration {
             if (zip.getEntry("lib/arm64-v8a/liblsrt.so") == null) throw new AssertionError("ARM64 runtime missing");
             if (zip.getEntry("lib/arm64-v8a/liblscodec.so") == null) throw new AssertionError("ARM64 codec missing");
             for (ZipEntry entry : java.util.Collections.list(zip.entries())) {
+                if (entry.getName().startsWith("lib/") && !entry.getName().startsWith("lib/arm64-v8a/")) {
+                    throw new AssertionError("generated APK must contain only Android ARM64 native libraries: " + entry.getName());
+                }
                 if (entry.getName().endsWith("/liblsapp.so")) {
                     throw new AssertionError("user AOT code must only be inside encrypted .c, not a plaintext .so");
                 }

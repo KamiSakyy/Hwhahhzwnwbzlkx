@@ -61,6 +61,9 @@ public class ApkPipelineTest {
         assertTrue(names.contains("classes.dex"));
         assertTrue(names.contains("resources.arsc"));
         assertTrue(names.contains("lib/arm64-v8a/libsample.so"));
+        assertEquals(0, storedEntryDataOffset(result.data, "AndroidManifest.xml") % 4);
+        assertEquals(0, storedEntryDataOffset(result.data, "assets/lsapp.c") % 4);
+        assertEquals(0, storedEntryDataOffset(result.data, "classes.dex") % 4);
         assertEquals(0, storedEntryDataOffset(result.data, "resources.arsc") % 4);
         assertEquals(0, storedEntryDataOffset(result.data, "lib/arm64-v8a/libsample.so") % 16384);
     }
