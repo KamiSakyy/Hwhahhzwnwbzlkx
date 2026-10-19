@@ -292,6 +292,13 @@ jobs:
           set -euxo pipefail
           sudo apt-get update
           sudo apt-get install -y libpulse0
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm
+            ls -l /dev/kvm
+          else
+            echo "::error title=KVM unavailable::GitHub Actions runner has no /dev/kvm device"
+            exit 1
+          fi
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           test -n "$SDK_ROOT"
           sdkmanager="$(command -v sdkmanager || find "$SDK_ROOT/cmdline-tools" -name sdkmanager -type f -print -quit)"
@@ -339,6 +346,10 @@ jobs:
             exit 1
           fi
           : > emulator-arm64.log
+          if ! "$EMULATOR" -accel-check > emulator-arm64.log 2>&1; then
+            report_emulator_failure
+            exit 1
+          fi
           if ! "$EMULATOR" -version > emulator-arm64.log 2>&1; then
             report_emulator_failure
             exit 1
