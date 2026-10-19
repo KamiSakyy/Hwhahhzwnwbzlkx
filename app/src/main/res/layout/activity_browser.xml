@@ -1,5 +1,8 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_gradient" android:orientation="vertical">
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="10dp"><com.google.android.material.textfield.TextInputEditText android:id="@+id/etUrl" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="https://app.uniswap.org" android:textColor="#FFF" android:background="@drawable/bg_chip" android:padding="12dp"/><Button android:id="@+id/btnGo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=""/></LinearLayout>
-<ProgressBar android:id="@+id/prog" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="4dp"/>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#000000" android:orientation="vertical">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:padding="12dp">
+<EditText android:id="@+id/etUrl" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@drawable/input_pill" android:hint="app.uniswap.org" android:paddingStart="18dp" android:paddingEnd="12dp" android:singleLine="true" android:textColor="#FFFFFF" android:textSize="13sp"/>
+<ImageButton android:id="@+id/btnGo" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/bg_circle" android:padding="13dp" android:src="@drawable/ic_arrow_forward" app:tint="#E5E5E5"/>
+</LinearLayout>
+<ProgressBar android:id="@+id/prog" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="3dp" android:progressTint="#FFFFFF"/>
 <WebView android:id="@+id/web" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
 </LinearLayout>

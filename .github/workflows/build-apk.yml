@@ -48,8 +48,8 @@ jobs:
       - name: Publish GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.8.3
-          name: "Nova Wallet v1.8.3"
+          tag_name: v1.9.0
+          name: "Nova Wallet v1.9.0"
           body: "Полноценный мультичейн криптокошелёк. Скачайте app-release.apk ниже и установите на Android (разрешите установку из браузера/файлов). Sepolia — бесплатно создать свой токен."
           files: |
             app/build/outputs/apk/release/*.apk

@@ -1,10 +1,10 @@
 package com.novawallet.app;
 import android.app.*; import android.content.*; import android.net.Uri; import android.os.Bundle; import android.widget.*; import android.graphics.Color;
 public class ToolsActivity extends Activity{ LinearLayout box; TextView body;
- protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_tools); box=findViewById(R.id.container); body=findViewById(R.id.tvBody); String m=getIntent().getStringExtra("mode"); if(m==null)m="menu";
+ protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_tools); NavHelper.bind(this,"more"); box=findViewById(R.id.container); body=findViewById(R.id.tvBody); String m=getIntent().getStringExtra("mode"); if(m==null)m="menu";
   if(m.equals("nft"))nft(); else if(m.equals("backup"))backup(); else menu(); }
  void title(String t){((TextView)findViewById(R.id.tvTitle)).setText(t);}
- Button btn(String t,Runnable r){ Button b=new Button(this); b.setText(t); b.setLayoutParams(new LinearLayout.LayoutParams(-1,-2)); box.addView(b); b.setOnClickListener(v->r.run()); return b; }
+ Button btn(String t,Runnable r){ Button b=new Button(this); b.setText(t); b.setBackgroundResource(R.drawable.btn_ghost); b.setTextColor(0xFFFFFFFF); b.setAllCaps(false); b.setGravity(android.view.Gravity.CENTER_VERTICAL|android.view.Gravity.START); b.setPadding(44,0,44,0); b.setLayoutParams(new LinearLayout.LayoutParams(-1,-2)); box.addView(b); b.setOnClickListener(v->r.run()); return b; }
  void menu(){ title(" Всё остальное"); body.setText("Сети: "+Networks.ALL.size()+" EVM + Bitcoin + Solana\nТекущая: "+Networks.current(this).name);
   btn("Мои NFT",()->{Intent i=new Intent(this,ToolsActivity.class); i.putExtra("mode","nft"); startActivity(i);});
   btn("Добавить токен / NFT",()->startActivity(new Intent(this,AddTokenActivity.class)));

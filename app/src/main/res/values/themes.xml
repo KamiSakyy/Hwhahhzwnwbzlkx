@@ -1,16 +1,21 @@
 <resources>
-<style name="Theme.Nova" parent="Theme.Material3.Dark.NoActionBar"><item name="android:fontFamily">sans-serif-medium</item>
-<item name="android:windowBackground">#000000</item><item name="colorPrimary">#F4F4F5</item><item name="colorSecondary">#A1A1AA</item><item name="android:statusBarColor">#000000</item><item name="android:navigationBarColor">#000000</item><item name="materialButtonStyle">@style/Btn</item>
+<style name="Theme.Nova" parent="Theme.Material3.Dark.NoActionBar">
+<item name="android:windowBackground">#000000</item><item name="android:fontFamily">sans-serif</item>
+<item name="colorPrimary">#FFFFFF</item><item name="colorOnPrimary">#000000</item><item name="colorPrimaryContainer">#242424</item><item name="colorSecondary">#A3A3A3</item>
+<item name="colorSurface">#000000</item><item name="colorOnSurface">#FFFFFF</item><item name="colorSurfaceContainer">#121212</item>
+<item name="android:statusBarColor">#000000</item><item name="android:navigationBarColor">#000000</item>
+<item name="materialButtonStyle">@style/Btn</item>
 </style>
-<style name="Btn" parent="Widget.Material3.Button"><item name="cornerRadius">20dp</item><item name="android:textAllCaps">false</item><item name="backgroundTint">#F4F4F5</item><item name="android:textColor">#0A0A0C</item><item name="iconTint">#0A0A0C</item></style>
-<style name="BtnOutline" parent="Widget.Material3.Button.OutlinedButton"><item name="cornerRadius">24dp</item><item name="android:textAllCaps">false</item></style>
-<style name="Input" parent="Widget.Material3.TextInputLayout.OutlinedBox"><item name="boxCornerRadiusTopStart">16dp</item><item name="boxCornerRadiusTopEnd">16dp</item><item name="boxCornerRadiusBottomStart">16dp</item><item name="boxCornerRadiusBottomEnd">16dp</item></style>
-<style name="H1"><item name="android:textColor">#FFFFFF</item><item name="android:textSize">28sp</item><item name="android:textStyle">bold</item></style>
-<style name="H2"><item name="android:textColor">#FFFFFF</item><item name="android:textSize">20sp</item><item name="android:textStyle">bold</item></style>
-<style name="Sub"><item name="android:textColor">#9E9EB8</item><item name="android:textSize">14sp</item></style>
-<style name="Card"><item name="cardBackgroundColor">#12121E</item><item name="cardCornerRadius">20dp</item><item name="cardElevation">0dp</item></style>
-<style name="PrimaryBtn" parent="Widget.Material3.Button"><item name="cornerRadius">20dp</item><item name="android:textAllCaps">false</item><item name="android:textSize">15sp</item><item name="backgroundTint">#F4F4F5</item><item name="android:textColor">#0A0A0C</item><item name="iconTint">#0A0A0C</item><item name="iconGravity">textStart</item><item name="iconPadding">8dp</item></style>
-<style name="GhostBtn" parent="Widget.Material3.Button.OutlinedButton"><item name="cornerRadius">24dp</item><item name="android:textAllCaps">false</item><item name="iconGravity">textStart</item><item name="iconPadding">8dp</item></style>
-<style name="ActionBtn" parent="Widget.Material3.Button"><item name="cornerRadius">22dp</item><item name="android:textAllCaps">false</item><item name="android:textSize">11sp</item><item name="iconGravity">top</item><item name="iconPadding">6dp</item><item name="backgroundTint">#12121C</item><item name="iconTint">#FFFFFF</item><item name="android:textColor">#FFFFFF</item></style>
-<style name="ChipBtn" parent="Widget.Material3.Button"><item name="cornerRadius">21dp</item><item name="android:textAllCaps">false</item><item name="android:textSize">13sp</item></style>
+<style name="Btn" parent="Widget.Material3.Button"><item name="cornerRadius">999dp</item><item name="android:textAllCaps">false</item><item name="backgroundTint">#FFFFFF</item><item name="android:textColor">#000000</item><item name="iconTint">#000000</item><item name="android:textSize">15sp</item><item name="android:textStyle">bold</item></style>
+<style name="PrimaryBtn" parent="Widget.Material3.Button"><item name="cornerRadius">999dp</item><item name="android:textAllCaps">false</item><item name="android:textSize">15sp</item><item name="android:textStyle">bold</item><item name="backgroundTint">#FFFFFF</item><item name="android:textColor">#000000</item><item name="iconTint">#000000</item><item name="iconGravity">textStart</item><item name="iconPadding">8dp</item></style>
+<style name="TonalBtn" parent="Widget.Material3.Button.TonalButton"><item name="cornerRadius">999dp</item><item name="android:textAllCaps">false</item><item name="backgroundTint">#1F1F1F</item><item name="android:textColor">#FFFFFF</item><item name="iconTint">#FFFFFF</item></style>
+<style name="BtnOutline" parent="Widget.Material3.Button.OutlinedButton"><item name="cornerRadius">999dp</item><item name="android:textAllCaps">false</item><item name="android:textColor">#FFFFFF</item><item name="iconTint">#FFFFFF</item><item name="strokeColor">#333333</item></style>
+<style name="GhostBtn" parent="Widget.Material3.Button.OutlinedButton"><item name="cornerRadius">999dp</item><item name="android:textAllCaps">false</item><item name="android:textColor">#FFFFFF</item><item name="iconTint">#FFFFFF</item><item name="strokeColor">#262626</item><item name="iconGravity">textStart</item><item name="iconPadding">8dp</item></style>
+<style name="Input" parent="Widget.Material3.TextInputLayout.FilledBox"><item name="boxBackgroundColor">#171717</item><item name="boxCornerRadiusTopStart">18dp</item><item name="boxCornerRadiusTopEnd">18dp</item><item name="boxCornerRadiusBottomStart">18dp</item><item name="boxCornerRadiusBottomEnd">18dp</item><item name="boxStrokeWidth">0dp</item><item name="boxStrokeWidthFocused">0dp</item><item name="hintTextColor">#737373</item></style>
+<style name="ActionBtn" parent="Widget.Material3.Button"><item name="cornerRadius">999dp</item><item name="android:textAllCaps">false</item></style>
+<style name="ChipBtn" parent="Widget.Material3.Button"><item name="cornerRadius">999dp</item><item name="android:textAllCaps">false</item><item name="android:textSize">13sp</item></style>
+<style name="H1"><item name="android:textColor">#FFFFFF</item><item name="android:textSize">26sp</item><item name="android:textStyle">bold</item></style>
+<style name="H2"><item name="android:textColor">#FFFFFF</item><item name="android:textSize">17sp</item><item name="android:textStyle">bold</item></style>
+<style name="Sub"><item name="android:textColor">#A3A3A3</item><item name="android:textSize">14sp</item><item name="android:lineSpacingMultiplier">1.35</item></style>
+<style name="Card"><item name="cardBackgroundColor">#121212</item><item name="cardCornerRadius">24dp</item><item name="cardElevation">0dp</item></style>
 </resources>

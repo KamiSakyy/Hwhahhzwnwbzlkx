@@ -5,7 +5,7 @@ public class HistoryActivity extends Activity{
  ExecutorService ex=Executors.newCachedThreadPool(); LinearLayout list; TextView status; String mode="evm"; int filter=0; // 0 all 1 in 2 out
  static class Row{ boolean in,ok; String addr,amt,ts,hash,kind; }
  List<Row> rows=new ArrayList<>();
- protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_history); list=findViewById(R.id.histList); status=findViewById(R.id.tvHistStatus); mode=getIntent().getStringExtra("mode"); if(mode==null)mode="evm";
+ protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_history); NavHelper.bind(this,"history"); list=findViewById(R.id.histList); status=findViewById(R.id.tvHistStatus); mode=getIntent().getStringExtra("mode"); if(mode==null)mode="evm";
   findViewById(R.id.btnRefreshH).setOnClickListener(v->load());
   findViewById(R.id.fAll).setOnClickListener(v->{filter=0; render();});
   findViewById(R.id.fIn).setOnClickListener(v->{filter=1; render();});

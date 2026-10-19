@@ -1,11 +1,20 @@
 package com.novawallet.app;
 import android.app.Activity; import android.os.Bundle; import android.view.View; import android.widget.*; import java.math.*; import java.util.concurrent.*;
-public class SendActivity extends Activity{ ExecutorService ex=Executors.newSingleThreadExecutor(); String mode,token,symbol; int decimals=18;
+public class SendActivity extends Activity{ ExecutorService ex=Executors.newSingleThreadExecutor(); String mode,token,symbol; int decimals=18; String lastBal="";
  protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_send); mode=getIntent().getStringExtra("mode"); if(mode==null)mode="evm"; token=getIntent().getStringExtra("token"); symbol=getIntent().getStringExtra("symbol"); decimals=getIntent().getIntExtra("decimals",18);
   if(getIntent().getStringExtra("to")!=null)((EditText)findViewById(R.id.etTo)).setText(getIntent().getStringExtra("to"));
   String title=mode.equals("btc")?"Отправить BTC":mode.equals("sol")?"Отправить SOL":token!=null?"Отправить "+symbol:"Отправить "+Networks.current(this).symbol; ((TextView)findViewById(R.id.tvTitle)).setText(title);
   findViewById(R.id.btnSend).setOnClickListener(v->send());
+  findViewById(R.id.btnMax).setOnClickListener(v->{ if(!lastBal.isEmpty()){ ((EditText)findViewById(R.id.etAmt)).setText(lastBal); if(token==null)toast("Оставьте немного на комиссию сети"); } });
+  loadBal();
   findViewById(R.id.btnCopy).setOnClickListener(v->{ String s=((TextView)findViewById(R.id.tvResult)).getText().toString(); ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(android.content.ClipData.newPlainText("tx",s)); toast("Скопировано"); }); }
+ void loadBal(){ ((TextView)findViewById(R.id.tvBal)).setText("Загружаю баланс…"); ex.execute(()->{ try{ String sym; java.math.BigDecimal bal; String addr;
+   if(mode.equals("btc")){ addr=Keys.btcAddress(this); bal=BtcSol.btcBalance(addr); sym="BTC"; }
+   else if(mode.equals("sol")){ addr=Keys.solAddress(this); bal=BtcSol.solBalance(addr); sym="SOL"; }
+   else if(token!=null){ bal=Evm.erc20Balance(Networks.current(this),Keys.evmAddress(this),token,decimals); sym=symbol; }
+   else { bal=Evm.balance(Networks.current(this),Keys.evmAddress(this)); sym=Networks.current(this).symbol; }
+   String bs=bal.stripTrailingZeros().toPlainString(); runOnUiThread(()->{ lastBal=bs; ((TextView)findViewById(R.id.tvBal)).setText("Доступно: "+bs+" "+sym); });
+  }catch(Exception e){ runOnUiThread(()->((TextView)findViewById(R.id.tvBal)).setText("Баланс не загрузился — проверьте интернет")); } }); }
  void send(){ String to=((EditText)findViewById(R.id.etTo)).getText().toString().trim(); String amtS=((EditText)findViewById(R.id.etAmt)).getText().toString().trim(); if(to.isEmpty()||amtS.isEmpty()){toast("Заполните адрес и сумму");return;}
   findViewById(R.id.prog).setVisibility(View.VISIBLE); ((Button)findViewById(R.id.btnSend)).setEnabled(false);
   ex.execute(()->{ try{ BigDecimal amt=new BigDecimal(amtS); String hash;

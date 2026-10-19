@@ -5,12 +5,12 @@ import android.view.*; import android.widget.*; import org.json.*; import java.i
 public class MessengerActivity extends Activity{
  ExecutorService ex=Executors.newCachedThreadPool(); LinearLayout chatsList,list; TextView status,chatStatus; ScrollView scroll;
  static final String PREFIX="NOVA1:"; static final String PREFIX_HEX=Util.hex(PREFIX.getBytes(StandardCharsets.UTF_8));
- static final int[] COLORS={0xFF5B5BD6,0xFF0E7A5F,0xFF9A5B13,0xFF7A3B69,0xFF33566E,0xFF6E3333,0xFF3E5C3A,0xFF574B90};
+ static final int[] COLORS={0xFF404040,0xFF525252,0xFF333333,0xFF5A5A5A,0xFF2E2E2E,0xFF484848,0xFF3D3D3D,0xFF606060};
  String currentPeer=null; java.math.BigDecimal attachedAmt=java.math.BigDecimal.ZERO; java.math.BigDecimal feeBalance=null; java.math.BigInteger feeGasPrice=null; MediaRecorder recorder; File voiceFile; boolean recording=false; MediaPlayer player;
  static class Msg{ String peer,txt,kind,mime,ts,hash; boolean out; BigDecimal value=BigDecimal.ZERO; String b64=""; }
  List<Msg> all=new ArrayList<>();
  String me(){ return Keys.evmAddress(this); }
- protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_messenger); chatsList=findViewById(R.id.chatsList); list=findViewById(R.id.msgList); status=findViewById(R.id.tvStatus); chatStatus=findViewById(R.id.tvChatStatus); scroll=findViewById(R.id.scroll);
+ protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_messenger); NavHelper.bind(this,"chat"); chatsList=findViewById(R.id.chatsList); list=findViewById(R.id.msgList); status=findViewById(R.id.tvStatus); chatStatus=findViewById(R.id.tvChatStatus); scroll=findViewById(R.id.scroll);
   Store.pub(this).edit().putInt("net",0).apply();
   status.setText("Ваш адрес: "+me());
   renderFromCache(); loadAll();
@@ -146,9 +146,9 @@ public class MessengerActivity extends Activity{
  void bubble(Msg m){ LinearLayout wrap=new LinearLayout(this); wrap.setOrientation(LinearLayout.HORIZONTAL); wrap.setGravity(m.out?Gravity.END:Gravity.START); LinearLayout.LayoutParams wlp=new LinearLayout.LayoutParams(-1,-2); wlp.topMargin=8; wrap.setLayoutParams(wlp);
   LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(16,12,16,12); box.setBackgroundResource(m.out?R.drawable.bubble_out:R.drawable.bubble_in); box.setLayoutParams(new LinearLayout.LayoutParams(0,-2,3));
   if(m.kind.equals("media")&&m.mime.startsWith("image")&&!m.b64.isEmpty()){ try{ byte[] bytes=Base64.decode(m.b64,Base64.DEFAULT); Bitmap bmp=BitmapFactory.decodeByteArray(bytes,0,bytes.length); ImageView iv=new ImageView(this); iv.setImageBitmap(bmp); iv.setAdjustViewBounds(true); box.addView(iv); }catch(Exception ignored){} }
-  TextView tv=new TextView(this); String txt=m.kind.equals("media")?label(m.mime):m.txt; tv.setText(txt); tv.setTextColor(m.out?0xFF0A0A0C:Color.WHITE); tv.setTextSize(15); box.addView(tv);
-  TextView meta=new TextView(this); String mt=(m.ts!=null&&m.ts.length()>16)?m.ts.substring(11,16):""; if(m.value.compareTo(new java.math.BigDecimal("0.000001"))>=0)mt=(mt.isEmpty()?"":" · ")+"+"+m.value.setScale(6,java.math.RoundingMode.DOWN).stripTrailingZeros().toPlainString()+" SepoliaETH"; meta.setText(mt); meta.setTextColor(m.out?0xFF3F3F46:0xFF71717A); meta.setTextSize(10); meta.setGravity(Gravity.END); box.addView(meta);
-  if(m.kind.equals("media")&&!m.mime.startsWith("image")){ TextView play=new TextView(this); play.setText(m.mime.startsWith("audio")?"Слушать":"Смотреть"); play.setTextColor(m.out?0xFF0A0A0C:0xFFFAFAFA); play.setPadding(0,10,0,0); play.setOnClickListener(v->playMedia(m)); box.addView(play); }
+  TextView tv=new TextView(this); String txt=m.kind.equals("media")?label(m.mime):m.txt; tv.setText(txt); tv.setTextColor(Color.WHITE); tv.setTextSize(15); box.addView(tv);
+  TextView meta=new TextView(this); String mt=(m.ts!=null&&m.ts.length()>16)?m.ts.substring(11,16):""; if(m.value.compareTo(new java.math.BigDecimal("0.000001"))>=0)mt=(mt.isEmpty()?"":" · ")+"+"+m.value.setScale(6,java.math.RoundingMode.DOWN).stripTrailingZeros().toPlainString()+" SepoliaETH"; meta.setText(mt); meta.setTextColor(0xFFA3A3A3); meta.setTextSize(10); meta.setGravity(Gravity.END); box.addView(meta);
+  if(m.kind.equals("media")&&!m.mime.startsWith("image")){ TextView play=new TextView(this); play.setText(m.mime.startsWith("audio")?"Слушать":"Смотреть"); play.setTextColor(0xFFFFFFFF); play.setPadding(0,10,0,0); play.setOnClickListener(v->playMedia(m)); box.addView(play); }
   box.setOnClickListener(v->{ if(!m.hash.isEmpty())startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://sepolia.etherscan.io/tx/"+m.hash))); });
   View sp=new View(this); sp.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1)); if(m.out){wrap.addView(sp); wrap.addView(box);} else {wrap.addView(box); wrap.addView(sp);} list.addView(wrap); }
  void playMedia(Msg m){ try{ byte[] bytes=Base64.decode(m.b64,Base64.DEFAULT); String ext=m.mime.startsWith("video")?".mp4":".m4a"; File f=new File(getCacheDir(),"nova_media"+ext); FileOutputStream o=new FileOutputStream(f); o.write(bytes); o.close();
