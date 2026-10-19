@@ -24,7 +24,7 @@ public class HomeActivity extends Activity{
  String addr(){ return mode.equals("btc")?Keys.btcAddress(this):mode.equals("sol")?Keys.solAddress(this):Keys.evmAddress(this); }
  void chip(int id,String m){ findViewById(id).setOnClickListener(v->{mode=m; updateChips(); refresh();}); }
  void updateChips(){ setChip(R.id.chipEvm,mode.equals("evm")); setChip(R.id.chipBtc,mode.equals("btc")); setChip(R.id.chipSol,mode.equals("sol")); }
- void setChip(int id,boolean on){ com.google.android.material.button.MaterialButton b=findViewById(id); b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(on?0xFF6D5DF6:0xFF12121C)); b.setTextColor(on?0xFFFFFFFF:0xFFB8B8CC); b.setStrokeColor(android.content.res.ColorStateList.valueOf(0xFF2A2A44)); }
+ void setChip(int id,boolean on){ com.google.android.material.button.MaterialButton b=findViewById(id); b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(on?0xFFF4F4F5:0x00000000)); b.setTextColor(on?0xFF0A0A0C:0xFF8E8E99); b.setStrokeColor(android.content.res.ColorStateList.valueOf(0xFF2A2A44)); }
  void click(int id,Runnable r){ findViewById(id).setOnClickListener(v->r.run()); }
  void copy(String s){((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("a",s));}
  void toast(String s){Toast.makeText(this,s,Toast.LENGTH_SHORT).show();}
