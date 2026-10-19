@@ -149,12 +149,14 @@ public class AotTest {
         write(new File(dir, "expected.txt"), expected.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    /** DT_SYMENT must describe the 24-byte ELF64 symbol records. */
+    /** Validate dynamic entries that must use sizes or offsets, not pointers. */
     private static void assertDynamicSymbolEntrySize(byte[] elf) {
         long phoff = readLong(elf, 32);
         int phentsize = (elf[54] & 0xFF) | ((elf[55] & 0xFF) << 8);
         int phnum = (elf[56] & 0xFF) | ((elf[57] & 0xFF) << 8);
-        boolean found = false;
+        boolean foundSyment = false;
+        long sonameOffset = -1;
+        long stringSize = -1;
         for (int i = 0; i < phnum; i++) {
             int base = (int) phoff + i * phentsize;
             if (readInt(elf, base) != 2) { // PT_DYNAMIC
@@ -167,14 +169,20 @@ public class AotTest {
                 long value = readLong(elf, (int) pos + 8);
                 if (tag == 11) { // DT_SYMENT
                     assertEquals("DT_SYMENT must be sizeof(Elf64_Sym)", 24L, value);
-                    found = true;
+                    foundSyment = true;
+                } else if (tag == 10) { // DT_STRSZ
+                    stringSize = value;
+                } else if (tag == 14) { // DT_SONAME is an offset into DT_STRTAB
+                    sonameOffset = value;
                 }
                 if (tag == 0) { // DT_NULL
                     break;
                 }
             }
         }
-        assertTrue("ELF must declare DT_SYMENT", found);
+        assertTrue("ELF must declare DT_SYMENT", foundSyment);
+        assertTrue("DT_SONAME must point inside DT_STRTAB",
+                sonameOffset >= 0 && sonameOffset < stringSize);
     }
 
     /** Every ELF section's file offset and virtual address must honor sh_addralign. */
