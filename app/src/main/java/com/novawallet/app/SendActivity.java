@@ -4,7 +4,8 @@ public class SendActivity extends Activity{ ExecutorService ex=Executors.newSing
  protected void onCreate(Bundle b){ super.onCreate(b); setContentView(R.layout.activity_send); mode=getIntent().getStringExtra("mode"); if(mode==null)mode="evm"; token=getIntent().getStringExtra("token"); symbol=getIntent().getStringExtra("symbol"); decimals=getIntent().getIntExtra("decimals",18);
   if(getIntent().getStringExtra("to")!=null)((EditText)findViewById(R.id.etTo)).setText(getIntent().getStringExtra("to"));
   String title=mode.equals("btc")?"Отправить BTC":mode.equals("sol")?"Отправить SOL":token!=null?"Отправить "+symbol:"Отправить "+Networks.current(this).symbol; ((TextView)findViewById(R.id.tvTitle)).setText(title);
-  findViewById(R.id.btnSend).setOnClickListener(v->send()); }
+  findViewById(R.id.btnSend).setOnClickListener(v->send());
+  findViewById(R.id.btnCopy).setOnClickListener(v->{ String s=((TextView)findViewById(R.id.tvResult)).getText().toString(); ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(android.content.ClipData.newPlainText("tx",s)); toast("Скопировано"); }); }
  void send(){ String to=((EditText)findViewById(R.id.etTo)).getText().toString().trim(); String amtS=((EditText)findViewById(R.id.etAmt)).getText().toString().trim(); if(to.isEmpty()||amtS.isEmpty()){toast("Заполните адрес и сумму");return;}
   findViewById(R.id.prog).setVisibility(View.VISIBLE); ((Button)findViewById(R.id.btnSend)).setEnabled(false);
   ex.execute(()->{ try{ BigDecimal amt=new BigDecimal(amtS); String hash;
@@ -13,7 +14,9 @@ public class SendActivity extends Activity{ ExecutorService ex=Executors.newSing
     else if(token!=null)hash=Evm.sendErc20(Networks.current(this),Keys.evmPriv(this),token,to,amt,decimals);
     else hash=Evm.sendEth(Networks.current(this),Keys.evmPriv(this),to,amt);
     String link=mode.equals("btc")?"https://mempool.space/tx/"+hash:mode.equals("sol")?"https://solscan.io/tx/"+hash:Networks.current(this).explorer+"/tx/"+hash;
-    runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText(" Отправлено!\nХэш: "+hash+"\n"+link); done(); });
-   }catch(Exception e){ runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText(" "+e.getMessage()); done(); }); } }); }
+    if(mode.equals("evm")){ Store.pub(this).edit().putString("pending_hash",hash).putLong("pending_chain",Networks.current(this).chainId).putString("pending_to",to).apply(); }
+    runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText("Отправлено в сеть, ожидаю подтверждение…\nХэш: "+hash+"\n"+link+"\n\nДеньги списаны с вашего адреса сразу после подтверждения блока (обычно 12–30 секунд в Sepolia). У получателя баланс обновится автоматически."); findViewById(R.id.btnCopy).setVisibility(View.VISIBLE); done(); watchReceipt(hash); });
+   }catch(Exception e){ runOnUiThread(()->{ ((TextView)findViewById(R.id.tvResult)).setText(Errors.human(e)); findViewById(R.id.btnCopy).setVisibility(View.VISIBLE); done(); }); } }); }
+ void watchReceipt(String hash){ if(!mode.equals("evm"))return; Networks.Net n=Networks.current(this); new Thread(()->{ for(int i=0;i<30;i++){ try{Thread.sleep(4000);}catch(Exception ignored){} String st=Evm.receiptStatus(n,hash); if(st==null)continue; if(st.startsWith("confirmed")){ Store.pub(this).edit().remove("pending_hash").apply(); runOnUiThread(()->{ TextView tv=findViewById(R.id.tvResult); tv.setText(tv.getText()+"\n\nПодтверждено в блоке "+st.split("\\|")[1]+". Перевод завершён."); }); } else if(st.startsWith("failed")){ runOnUiThread(()->{ TextView tv=findViewById(R.id.tvResult); tv.setText(tv.getText()+"\n\nТранзакция отклонена сетью (status 0). Сумма вернулась на ваш адрес, списалась только комиссия."); }); } break; } }).start(); }
  void done(){ findViewById(R.id.prog).setVisibility(View.GONE); ((Button)findViewById(R.id.btnSend)).setEnabled(true); }
  void toast(String s){Toast.makeText(this,s,Toast.LENGTH_SHORT).show();} }

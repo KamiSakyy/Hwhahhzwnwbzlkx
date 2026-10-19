@@ -28,12 +28,16 @@ public class HomeActivity extends Activity{
  void click(int id,Runnable r){ findViewById(id).setOnClickListener(v->r.run()); }
  void copy(String s){((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("a",s));}
  void toast(String s){Toast.makeText(this,s,Toast.LENGTH_SHORT).show();}
- protected void onResume(){super.onResume(); if(tvBal!=null)refresh();}
+ android.os.Handler autoH=new android.os.Handler(android.os.Looper.getMainLooper()); Runnable autoR;
+ protected void onResume(){ super.onResume(); if(tvBal!=null)refresh(); autoR=()->{ refresh(); autoH.postDelayed(autoR,10000); }; autoH.postDelayed(autoR,10000); }
+ protected void onPause(){ super.onPause(); if(autoR!=null)autoH.removeCallbacks(autoR); }
  protected void onActivityResult(int req,int res,Intent data){ IntentResult r=IntentIntegrator.parseActivityResult(req,res,data); if(r!=null&&r.getContents()!=null){ String a=r.getContents().replace("ethereum:","").replace("bitcoin:","").replace("solana:","").split("[?@]")[0]; Intent i=new Intent(this,SendActivity.class); i.putExtra("mode",mode); i.putExtra("to",a); startActivity(i); } else super.onActivityResult(req,res,data); }
  void refresh(){ tvAddr.setText(shortAddr(addr())); list.removeAllViews();
   if(mode.equals("btc")){ tvNet.setText("Bitcoin · Mainnet"); row("Bitcoin","BTC","…",null); ex.execute(()->{ BigDecimal bal=BtcSol.btcBalance(addr()); double pr=Evm.priceUsd("bitcoin"); runOnUiThread(()->{ tvBal.setText(Util.fmt(bal)+" BTC"); tvFiat.setText("$"+String.format(Locale.US,"%.2f",bal.doubleValue()*pr)); replaceRow(0,"Bitcoin","BTC",Util.fmt(bal),null); }); }); return; }
   if(mode.equals("sol")){ tvNet.setText("Solana · Mainnet"); row("◎ Solana","SOL","…",null); ex.execute(()->{ BigDecimal bal=BtcSol.solBalance(addr()); double pr=Evm.priceUsd("solana"); runOnUiThread(()->{ tvBal.setText(Util.fmt(bal)+" SOL"); tvFiat.setText("$"+String.format(Locale.US,"%.2f",bal.doubleValue()*pr)); replaceRow(0,"◎ Solana","SOL",Util.fmt(bal),null); }); }); return; }
-  Networks.Net n=Networks.current(this); tvNet.setText(n.name+" · ChainID "+n.chainId); row(""+n.name,n.symbol,"…",null);
+  Networks.Net n=Networks.current(this); String pend=Store.pub(this).getString("pending_hash","");
+   if(!pend.isEmpty()&&Store.pub(this).getLong("pending_chain",0)==n.chainId){ tvNet.setText(n.name+" · перевод ожидает подтверждения…"); ex.execute(()->{ String st=Evm.receiptStatus(n,pend); if(st!=null&&st.startsWith("confirmed")){ Store.pub(this).edit().remove("pending_hash").apply(); runOnUiThread(()->{ toast("Перевод подтверждён"); refresh(); }); } }); }
+   else tvNet.setText(n.name+" · ChainID "+n.chainId); row(""+n.name,n.symbol,"…",null);
   List<Networks.Token> toks=new ArrayList<>(); toks.addAll(Networks.known(n.chainId)); toks.addAll(Networks.tokens(this,n.chainId));
   for(Networks.Token t:toks) row(" "+t.name,t.symbol,"…",t);
   ex.execute(()->{ try{ BigDecimal bal=Evm.balance(n,addr()); String cg=n.symbol.equals("ETH")?"ethereum":n.symbol.equals("BNB")?"binancecoin":n.symbol.equals("POL")?"matic-network":n.symbol.equals("AVAX")?"avalanche-2":"ethereum"; double pr=n.test?0:Evm.priceUsd(cg); runOnUiThread(()->{ tvBal.setText(Util.fmt(bal)+" "+n.symbol); tvFiat.setText(n.test?"Тестовая сеть — монеты без цены":"$"+String.format(Locale.US,"%.2f",bal.doubleValue()*pr)); replaceRow(0,""+n.name,n.symbol,Util.fmt(bal),null); }); }catch(Exception e){ runOnUiThread(()->{ tvBal.setText("Нет соединения"); tvFiat.setText(" "+e.getMessage()+" — нажмите на баланс, чтобы повторить"); tvBal.setOnClickListener(v->refresh()); }); }
