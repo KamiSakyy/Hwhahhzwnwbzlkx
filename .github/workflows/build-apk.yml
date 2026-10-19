@@ -331,7 +331,8 @@ jobs:
             find "$SDK_ROOT" -maxdepth 4 -iname '*emulator*' -print | head -n 30
             exit 1
           fi
-          if ! "$EMULATOR" -version; then
+          : > emulator-arm64.log
+          if ! "$EMULATOR" -version > emulator-arm64.log 2>&1; then
             report_emulator_failure
             exit 1
           fi
