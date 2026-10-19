@@ -20,6 +20,14 @@ jobs:
           which sdkmanager || ls $ANDROID_HOME
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
           sdkmanager "platforms;android-34" "build-tools;34.0.0"
+      - name: Generate Gradle Wrapper (чтобы исходник открывался в Android Studio)
+        run: gradle wrapper --gradle-version 8.9
+      - name: Pack FULL SOURCE zip
+        run: |
+          rm -rf app/build build .gradle
+          zip -r NovaWallet-FULL-SOURCE.zip . -x ".git/*" -x "NovaWallet-FULL-SOURCE.zip"
+          ls -lh NovaWallet-FULL-SOURCE.zip
+          unzip -l NovaWallet-FULL-SOURCE.zip | head -30
       - name: Build Release APK
         run: |
           set +e
@@ -40,7 +48,9 @@ jobs:
       - name: Publish GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.5.0
-          name: "Nova Wallet v1.5.0"
+          tag_name: v1.5.1
+          name: "Nova Wallet v1.5.1"
           body: "Полноценный мультичейн криптокошелёк. Скачайте app-release.apk ниже и установите на Android (разрешите установку из браузера/файлов). Sepolia — бесплатно создать свой токен."
-          files: app/build/outputs/apk/release/*.apk
+          files: |
+            app/build/outputs/apk/release/*.apk
+            NovaWallet-FULL-SOURCE.zip
