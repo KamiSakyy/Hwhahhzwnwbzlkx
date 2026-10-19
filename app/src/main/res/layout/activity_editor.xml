@@ -54,7 +54,6 @@
             android:inputType="textMultiLine|textNoSuggestions"
             android:padding="0dp"
             android:scrollbars="vertical"
-            android:spinnerEnabled="false"
             android:textColor="@color/code_text"
             android:textCursorDrawable="@null"
             android:textSize="13sp"

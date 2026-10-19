@@ -43,6 +43,7 @@
     <string name="template_clicker">Игра: кликер</string>
     <string name="template_animation">Анимация и графика</string>
     <string name="template_counter">Приложение: счётчик</string>
+    <string name="template_notes">Вы сможете изменить шаблон и исходный код позже</string>
 
     <string name="settings_editor">Редактор</string>
     <string name="settings_build">Сборка</string>
