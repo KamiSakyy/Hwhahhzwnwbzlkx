@@ -38,7 +38,6 @@ Installing CMake 3.22.1 in /usr/local/lib/android/sdk/cmake/3.22.1
 > Task :engine:generateReleaseAssets UP-TO-DATE
 > Task :engine:mergeReleaseAssets
 > Task :engine:extractProguardFiles
-> Task :engine:generateReleaseLintVitalModel
 
 > Task :runtime:buildCMakeRelWithDebInfo[arm64-v8a]
 C/C++: ninja: Entering directory `/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/runtime/.cxx/RelWithDebInfo/11252i4g/arm64-v8a'
@@ -49,6 +48,7 @@ C/C++: /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/cpp/lzm
 C/C++: 1 warning generated.
 
 > Task :runtime:configureCMakeRelWithDebInfo[armeabi-v7a]
+> Task :engine:generateReleaseLintVitalModel
 
 > Task :runtime:buildCMakeRelWithDebInfo[armeabi-v7a]
 C/C++: ninja: Entering directory `/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/runtime/.cxx/RelWithDebInfo/11252i4g/armeabi-v7a'
@@ -69,23 +69,23 @@ C/C++: /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/engine/src/main/cpp/lzm
 C/C++: 1 warning generated.
 
 > Task :runtime:mergeReleaseJniLibFolders
-> Task :runtime:javaPreCompileRelease FROM-CACHE
 > Task :runtime:checkReleaseDuplicateClasses
-> Task :runtime:mergeReleaseNativeLibs
+> Task :runtime:javaPreCompileRelease FROM-CACHE
 > Task :runtime:checkReleaseAarMetadata
 > Task :runtime:processReleaseNavigationResources
+> Task :runtime:mergeReleaseNativeLibs
+> Task :runtime:compileReleaseNavigationResources
 > Task :runtime:generateReleaseResValues FROM-CACHE
 > Task :runtime:mapReleaseSourceSetPaths
 > Task :runtime:generateReleaseResources
-> Task :runtime:compileReleaseNavigationResources
 > Task :runtime:stripReleaseDebugSymbols
 > Task :runtime:packageReleaseResources
+> Task :runtime:parseReleaseLocalResources
 > Task :runtime:mergeReleaseResources
 > Task :runtime:createReleaseCompatibleScreenManifests
 > Task :runtime:extractDeepLinksRelease
 > Task :runtime:extractReleaseNativeSymbolTables
 > Task :runtime:processReleaseMainManifest
-> Task :runtime:parseReleaseLocalResources
 > Task :runtime:mergeReleaseNativeDebugMetadata
 > Task :runtime:processReleaseManifest
 > Task :runtime:desugarReleaseFileDependencies
@@ -102,8 +102,8 @@ C/C++: 1 warning generated.
 > Task :runtime:extractReleaseVersionControlInfo
 > Task :runtime:compileReleaseJavaWithJavac
 > Task :runtime:dexBuilderRelease
-> Task :runtime:extractProguardFiles
 > Task :runtime:mergeReleaseGlobalSynthetics
+> Task :runtime:extractProguardFiles
 > Task :runtime:processReleaseJavaRes NO-SOURCE
 > Task :runtime:collectReleaseDependencies
 > Task :runtime:optimizeReleaseResources
@@ -121,12 +121,12 @@ C/C++: 1 warning generated.
 > Task :engine:copyReleaseJniLibsProjectAndLocalJars
 > Task :engine:extractDeepLinksForAarRelease
 > Task :runtime:generateReleaseLintVitalReportModel
+> Task :runtime:mergeReleaseJavaResource
 > Task :engine:extractReleaseAnnotations
 > Task :engine:mergeReleaseGeneratedProguardFiles
 > Task :engine:mergeReleaseConsumerProguardFiles
-> Task :engine:writeReleaseLintModelMetadata
 > Task :engine:mergeReleaseJavaResource
-> Task :runtime:mergeReleaseJavaResource
+> Task :engine:writeReleaseLintModelMetadata
 > Task :engine:syncReleaseLibJars
 > Task :engine:bundleReleaseLocalLintAar
 > Task :engine:lintVitalAnalyzeRelease
@@ -203,30 +203,101 @@ C/C++: 1 warning generated.
 > Task :app:compressReleaseAssets
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
-> Task :app:processReleaseResources FAILED
+> Task :app:processReleaseResources
 > Task :app:mergeReleaseJavaResource
 > Task :app:validateSigningRelease
 > Task :app:mergeExtDexRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_7-1792398618796.json
+
+> Task :app:compileReleaseJavaWithJavac FAILED
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:16: error: package com.google.android.material.toolbar does not exist
+import com.google.android.material.toolbar.MaterialToolbar;
+                                          ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:32: error: package com.lsengine.studio.build does not exist
+import com.lsengine.studio.build.ApkBuildManager;
+                                ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:324: error: package ApkBuildManager does not exist
+    private void showBuildResult(ApkBuildManager.Result result) {
+                                                ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:338: error: package ApkBuildManager does not exist
+    private void installApk(ApkBuildManager.Result result) {
+                                           ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:77: error: cannot find symbol
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        ^
+  symbol:   class MaterialToolbar
+  location: class PreviewActivity
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: package ApkBuildManager does not exist
+        new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
+                                                                             ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:307: error: package ApkBuildManager does not exist
+            public void onResult(ApkBuildManager.Result result) {
+                                                ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:301: error: method does not override or implement a method from a supertype
+            @Override
+            ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:306: error: method does not override or implement a method from a supertype
+            @Override
+            ^
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: cannot find symbol
+        new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
+            ^
+  symbol:   class ApkBuildManager
+  location: class EditorActivity
+/home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/ui/SyntaxHighlighter.java:32: error: incompatible types: CharSequence cannot be converted to Spannable
+        Spannable spannable = view.getText();
+                                          ^
+11 errors
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_7-1792398834225.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':app:processReleaseResources'.
-> A failure occurred while executing com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask$TaskAction
-   > Android resource linking failed
-     com.lsengine.studio.app-main-47:/layout/activity_editor.xml:61: error: attribute android:spinnerEnabled not found.
-     com.lsengine.studio.app-main-47:/layout/dialog_new_project.xml:68: error: resource string/template_notes (aka com.lsengine.studio:string/template_notes) not found.
-     error: failed linking file resources.
-
+Execution failed for task ':app:compileReleaseJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/ui/SyntaxHighlighter.java:32: error: incompatible types: CharSequence cannot be converted to Spannable
+          Spannable spannable = view.getText();
+                                            ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:77: error: cannot find symbol
+          MaterialToolbar toolbar = findViewById(R.id.toolbar);
+          ^
+    symbol:   class MaterialToolbar
+    location: class PreviewActivity
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: cannot find symbol
+          new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
+              ^
+    symbol:   class ApkBuildManager
+    location: class EditorActivity
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:301: error: method does not override or implement a method from a supertype
+              @Override
+              ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:306: error: method does not override or implement a method from a supertype
+              @Override
+              ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/PreviewActivity.java:16: error: package com.google.android.material.toolbar does not exist
+  import com.google.android.material.toolbar.MaterialToolbar;
+                                            ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:32: error: package com.lsengine.studio.build does not exist
+  import com.lsengine.studio.build.ApkBuildManager;
+                                  ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:324: error: package ApkBuildManager does not exist
+      private void showBuildResult(ApkBuildManager.Result result) {
+                                                  ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:338: error: package ApkBuildManager does not exist
+      private void installApk(ApkBuildManager.Result result) {
+                                             ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:300: error: package ApkBuildManager does not exist
+          new ApkBuildManager(this).build(project, options, new ApkBuildManager.Callback() {
+                                                                               ^
+  /home/runner/work/Hwhahhzwnwbzlkx/Hwhahhzwnwbzlkx/app/src/main/java/com/lsengine/studio/EditorActivity.java:307: error: package ApkBuildManager does not exist
+              public void onResult(ApkBuildManager.Result result) {
+                                                  ^
+  11 errors
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
 
@@ -234,5 +305,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 1m 12s
-132 actionable tasks: 119 executed, 13 from cache
+BUILD FAILED in 1m 16s
+133 actionable tasks: 120 executed, 13 from cache
