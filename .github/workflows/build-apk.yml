@@ -325,7 +325,16 @@ jobs:
             -avd ls-arm64-test -no-window -no-audio -no-boot-anim -no-snapshot \
             -gpu swiftshader_indirect -accel off > emulator-arm64.log 2>&1 &
           echo $! > emulator-arm64.pid
-          adb wait-for-device
+          sleep 10
+          if ! kill -0 "$(cat emulator-arm64.pid)" 2>/dev/null; then
+            cat emulator-arm64.log
+            exit 1
+          fi
+          if ! timeout 600 adb wait-for-device; then
+            cat emulator-arm64.log
+            echo "Android emulator did not expose an ADB device within 10 minutes"
+            exit 1
+          fi
           booted=false
           for attempt in $(seq 1 120); do
             if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\\r')" = "1" ]; then
