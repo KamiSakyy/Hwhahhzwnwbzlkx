@@ -290,6 +290,8 @@ jobs:
       - name: Установить Android SDK и system image ARM64
         run: |
           set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libpulse0
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           test -n "$SDK_ROOT"
           sdkmanager="$(command -v sdkmanager || find "$SDK_ROOT/cmdline-tools" -name sdkmanager -type f -print -quit)"
