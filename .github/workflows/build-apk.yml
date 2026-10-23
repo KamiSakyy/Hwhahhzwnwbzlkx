@@ -12,6 +12,10 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3g"
 
 jobs:
   build:
@@ -20,17 +24,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Toolchain info
+        run: |
+          java -version
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
+          ls "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platforms" || true
+          ls "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" || true
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -54,6 +63,8 @@ jobs:
           fi
 
       - name: Build APK (release + debug)
+        id: build
+        continue-on-error: true
         env:
           KEYSTORE_PATH: ${{ runner.temp }}/keys/release.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
@@ -62,8 +73,8 @@ jobs:
           VERSION_CODE: ${{ github.run_number }}
           VERSION_NAME: 1.0.${{ github.run_number }}
         run: |
-          set -euo pipefail
-          ./gradlew :app:assembleRelease :app:assembleDebug --no-daemon --stacktrace
+          set -o pipefail
+          ./gradlew :app:assembleRelease :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk dist/WebRecorder-latest.apk
           cp app/build/outputs/apk/release/app-release.apk "dist/WebRecorder-v${VERSION_NAME}.apk"
@@ -71,7 +82,29 @@ jobs:
           sha256sum dist/*.apk | tee dist/SHA256SUMS.txt
           ls -la dist
 
+      - name: Report build errors
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "Gradle failed, publishing the error lines as annotations."
+          grep -nE "error:|error;|FAILURE:|What went wrong|Execution failed|Caused by|Could not (resolve|find|open|create)|AAPT|Android resource|Unsupported class|requires|not found" build.log \
+            | tail -60 | while IFS= read -r line; do
+              msg=$(printf '%s' "$line" | tr -d '\r' | sed 's/%/%25/g' | cut -c1-900)
+              echo "::error title=Build error::$msg"
+            done
+          echo "--- last 200 log lines ---"
+          tail -200 build.log
+          exit 1
+
+      - name: Upload build log
+        if: steps.build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ github.run_number }}
+          path: build.log
+          retention-days: 5
+
       - name: Upload APK artifacts
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: WebRecorder-apk-${{ github.run_number }}
@@ -79,7 +112,7 @@ jobs:
           retention-days: 30
 
       - name: Publish APK to GitHub Releases
-        if: github.event_name != 'pull_request'
+        if: steps.build.outcome == 'success' && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION_NAME: 1.0.${{ github.run_number }}
@@ -96,7 +129,7 @@ jobs:
             --notes "Сборка #${{ github.run_number }} • версия ${VERSION_NAME} • Java + XML • MediaProjection"
 
       - name: Publish version tag release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: steps.build.outcome == 'success' && startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
