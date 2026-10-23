@@ -189,7 +189,6 @@ public final class VideoExporter {
     private Composition buildComposition(Project project, int outWidth, int outHeight) {
         List<EditedMediaItem> items = new ArrayList<>();
         List<TextureOverlay> overlayList = new ArrayList<>();
-        boolean hasSpeedChange = false;
         int clipCount = project.clips.size();
 
         for (int i = 0; i < clipCount; i++) {
@@ -208,7 +207,6 @@ public final class VideoExporter {
                 audioProcessors.add(new GainAudioProcessor(clip.volume));
             }
             if (Math.abs(clip.speed - 1f) > 0.01f) {
-                hasSpeedChange = true;
                 Pair<AudioProcessor, Effect> speed =
                         Effects.createExperimentalSpeedChangingEffect(constantSpeed(clip.speed));
                 if (speed.first != null) {
@@ -273,10 +271,9 @@ public final class VideoExporter {
                     .build());
         }
 
-        Composition.Builder builder = new Composition.Builder(sequences);
-        if (hasSpeedChange) {
-            builder.experimentalSetForceAudioTrack(true);
-        }
+        // Guarantees one stable audio track even when some clips are silent.
+        Composition.Builder builder = new Composition.Builder(sequences)
+                .experimentalSetForceAudioTrack(true);
         if (!overlayList.isEmpty()) {
             List<Effect> compositionEffects = new ArrayList<>();
             compositionEffects.add(new OverlayEffect(overlayList));
