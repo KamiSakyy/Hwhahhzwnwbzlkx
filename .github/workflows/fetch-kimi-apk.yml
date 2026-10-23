@@ -167,6 +167,38 @@ jobs:
           python3 scripts/print_report.py apk-work/report.json || true
           echo "================================================"
 
+      # Логи и артефакты Actions лежат на blob.core.windows.net, который может быть
+      # недоступен извне GitHub. Поэтому дублируем отчёт в комментарий issue -- его
+      # можно прочитать через api.github.com.
+      - name: Publish report to the tracking issue
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FN:  ${{ steps.params.outputs.filename }}
+          VC:  ${{ steps.params.outputs.version_code }}
+          VN:  ${{ steps.params.outputs.version_name }}
+          PKG: ${{ steps.params.outputs.package }}
+          RC:  ${{ steps.fetch.outputs.exit_code }}
+        run: |
+          set -uo pipefail
+          body="**AUTO-DIAG** run $GITHUB_RUN_ID job ${{ github.job }}\n\n"
+          body="$body- package: \`$PKG\`  version: \`$VN ($VC)\`  exit_code: \`$RC\`\n"
+          if [ -f "$APK_DIR/$FN" ]; then
+            body="$body- file: \`$APK_DIR/$FN\` $(stat -c%s "$APK_DIR/$FN") bytes\n"
+            body="$body- sha256: \`$(sha256sum "$APK_DIR/$FN" | cut -d' ' -f1)\`\n"
+          else
+            body="$body- file: NOT SAVED\n"
+          fi
+          body="$body\n\`\`\`\n"
+          if [ -f apk-work/report.md ]; then
+            body="$body$(head -c 5000 apk-work/report.md)\n"
+          fi
+          body="$body\n--- log tail ---\n$(python3 scripts/print_report.py apk-work/report.json 2>&1 | head -c 9000)\n\`\`\`"
+          printf '%b' "$body" > /tmp/diag.md
+          gh issue comment 11 --body-file /tmp/diag.md || echo "::warning::не удалось опубликовать диагностику"
+
+
       - name: Fail loudly if nothing verified
         if: steps.fetch.outputs.exit_code != '0'
         run: |
@@ -181,17 +213,27 @@ jobs:
           VC: ${{ steps.params.outputs.version_code }}
         run: |
           set -euo pipefail
+          git config advice.detachedHead false
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git pull --rebase origin main || true
+
+          f="$APK_DIR/$FN"
+          if [ ! -f "$f" ]; then
+            echo "::error::ожидаемый файл $f отсутствует"
+            ls -laR "$APK_DIR" apk-work || true
+            exit 1
+          fi
+          echo "Найден файл: $f ($(stat -c%s "$f") байт)"
+
+          # actions/checkout оставляет detached HEAD -- заводим локальную ветку
+          git checkout -B ci-apk-drop
           git add -f "$APK_DIR"
           if git diff --cached --quiet; then
             echo "Файл уже в репозитории -- коммит не нужен."
             echo "committed=false" >> "$GITHUB_ENV"
             exit 0
           fi
-          f="$APK_DIR/$FN"
+
           size=$(stat -c%s "$f")
           sha=$(sha256sum "$f" | cut -d' ' -f1)
           printf '%s\n' \
@@ -202,16 +244,29 @@ jobs:
             "SHA-256 : $sha" \
             "Verified: package + versionCode read from the binary AndroidManifest.xml" > /tmp/msg.txt
           git commit -q -F /tmp/msg.txt
+          git log --oneline -1
+
           ok=0
-          for attempt in 1 2 3; do
-            if git push origin HEAD:main; then ok=1; echo "pushed (attempt $attempt)"; break; fi
-            echo "push failed (attempt $attempt), rebasing..."; sleep 3
-            git pull --rebase origin main || true
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              ok=1
+              echo "pushed in main (attempt $attempt)"
+              break
+            fi
+            echo "push rejected (attempt $attempt) -- догоняем origin/main"
+            git fetch origin main
+            git rebase origin/main || git rebase --abort || true
+            sleep 3
           done
-          [ "$ok" = "1" ] || { echo "::error::git push in main failed"; exit 1; }
+          if [ "$ok" != "1" ]; then
+            echo "::error::git push origin HEAD:main не удался после 4 попыток"
+            git remote -v
+            exit 1
+          fi
           echo "committed=true" >> "$GITHUB_ENV"
-          echo "SHA=$sha"  >> "$GITHUB_ENV"
+          echo "SHA=$sha"   >> "$GITHUB_ENV"
           echo "SIZE=$size" >> "$GITHUB_ENV"
+
 
       - name: Upload workflow artifact
         if: always()
@@ -269,3 +324,17 @@ jobs:
             echo "| закоммичено | \`${{ env.committed }}\` |"
             echo "| exit code | \`${{ steps.fetch.outputs.exit_code }}\` |"
           } >> "$GITHUB_STEP_SUMMARY"
+
+
+      - name: Remove the AUTO-DIAG comment on success
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          ids=$(gh api "repos/$GITHUB_REPOSITORY/issues/11/comments?per_page=100" \
+                  --jq '.[] | select(.body|startswith("**AUTO-DIAG**")) | .id' || true)
+          for id in $ids; do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/issues/comments/$id" || true
+          done
