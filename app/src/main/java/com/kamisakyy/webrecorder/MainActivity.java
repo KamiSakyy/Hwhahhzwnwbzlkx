@@ -375,7 +375,14 @@ public class MainActivity extends Activity implements RecorderService.Listener {
         fullscreenContainer.setVisibility(View.GONE);
         fullscreenContainer.setKeepScreenOn(false);
         customView = null;
+        WebChromeClient.CustomViewCallback callback = customViewCallback;
         customViewCallback = null;
+        if (callback != null) {
+            try {
+                callback.onCustomViewHidden();
+            } catch (Throwable ignored) {
+            }
+        }
         toolbar.setVisibility(View.VISIBLE);
         bottomBar.setVisibility(View.VISIBLE);
         exitImmersive();

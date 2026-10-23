@@ -36,7 +36,9 @@ import android.view.WindowManager;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -262,37 +264,68 @@ public class RecorderService extends Service {
         }
 
         int[] size = resolveSize(dm);
-        outWidth = size[0];
-        outHeight = size[1];
-        Log.i(TAG, "Recording size " + outWidth + "x" + outHeight + ", quality " + qualityIndex);
+        Log.i(TAG, "Requested recording size " + size[0] + "x" + size[1]
+                + ", quality " + qualityIndex);
 
         File dir = getRecordingDir();
         String name = "WebRecorder_"
                 + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".mp4";
         outputFile = new File(dir, name);
 
-        MediaRecorder recorder;
-        try {
-            recorder = createRecorder(outputFile, outWidth, outHeight,
-                    Q_BITRATE[qualityIndex], FRAME_RATE, withMic);
-        } catch (Throwable t) {
-            Log.w(TAG, "prepare with mic failed, retrying without audio", t);
-            withMic = false;
-            try {
-                recorder = createRecorder(outputFile, outWidth, outHeight,
-                        Q_BITRATE[qualityIndex], FRAME_RATE, false);
-            } catch (Throwable t2) {
-                Log.e(TAG, "prepare failed", t2);
+        // Try the requested size first, then fall back to lower resolutions so that
+        // recording still starts on devices whose encoder has size limits.
+        List<int[]> candidates = new ArrayList<>();
+        candidates.add(size);
+        int[] hd = scaleToShortSide(dm, 720);
+        if (hd[0] != size[0] || hd[1] != size[1]) {
+            candidates.add(hd);
+        }
+        int[] sd = scaleToShortSide(dm, 480);
+        if (sd[0] != hd[0] || sd[1] != hd[1]) {
+            candidates.add(sd);
+        }
+
+        MediaRecorder recorder = null;
+        int[] chosen = null;
+        boolean micUsed = withMic;
+        for (int[] candidate : candidates) {
+            if (withMic) {
                 try {
-                    mediaProjection.stop();
-                } catch (Throwable ignored) {
+                    recorder = createRecorder(outputFile, candidate[0], candidate[1],
+                            Q_BITRATE[qualityIndex], FRAME_RATE, true);
+                    chosen = candidate;
+                    micUsed = true;
+                    break;
+                } catch (Throwable t) {
+                    Log.w(TAG, "prepare " + candidate[0] + "x" + candidate[1]
+                            + " with mic failed", t);
                 }
-                mediaProjection = null;
-                failRecording("Кодек не поддерживает запись " + outWidth + "x" + outHeight
-                        + ". Выберите качество ниже.");
-                return;
+            }
+            try {
+                recorder = createRecorder(outputFile, candidate[0], candidate[1],
+                        Q_BITRATE[qualityIndex], FRAME_RATE, false);
+                chosen = candidate;
+                micUsed = false;
+                break;
+            } catch (Throwable t) {
+                Log.w(TAG, "prepare " + candidate[0] + "x" + candidate[1] + " failed", t);
             }
         }
+
+        if (recorder == null || chosen == null) {
+            try {
+                mediaProjection.stop();
+            } catch (Throwable ignored) {
+            }
+            mediaProjection = null;
+            failRecording("Кодек не поддерживает запись экрана. Выберите качество ниже.");
+            return;
+        }
+
+        withMic = micUsed;
+        outWidth = chosen[0];
+        outHeight = chosen[1];
+        Log.i(TAG, "Recording size " + outWidth + "x" + outHeight + ", mic=" + withMic);
         mediaRecorder = recorder;
 
         try {
@@ -342,17 +375,22 @@ public class RecorderService extends Service {
     }
 
     private int[] resolveSize(DisplayMetrics dm) {
-        int screenW = Math.max(1, dm.widthPixels);
-        int screenH = Math.max(1, dm.heightPixels);
-        int shortSide = Math.min(screenW, screenH);
-
+        int shortSide = Math.min(Math.max(1, dm.widthPixels), Math.max(1, dm.heightPixels));
         int targetShort;
         if (qualityIndex >= Q_SHORT_SIDE.length - 1 || Q_SHORT_SIDE[qualityIndex] == 0) {
             targetShort = shortSide;
         } else {
             targetShort = Math.min(Q_SHORT_SIDE[qualityIndex], shortSide);
         }
-        float scale = targetShort / (float) shortSide;
+        return scaleToShortSide(dm, targetShort);
+    }
+
+    private int[] scaleToShortSide(DisplayMetrics dm, int targetShort) {
+        int screenW = Math.max(1, dm.widthPixels);
+        int screenH = Math.max(1, dm.heightPixels);
+        int shortSide = Math.min(screenW, screenH);
+        int target = Math.min(targetShort, shortSide);
+        float scale = target / (float) shortSide;
         int w = Math.round(screenW * scale);
         int h = Math.round(screenH * scale);
         w = Math.max(2, w - (w % 2));
