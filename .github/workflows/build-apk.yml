@@ -51,11 +51,14 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/keys"
           if [ -n "${KEYSTORE_BASE64:-}" ]; then
-            printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keys/release.jks"
+            printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keys/release.p12"
             echo "Using keystore from repository secrets"
+          elif [ -f signing/web-recorder.p12.b64 ]; then
+            base64 -d signing/web-recorder.p12.b64 > "$RUNNER_TEMP/keys/release.p12"
+            echo "Using the committed demo keystore (stable signature)"
           else
             keytool -genkeypair -v \
-              -keystore "$RUNNER_TEMP/keys/release.jks" \
+              -keystore "$RUNNER_TEMP/keys/release.p12" -storetype PKCS12 \
               -storepass android -keypass android \
               -alias webrecorder -keyalg RSA -keysize 2048 -validity 10950 \
               -dname "CN=Web Recorder, O=KamiSakyy, C=NL"
@@ -66,7 +69,7 @@ jobs:
         id: build
         continue-on-error: true
         env:
-          KEYSTORE_PATH: ${{ runner.temp }}/keys/release.jks
+          KEYSTORE_PATH: ${{ runner.temp }}/keys/release.p12
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'webrecorder' }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
@@ -102,8 +105,15 @@ jobs:
           SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           APKSIGNER=$(ls "$SDK"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
           AAPT=$(ls "$SDK"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1)
-          "$APKSIGNER" verify --print-certs dist/WebRecorder-latest.apk
+          "$APKSIGNER" verify --print-certs dist/WebRecorder-latest.apk | tee /tmp/certs.txt
           "$AAPT" dump badging dist/WebRecorder-latest.apk | head -25
+          EXPECTED="c245776ee2215a4dff21ff0376886afea59065e0e8e184478ecab2258c7b947f"
+          if ! grep -qi "SHA-256 digest: $EXPECTED" /tmp/certs.txt; then
+            echo "::error title=Signature::APK is not signed with the stable WebRecorder key"
+            cat /tmp/certs.txt
+            exit 1
+          fi
+          echo "Signed with the stable WebRecorder key."
 
       - name: Upload build log
         if: steps.build.outcome == 'failure'

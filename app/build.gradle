@@ -22,6 +22,8 @@ android {
                 storePassword System.getenv("KEYSTORE_PASSWORD")
                 keyAlias System.getenv("KEY_ALIAS")
                 keyPassword System.getenv("KEY_PASSWORD")
+                def lower = ksPath.toLowerCase()
+                storeType(lower.endsWith(".p12") || lower.endsWith(".pfx") ? "PKCS12" : "JKS")
             }
         }
     }

@@ -58,7 +58,13 @@ https://github.com/KamiSakyy/Hwhahhzwnwbzlkx/releases/download/latest-apk/WebRec
 | `KEY_ALIAS` | alias ключа |
 | `KEY_PASSWORD` | пароль ключа |
 
-Без secrets workflow генерирует одноразовый debug-подобный ключ, APK всё равно устанавливается.
+Без secrets workflow подписывает APK **демо-ключом** `signing/web-recorder.p12.b64`
+(alias `webrecorder`, пароль `android`), поэтому все сборки имеют одинаковую подпись и
+обновляются «поверх» без удаления. Отпечаток сертификата — `signing/CERT-SHA256.txt`,
+CI проверяет его на каждом билде. Этот ключ публичный: он годится для сайдлока,
+но **не** для Google Play — для реального релиза задайте secrets выше.
+
+Если secrets не заданы и демо-ключа нет, workflow сгенерирует одноразовый ключ.
 
 ## Локальная сборка
 
