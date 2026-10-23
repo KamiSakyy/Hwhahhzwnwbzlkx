@@ -1,0 +1,9 @@
+# Бинарники не диффить и не нормализовать
+*.apk binary -diff -merge
+*.xapk binary -diff -merge
+*.apks binary -diff -merge
+*.apkm binary -diff -merge
+*.aab binary -diff -merge
+*.jar binary -diff -merge
+*.so  binary -diff -merge
+*.zip binary -diff -merge
