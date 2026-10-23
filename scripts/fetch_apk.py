@@ -853,6 +853,9 @@ def main(argv=None) -> int:
                     help="only use --url candidates, do not crawl the catalogues")
     ap.add_argument("--no-local-files", action="store_true",
                     help="treat file:// URLs as unsupported instead of hanging")
+    ap.add_argument("--stop-at-first-match", action="store_true",
+                    help="accept the first build whose package+versionCode match, "
+                         "instead of comparing every mirror and keeping the closest size")
     args = ap.parse_args(argv)
 
     pkg, vname, vcode = args.package, args.version_name, (args.version_code or None)
@@ -878,6 +881,9 @@ def main(argv=None) -> int:
     results: list[dict] = []
     accepted: dict | None = None
     accepted_cand: Candidate | None = None
+    best: Candidate | None = None
+    best_score = float("-inf")
+    best_exact = False
 
     # ---- candidates: manual URLs first, then the catalogues, lazily --------
     def iter_candidates():
@@ -904,7 +910,7 @@ def main(argv=None) -> int:
                 yield cand
 
     for cand in iter_candidates():
-        if accepted:
+        if best is not None and (args.stop_at_first_match or best_exact):
             break
         if accepted:
             break
@@ -955,9 +961,21 @@ def main(argv=None) -> int:
             if probe.get("sha256") != args.expect_sha256.lower():
                 log("    ! sha256 mismatch: %s" % probe.get("sha256"))
         if ok:
-            accepted = probe
-            accepted_cand = cand
-            log("\n*** ACCEPTED build from %s ***" % cand.source)
+            exact = bool(args.expected_size) and probe.get("size") == args.expected_size
+            better = (best is None
+                      or (exact and not best_exact)
+                      or (exact == best_exact and s > best_score))
+            if better:
+                best, best_score, best_exact = cand, s, exact
+                log("\n*** best so far: %s -- %s bytes%s ***"
+                    % (cand.source, format(probe.get("size", 0), ","),
+                       " (exact size match)" if exact else ""))
+
+    if best is not None:
+        accepted = best.info
+        accepted_cand = best
+        log("\n*** ACCEPTED build from %s -- %s bytes ***"
+            % (accepted_cand.source, format(accepted.get("size", 0), ",")))
 
     if not accepted or not accepted_cand:
         log("\n" + "=" * 78)
