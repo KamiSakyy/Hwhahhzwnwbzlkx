@@ -1,0 +1,271 @@
+name: Fetch Kimi APK 3.1.1 (372)
+
+# Скачивает ОДНУ конкретную сборку Kimi:
+#   package     com.moonshot.kimichat
+#   versionName 3.1.1
+#   versionCode 372
+#   abi         arm64-v8a, minSdk 26
+# проверяет её по бинарному AndroidManifest.xml (package + versionCode обязаны
+# совпасть) и коммитит файл в репозиторий в папку apk/.
+#
+# Запуск:
+#   * автоматически -- при push в main, если менялся этот файл или scripts/fetch_apk.py
+#   * вручную       -- Actions -> "Fetch Kimi APK 3.1.1 (372)" -> Run workflow
+#
+# Прямые ссылки перебираются по порядку; если ни одна не сработала, скрипт сам
+# идёт по каталогам: APKMirror -> APKPure -> APKCombo -> Uptodown.
+# Сборка принимается ТОЛЬКО при совпадении package И versionCode -- иначе шаг
+# падает с ошибкой и в репозиторий ничего не коммитится.
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package name'
+        required: false
+        default: 'com.moonshot.kimichat'
+      version_name:
+        description: 'versionName'
+        required: false
+        default: '3.1.1'
+      version_code:
+        description: 'versionCode'
+        required: false
+        default: '372'
+      filename:
+        description: 'Имя файла в репозитории (папка apk/)'
+        required: false
+        default: 'com.moonshot.kimichat-372_hw.apk'
+      urls:
+        description: 'Прямые ссылки через запятую (перебираются по порядку)'
+        required: false
+        default: 'https://d.apkpure.net/b/XAPK/com.moonshot.kimichat?versionCode=372&nc=arm64-v8a&sv=26, https://d.apkpure.com/b/XAPK/com.moonshot.kimichat?versionCode=372&nc=arm64-v8a&sv=26, https://d.apkpure.net/b/APK/com.moonshot.kimichat?versionCode=372&nc=arm64-v8a&sv=26, https://d.apkpure.com/b/APKS/com.moonshot.kimichat?versionCode=372&nc=arm64-v8a&sv=26, https://d.cdnpure.com/b/XAPK/com.moonshot.kimichat?versionCode=372&nc=arm64-v8a&sv=26'
+      expected_size:
+        description: 'Ожидаемый размер в байтах (0 = не учитывать)'
+        required: false
+        default: '34113211'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fetch-kimi-apk.yml'
+      - 'scripts/fetch_apk.py'
+      - 'scripts/print_report.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-kimi-apk-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  APK_DIR: apk
+
+jobs:
+  fetch:
+    name: Download + verify + commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Resolve parameters
+        id: params
+        env:
+          IN_PKG:  ${{ github.event.inputs.package }}
+          IN_VN:   ${{ github.event.inputs.version_name }}
+          IN_VC:   ${{ github.event.inputs.version_code }}
+          IN_FN:   ${{ github.event.inputs.filename }}
+          IN_URLS: ${{ github.event.inputs.urls }}
+          IN_ESZ:  ${{ github.event.inputs.expected_size }}
+        run: |
+          set -euo pipefail
+          pkg="${IN_PKG:-com.moonshot.kimichat}"
+          vn="${IN_VN:-3.1.1}"
+          vc="${IN_VC:-372}"
+          fn="${IN_FN:-com.moonshot.kimichat-372_hw.apk}"
+          esz="${IN_ESZ:-34113211}"
+          urls="${IN_URLS:-https://d.apkpure.net/b/XAPK/com.moonshot.kimichat?versionCode=372&nc=arm64-v8a&sv=26}"
+          {
+            echo "package=$pkg"
+            echo "version_name=$vn"
+            echo "version_code=$vc"
+            echo "filename=$fn"
+            echo "expected_size=$esz"
+            echo "urls<<URLS_EOF"
+            echo "$urls"
+            echo "URLS_EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "package=$pkg  version=$vn($vc)  file=$fn  expected=$esz bytes"
+          echo "direct urls:"
+          echo "$urls" | tr ',' '\n' | sed 's/^/  - /'
+
+      - name: Build URL list
+        env:
+          URLS: ${{ steps.params.outputs.urls }}
+        run: |
+          set -euo pipefail
+          : > /tmp/urls.txt
+          IFS=',' read -ra parts <<< "$URLS"
+          for raw in "${parts[@]}"; do
+            u="$(printf '%s' "$raw" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            [ -z "$u" ] && continue
+            u="${u//&amp;/&}"          # на случай HTML-экранирования
+            printf '%s\n' "$u" >> /tmp/urls.txt
+          done
+          echo "URLs to try first:"
+          nl -ba /tmp/urls.txt
+
+      - name: Download and verify the exact build
+        id: fetch
+        continue-on-error: true
+        env:
+          PKG: ${{ steps.params.outputs.package }}
+          VN:  ${{ steps.params.outputs.version_name }}
+          VC:  ${{ steps.params.outputs.version_code }}
+          ESZ: ${{ steps.params.outputs.expected_size }}
+          FN:  ${{ steps.params.outputs.filename }}
+        run: |
+          set -uo pipefail
+          mkdir -p "$APK_DIR" apk-work
+          args=()
+          while IFS= read -r u; do
+            [ -z "$u" ] && continue
+            args+=(--url "$u")
+          done < /tmp/urls.txt
+          python3 scripts/fetch_apk.py \
+            --package "$PKG" \
+            --version-name "$VN" \
+            --version-code "$VC" \
+            --expected-size "$ESZ" \
+            --out "$APK_DIR/$FN" \
+            --workdir apk-work \
+            --report-json apk-work/report.json \
+            --report-md apk-work/report.md \
+            ${args[@]+"${args[@]}"}
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          exit $rc
+
+      - name: Report
+        if: always()
+        run: |
+          echo "==================== REPORT ===================="
+          [ -f apk-work/report.md ] && cat apk-work/report.md
+          echo "------------------------------------------------"
+          ls -la "$APK_DIR" 2>/dev/null || true
+          echo "------------------------------------------------"
+          python3 scripts/print_report.py apk-work/report.json || true
+          echo "================================================"
+
+      - name: Fail loudly if nothing verified
+        if: steps.fetch.outputs.exit_code != '0'
+        run: |
+          echo "::error::Не удалось скачать и подтвердить сборку ${{ steps.params.outputs.package }} versionCode=${{ steps.params.outputs.version_code }}. Все испробованные зеркала и причины отказа -- в логе шага Report."
+          exit 1
+
+      - name: Commit APK into the repository
+        env:
+          FN: ${{ steps.params.outputs.filename }}
+          PKG: ${{ steps.params.outputs.package }}
+          VN: ${{ steps.params.outputs.version_name }}
+          VC: ${{ steps.params.outputs.version_code }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git pull --rebase origin main || true
+          git add -f "$APK_DIR"
+          if git diff --cached --quiet; then
+            echo "Файл уже в репозитории -- коммит не нужен."
+            echo "committed=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          f="$APK_DIR/$FN"
+          size=$(stat -c%s "$f")
+          sha=$(sha256sum "$f" | cut -d' ' -f1)
+          printf '%s\n' \
+            "Add $PKG $VN ($VC) APK" \
+            "" \
+            "File    : $f" \
+            "Size    : $size bytes" \
+            "SHA-256 : $sha" \
+            "Verified: package + versionCode read from the binary AndroidManifest.xml" > /tmp/msg.txt
+          git commit -q -F /tmp/msg.txt
+          ok=0
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then ok=1; echo "pushed (attempt $attempt)"; break; fi
+            echo "push failed (attempt $attempt), rebasing..."; sleep 3
+            git pull --rebase origin main || true
+          done
+          [ "$ok" = "1" ] || { echo "::error::git push in main failed"; exit 1; }
+          echo "committed=true" >> "$GITHUB_ENV"
+          echo "SHA=$sha"  >> "$GITHUB_ENV"
+          echo "SIZE=$size" >> "$GITHUB_ENV"
+
+      - name: Upload workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kimi-3.1.1-372
+          path: |
+            apk/
+            apk-work/report.md
+            apk-work/report.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Attach to GitHub Release
+        if: always() && env.committed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FN:  ${{ steps.params.outputs.filename }}
+          PKG: ${{ steps.params.outputs.package }}
+          VN:  ${{ steps.params.outputs.version_name }}
+          VC:  ${{ steps.params.outputs.version_code }}
+        run: |
+          set -euo pipefail
+          tag="kimi-$VN-$VC"
+          f="$APK_DIR/$FN"
+          printf '%s\n' \
+            "Package: $PKG" \
+            "versionName: $VN" \
+            "versionCode: $VC" \
+            "Size: ${{ env.SIZE }} bytes" \
+            "SHA-256: ${{ env.SHA }}" \
+            "" \
+            "Файл проверен по бинарному AndroidManifest.xml (package + versionCode)." \
+            "Лежит также в репозитории: \`$f\`" > /tmp/notes.md
+          gh release create "$tag" "$f" --title "Kimi $VN (versionCode $VC)" --notes-file /tmp/notes.md --target main \
+            || gh release upload "$tag" "$f" --clobber
+
+      - name: Summary
+        if: always()
+        env:
+          FN: ${{ steps.params.outputs.filename }}
+          PKG: ${{ steps.params.outputs.package }}
+          VN: ${{ steps.params.outputs.version_name }}
+          VC: ${{ steps.params.outputs.version_code }}
+        run: |
+          {
+            echo "### Kimi APK fetch"
+            echo ""
+            echo "| поле | значение |"
+            echo "|---|---|"
+            echo "| package | \`$PKG\` |"
+            echo "| versionName | \`$VN\` |"
+            echo "| versionCode | \`$VC\` |"
+            echo "| файл в репо | \`$APK_DIR/$FN\` |"
+            echo "| закоммичено | \`${{ env.committed }}\` |"
+            echo "| exit code | \`${{ steps.fetch.outputs.exit_code }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
