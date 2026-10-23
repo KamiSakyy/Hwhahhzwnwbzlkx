@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Browser toolbar -->
+        <LinearLayout
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@color/surface"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp">
+
+            <TextView
+                android:id="@+id/btnBack"
+                style="@style/ToolIcon"
+                android:text="‹"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/btnForward"
+                style="@style/ToolIcon"
+                android:text="›"
+                android:textSize="26sp" />
+
+            <EditText
+                android:id="@+id/urlBar"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_url"
+                android:hint="Поиск или адрес сайта"
+                android:imeOptions="actionGo"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textColorHint="@color/text_dim"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnGo"
+                style="@style/ToolIcon"
+                android:text="➜"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:max="100"
+            android:progressTint="@color/accent"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/black">
+
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/black" />
+        </FrameLayout>
+
+        <!-- Recorder panel -->
+        <LinearLayout
+            android:id="@+id/bottomBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/surface"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingTop="7dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Готово к записи"
+                android:textColor="@color/text_dim"
+                android:textSize="11sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/micCheck"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:buttonTint="@color/accent"
+                    android:checked="true"
+                    android:paddingLeft="0dp"
+                    android:paddingRight="4dp"
+                    android:text="Мик"
+                    android:textColor="@color/text_dim"
+                    android:textSize="11sp" />
+
+                <Spinner
+                    android:id="@+id/qualitySpinner"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pill"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="6dp"
+                    android:spinnerMode="dropdown" />
+
+                <Button
+                    android:id="@+id/recordBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_marginLeft="6dp"
+                    android:layout_weight="1.25"
+                    android:background="@drawable/bg_record"
+                    android:gravity="center"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:stateListAnimator="@null"
+                    android:text="● Запись"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnGallery"
+                    style="@style/SmallButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="В Галерею" />
+
+                <Button
+                    android:id="@+id/btnFolder"
+                    style="@style/SmallButton"
+                    android:layout_width="0dp"
+                    android:layout_marginLeft="6dp"
+                    android:layout_weight="1"
+                    android:text="В папку…" />
+
+                <Button
+                    android:id="@+id/btnOpen"
+                    style="@style/SmallButton"
+                    android:layout_width="0dp"
+                    android:layout_marginLeft="6dp"
+                    android:layout_weight="0.8"
+                    android:text="Открыть" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fullscreenContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:visibility="gone" />
+
+</FrameLayout>

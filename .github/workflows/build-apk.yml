@@ -1,0 +1,106 @@
+name: Build APK
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Assemble signed APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Prepare signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keys"
+          if [ -n "${KEYSTORE_BASE64:-}" ]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keys/release.jks"
+            echo "Using keystore from repository secrets"
+          else
+            keytool -genkeypair -v \
+              -keystore "$RUNNER_TEMP/keys/release.jks" \
+              -storepass android -keypass android \
+              -alias webrecorder -keyalg RSA -keysize 2048 -validity 10950 \
+              -dname "CN=Web Recorder, O=KamiSakyy, C=NL"
+            echo "Generated a fresh release keystore for this run"
+          fi
+
+      - name: Build APK (release + debug)
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/keys/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'webrecorder' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          ./gradlew :app:assembleRelease :app:assembleDebug --no-daemon --stacktrace
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk dist/WebRecorder-latest.apk
+          cp app/build/outputs/apk/release/app-release.apk "dist/WebRecorder-v${VERSION_NAME}.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk dist/WebRecorder-debug.apk
+          sha256sum dist/*.apk | tee dist/SHA256SUMS.txt
+          ls -la dist
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: WebRecorder-apk-${{ github.run_number }}
+          path: dist/*
+          retention-days: 30
+
+      - name: Publish APK to GitHub Releases
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          if ! gh release view latest-apk >/dev/null 2>&1; then
+            gh release create latest-apk \
+              --title "Web Recorder — последняя сборка" \
+              --notes "Свежая подписанная сборка APK (обновляется при каждом пуше)." \
+              --prerelease
+          fi
+          gh release upload latest-apk "dist/WebRecorder-latest.apk" --clobber
+          gh release edit latest-apk \
+            --notes "Сборка #${{ github.run_number }} • версия ${VERSION_NAME} • Java + XML • MediaProjection"
+
+      - name: Publish version tag release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "${GITHUB_REF_NAME}" dist/*.apk \
+            --title "Web Recorder ${GITHUB_REF_NAME}" \
+            --notes "APK-сборка ${GITHUB_REF_NAME}"
