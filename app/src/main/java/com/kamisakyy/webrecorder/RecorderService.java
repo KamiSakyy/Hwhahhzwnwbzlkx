@@ -110,6 +110,8 @@ public class RecorderService extends Service {
     private volatile boolean audioEosSent;
     private int audioTrackIndex = -1;
     private boolean audioMuxerStarted;
+    private int audioSampleRate = SAMPLE_RATE;
+    private int audioChannels = 2;
     private final Object audioLock = new Object();
 
     private final Runnable ticker = new Runnable() {
@@ -632,24 +634,8 @@ public class RecorderService extends Service {
                             .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
                             .build();
 
-            AudioFormat format = new AudioFormat.Builder()
-                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .setSampleRate(SAMPLE_RATE)
-                    .setChannelMask(AudioFormat.CHANNEL_IN_STEREO)
-                    .build();
-
-            int minBuffer = AudioRecord.getMinBufferSize(SAMPLE_RATE,
-                    AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
-            if (minBuffer <= 0) {
-                minBuffer = SAMPLE_RATE;
-            }
-            AudioRecord record = new AudioRecord.Builder()
-                    .setAudioFormat(format)
-                    .setBufferSizeInBytes(Math.max(minBuffer * 4, 16384))
-                    .setAudioPlaybackCaptureConfig(config)
-                    .build();
-            if (record.getState() != AudioRecord.STATE_INITIALIZED) {
-                record.release();
+            AudioRecord record = createPlaybackRecord(config);
+            if (record == null) {
                 Log.w(TAG, "playback capture AudioRecord not initialized");
                 return;
             }
@@ -658,7 +644,7 @@ public class RecorderService extends Service {
             MediaMuxer muxer = new MediaMuxer(file.getAbsolutePath(),
                     MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             MediaFormat audioFormat = MediaFormat.createAudioFormat(
-                    MediaFormat.MIMETYPE_AUDIO_AAC, SAMPLE_RATE, 2);
+                    MediaFormat.MIMETYPE_AUDIO_AAC, audioSampleRate, audioChannels);
             audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
                     MediaCodecInfo.CodecProfileLevel.AACObjectLC);
             audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, 128_000);
@@ -703,6 +689,52 @@ public class RecorderService extends Service {
         }
     }
 
+    /** Creates a playback capture AudioRecord, trying common formats. */
+    private AudioRecord createPlaybackRecord(AudioPlaybackCaptureConfiguration config) {
+        int[][] combos = {
+                {SAMPLE_RATE, AudioFormat.CHANNEL_IN_STEREO},
+                {48000, AudioFormat.CHANNEL_IN_STEREO},
+                {SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO}
+        };
+        for (int[] combo : combos) {
+            AudioRecord record = null;
+            try {
+                int rate = combo[0];
+                int channelMask = combo[1];
+                int minBuffer = AudioRecord.getMinBufferSize(rate, channelMask,
+                        AudioFormat.ENCODING_PCM_16BIT);
+                if (minBuffer <= 0) {
+                    minBuffer = rate;
+                }
+                AudioFormat format = new AudioFormat.Builder()
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .setSampleRate(rate)
+                        .setChannelMask(channelMask)
+                        .build();
+                record = new AudioRecord.Builder()
+                        .setAudioFormat(format)
+                        .setBufferSizeInBytes(Math.max(minBuffer * 4, 16384))
+                        .setAudioPlaybackCaptureConfig(config)
+                        .build();
+                if (record.getState() == AudioRecord.STATE_INITIALIZED) {
+                    audioSampleRate = rate;
+                    audioChannels = channelMask == AudioFormat.CHANNEL_IN_STEREO ? 2 : 1;
+                    return record;
+                }
+                record.release();
+            } catch (Throwable t) {
+                if (record != null) {
+                    try {
+                        record.release();
+                    } catch (Throwable ignored) {
+                    }
+                }
+                Log.w(TAG, "playback capture format " + combo[0] + "/" + combo[1] + " failed", t);
+            }
+        }
+        return null;
+    }
+
     private void audioReaderLoop() {
         AudioRecord record = internalAudioRecord;
         MediaCodec codec = audioCodec;
@@ -731,9 +763,9 @@ public class RecorderService extends Service {
                     if (buffer != null) {
                         buffer.clear();
                         buffer.put(pcm, 0, n);
-                        long pts = frames * 1_000_000L / SAMPLE_RATE;
+                        long pts = frames * 1_000_000L / audioSampleRate;
                         codec.queueInputBuffer(index, 0, n, pts, 0);
-                        frames += n / 4L;
+                        frames += n / (2L * audioChannels);
                     } else {
                         codec.queueInputBuffer(index, 0, 0, 0, 0);
                     }
@@ -747,7 +779,7 @@ public class RecorderService extends Service {
             int index = codec.dequeueInputBuffer(200_000);
             if (index >= 0) {
                 codec.queueInputBuffer(index, 0, 0,
-                        frames * 1_000_000L / SAMPLE_RATE,
+                        frames * 1_000_000L / audioSampleRate,
                         MediaCodec.BUFFER_FLAG_END_OF_STREAM);
             }
         } catch (Throwable ignored) {
