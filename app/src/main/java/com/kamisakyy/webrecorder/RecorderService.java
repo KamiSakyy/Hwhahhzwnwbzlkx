@@ -373,7 +373,7 @@ public class RecorderService extends Service {
     }
 
     private MediaRecorder createRecorder(File file, int w, int h, int bitrate, int fps,
-                                         boolean mic) {
+                                         boolean mic) throws Exception {
         MediaRecorder r;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             r = new MediaRecorder(this);
@@ -399,12 +399,12 @@ public class RecorderService extends Service {
         }
         try {
             r.prepare();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             try {
                 r.release();
             } catch (Throwable ignored) {
             }
-            throw t;
+            throw e;
         }
         return r;
     }
