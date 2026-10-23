@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WebRecorder"
+rootProject.name = "CutPro"
 include ':app'

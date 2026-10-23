@@ -1,86 +1,97 @@
-# Web Recorder — браузер с записью экрана внутри приложения
+# CutPro — видеоредактор для Android (Java + XML)
 
-Android-приложение (**Java + XML**) со встроенным веб-браузером (WebView) и записью экрана
-через `MediaProjection`. Ищете видео в браузере внутри приложения, включаете полноэкранный
-плеер — и запись сохраняет именно это состояние, даже если свернуть приложение.
+Полноценный монтаж видео на телефоне в стиле CapCut, но **без Kotlin**: только Java,
+обычные XML-разметки и официальные библиотеки **AndroidX Media3 1.5.1**
+(`media3-exoplayer`, `media3-ui`, `media3-transformer`, `media3-effect`).
+
+Приложение полностью локальное: ни аккаунтов, ни загрузки в облако, ни интернета.
 
 ## Возможности
 
-- **Браузер внутри приложения**: адресная строка, поиск видео (YouTube), переходы назад/вперёд,
-  полноэкранный HTML5-плеер (WebView `onShowCustomView`).
-- **Запись экрана**: `MediaProjection` + `MediaRecorder` (H.264/AAC) в foreground-сервисе —
-  запись продолжается при свёрнутом приложении и при выключенном экране плеера.
-- **Запись только этого приложения**: на Android 14+ системный диалог даёт выбор
-  «Одно приложение» → Web Recorder. На Android 10–13 система записывает весь экран.
-- **Выбор качества**: 480p / 720p / 1080p / «Экран» (нативное разрешение), битрейт 4–20 Мбит/с, 30 fps.
-- **Звук**: микрофон (галочка «Мик») либо **внутренний звук приложения** через
-  `AudioPlaybackCapture` (Android 10+), с последующей склейкой дорожек через `MediaMuxer`.
-- **Сохранение**: после остановки видео автоматически попадает в Галерею
-  (`Movies/WebRecorder`). Кнопка «В папку…» сохраняет копию в **любую папку** через системный
-  проводник (Storage Access Framework). Кнопка «Открыть» запускает плеер.
-- **Управление**: стоп из приложения или из уведомления; таймер и размер файла в уведомлении.
-- Без сторонних библиотек и без интернета для сборки (только Android SDK).
+**Импорт и монтаж**
+- Добавление нескольких видео сразу из системного проводника (SAF, доступ сохраняется
+  после перезапуска).
+- Лента клипов с миниатюрами, цветами, подсветкой выбранного фрагмента и таймлайном:
+  тап по ленте — переход к моменту, перетаскивание — прокрутка, авто-скролл за плейхедом.
+- **Обрезка** (тримминг) с двумя ползунками и живым предпросмотром кадра.
+- **Разрезание** клипа по текущей позиции (split) с корректным переносом текстовых слоёв.
+- Перемещение клипа влево/вправо, дублирование, удаление.
+- **Скорость** 0.25× / 0.5× / 0.75× / 1× / 1.25× / 1.5× / 2× / 3× / 4× — в экспорте
+  применяется настоящий `SpeedChangeEffect` Media3 (меняется длительность, звук
+  пересчитывается через `SpeedChangingAudioProcessor`).
+- **Громкость** каждого клипа 0–100 % и громкость музыкальной дорожки.
+
+**Изображение**
+- 8 цветовых фильтров: оригинал, ч/б, негатив, тёплый, холодный, сочный, ночь, кино
+  (`RgbFilter`, `RgbAdjustment`).
+- Форматы кадра: 9:16 (Reels/TikTok), 16:9 (YouTube), 1:1, 4:5 — превью и экспорт
+  используют выбранное соотношение.
+- Превью в `PlayerView` (ExoPlayer) с эффектами, наложенными на лету.
+
+**Текст**
+- Текстовые слои поверх видео: содержимое, 6 цветов, размер, позиция (сверху/центр/снизу),
+  время показа в пределах клипа.
+- В превью текст — настоящие `TextView` (долгое нажатие — удалить), в экспорте —
+  `BitmapOverlay` + `OverlayEffect`: то, что видно, попадает в файл.
+
+**Музыка**
+- Отдельная аудиодорожка из проводника, зацикливается на всю длину ролика,
+  своя громкость, смешивание с оригинальным звуком (`Composition` из двух `EditedMediaItemSequence`).
+
+**Экспорт**
+- Рендер через **Media3 Transformer** в H.264/AAC MP4: 720p или 1080p,
+  битрейт 7 / 12 Мбит/с, прогресс в реальном времени, отмена.
+- Готовый файл автоматически публикуется в Галерею: `Movies/CutPro`
+  (MediaStore + `IS_PENDING`), после чего его можно сразу открыть плеером.
+- Работа сохраняется автоматически: список проектов с обложкой, длительностью и форматом,
+  переименование и удаление долгим нажатием.
 
 ## Структура
 
 ```
-app/src/main/java/com/kamisakyy/webrecorder/
-  MainActivity.java      — WebView-браузер, панель записи, полноэкранный плеер, сохранение
-  RecorderService.java   — foreground-сервис: MediaProjection/MediaRecorder, звук, MediaMuxer
-  RecorderStore.java     — сохранение в MediaStore (Галерея) и в папку через SAF
-  App.java               — каналы уведомлений
-app/src/main/res/layout/activity_main.xml
-app/src/main/assets/home.html
-.github/workflows/build-apk.yml — сборка подписанного APK
+app/src/main/java/com/kamisakyy/cutpro/
+  MainActivity.java        — список проектов: создать, открыть, переименовать, удалить
+  EditorActivity.java      — монтаж: превью, таймлайн, все инструменты, экспорт
+  VideoExporter.java       — сборка Composition + Transformer, прогресс, отмена
+  TimelineView.java        — кастомная лента клипов: миниатюры, скролл, плейхед
+  AspectFrameLayout.java   — превью с точным соотношением сторон
+  Project.java             — модель проекта/клипа/текста и JSON
+  ProjectStore.java        — хранение проектов в приватной папке приложения
+  FilterPresets.java       — общие цветовые эффекты для превью и экспорта
+  GainAudioProcessor.java  — усиление/ослабление PCM-звука (громкость клипов и музыки)
+  MediaSaver.java          — сохранение результата в Галерею через MediaStore
+app/src/main/res/
+  layout/  activity_main, activity_editor, item_project,
+           dialog_trim, dialog_volume, dialog_text, dialog_export, dialog_progress
+  drawable/ фоны, чипы цветов, иконка
+  values/  цвета, стили, строки
+.github/workflows/build-apk.yml — сборка подписанного APK и публикация релиза
+signing/                         — демонстрационный ключ подписи для CI
 ```
 
-## Сборка через GitHub Actions
+## Сборка
 
-Workflow **Build APK** запускается на каждый push и вручную (`Actions → Build APK → Run workflow`).
+Локально: Android Studio (AGP 8.7.3, Gradle 8.9, JDK 17, compileSdk 35, minSdk 29) →
+`./gradlew :app:assembleRelease`.
 
-- Подписанный release-APK и debug-APK выкладываются в **Artifacts**.
-- Подписанный APK автоматически публикуется в **Releases** под тегом `latest-apk`.
-
-Прямая ссылка на последнюю сборку:
+Через GitHub Actions: workflow **Build APK** запускается на каждый push
+(`Actions → Build APK → Run workflow` тоже работает). Собранный APK публикуется
+в релиз **latest-apk**:
 
 ```
-https://github.com/KamiSakyy/Hwhahhzwnwbzlkx/releases/download/latest-apk/WebRecorder-latest.apk
+https://github.com/KamiSakyy/Hwhahhzwnwbzlkx/releases/download/latest-apk/CutPro-latest.apk
 ```
 
-### Своя подпись (необязательно)
+Подпись: демонстрационный ключ из `signing/` (SHA-256 в `signing/CERT-SHA256.txt`),
+поэтому обновления ставятся поверх без удаления приложения. Для настоящего релиза
+задайте секреты `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 
-Добавьте secrets репозитория:
+## Что внутри Media3
 
-| Secret | Значение |
-|---|---|
-| `KEYSTORE_BASE64` | `base64 -w0 release.jks` |
-| `KEYSTORE_PASSWORD` | пароль хранилища |
-| `KEY_ALIAS` | alias ключа |
-| `KEY_PASSWORD` | пароль ключа |
-
-Без secrets workflow подписывает APK **демо-ключом** `signing/web-recorder.p12.b64`
-(alias `webrecorder`, пароль `android`), поэтому все сборки имеют одинаковую подпись и
-обновляются «поверх» без удаления. Отпечаток сертификата — `signing/CERT-SHA256.txt`,
-CI проверяет его на каждом билде. Этот ключ публичный: он годится для сайдлока,
-но **не** для Google Play — для реального релиза задайте secrets выше.
-
-Если secrets не заданы и демо-ключа нет, workflow сгенерирует одноразовый ключ.
-
-## Локальная сборка
-
-```bash
-export KEYSTORE_PATH=/path/to/release.jks KEYSTORE_PASSWORD=... KEY_ALIAS=... KEY_PASSWORD=...
-./gradlew :app:assembleRelease
-```
-
-## Разрешения
-
-`INTERNET`, `RECORD_AUDIO`, `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`,
-`FOREGROUND_SERVICE_MEDIA_PROJECTION`, `WRITE_EXTERNAL_STORAGE` (только Android ≤ 9).
-
-## Ограничения
-
-- Запись идёт с физического дисплея. Выбор «только это приложение» доступен силами системы
-  на Android 14+; на более старых версиях ограничить область средствами API нельзя.
-- Внутренний звук приложения доступен с Android 10 и только для приложений, не запретивших захват.
-- Ориентация интерфейса — портретная, чтобы размеры видео совпадали с экраном при записи.
+- `Composition` из основного `EditedMediaItemSequence` (клипы) и зацикленной аудио-дорожки.
+- Для каждого клипа: `ClippingConfiguration` (трим), `Presentation` (формат кадра),
+  цветовые эффекты, `Effects.createExperimentalSpeedChangingEffect` и `GainAudioProcessor`.
+- Текстовые слои — эффекты уровня `Composition`, поэтому тайминги считаются по общей
+  шкале ролика, а не по отдельному клипу.
+- `Transformer` с `DefaultEncoderFactory` и настройками битрейта; прогресс через
+  `getProgress(ProgressHolder)`.

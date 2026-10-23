@@ -1,192 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/root"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg">
+    android:background="@color/bg"
+    android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingTop="26dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="10dp">
 
-        <!-- Browser toolbar -->
-        <LinearLayout
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@color/surface"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingLeft="4dp"
-            android:paddingRight="4dp">
-
-            <TextView
-                android:id="@+id/btnBack"
-                style="@style/ToolIcon"
-                android:text="‹"
-                android:textSize="26sp" />
-
-            <TextView
-                android:id="@+id/btnForward"
-                style="@style/ToolIcon"
-                android:text="›"
-                android:textSize="26sp" />
-
-            <EditText
-                android:id="@+id/urlBar"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_url"
-                android:hint="Поиск или адрес сайта"
-                android:imeOptions="actionGo"
-                android:inputType="textUri"
-                android:maxLines="1"
-                android:paddingLeft="14dp"
-                android:paddingRight="14dp"
-                android:selectAllOnFocus="true"
-                android:singleLine="true"
-                android:textColor="@color/text"
-                android:textColorHint="@color/text_dim"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/btnGo"
-                style="@style/ToolIcon"
-                android:text="➜"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:max="100"
-            android:progressTint="@color/accent"
-            android:visibility="gone" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="@color/black">
-
-            <WebView
-                android:id="@+id/webView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/black" />
-        </FrameLayout>
-
-        <!-- Recorder panel -->
-        <LinearLayout
-            android:id="@+id/bottomBar"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/surface"
-            android:orientation="vertical"
-            android:paddingLeft="10dp"
-            android:paddingTop="7dp"
-            android:paddingRight="10dp"
-            android:paddingBottom="8dp">
+            android:text="CutPro"
+            android:textColor="@color/text"
+            android:textSize="32sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Готово к записи"
-                android:textColor="@color/text_dim"
-                android:textSize="11sp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <CheckBox
-                    android:id="@+id/micCheck"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:buttonTint="@color/accent"
-                    android:checked="true"
-                    android:paddingLeft="0dp"
-                    android:paddingRight="4dp"
-                    android:text="Мик"
-                    android:textColor="@color/text_dim"
-                    android:textSize="11sp" />
-
-                <Spinner
-                    android:id="@+id/qualitySpinner"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_pill"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="6dp"
-                    android:spinnerMode="dropdown" />
-
-                <Button
-                    android:id="@+id/recordBtn"
-                    android:layout_width="0dp"
-                    android:layout_height="42dp"
-                    android:layout_marginLeft="6dp"
-                    android:layout_weight="1.25"
-                    android:background="@drawable/bg_record"
-                    android:gravity="center"
-                    android:minHeight="0dp"
-                    android:minWidth="0dp"
-                    android:stateListAnimator="@null"
-                    android:text="● Запись"
-                    android:textAllCaps="false"
-                    android:textColor="#FFFFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btnGallery"
-                    style="@style/SmallButton"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:text="В Галерею" />
-
-                <Button
-                    android:id="@+id/btnFolder"
-                    style="@style/SmallButton"
-                    android:layout_width="0dp"
-                    android:layout_marginLeft="6dp"
-                    android:layout_weight="1"
-                    android:text="В папку…" />
-
-                <Button
-                    android:id="@+id/btnOpen"
-                    style="@style/SmallButton"
-                    android:layout_width="0dp"
-                    android:layout_marginLeft="6dp"
-                    android:layout_weight="0.8"
-                    android:text="Открыть" />
-            </LinearLayout>
-        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="Видеоредактор · монтаж · эффекты · 1080p"
+            android:textColor="@color/dim"
+            android:textSize="13sp" />
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/fullscreenContainer"
+    <Button
+        android:id="@+id/btnNewProject"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black"
-        android:visibility="gone" />
+        android:layout_height="56dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/bg_accent"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
+        android:stateListAnimator="@null"
+        android:text="＋  Новый проект"
+        android:textAllCaps="false"
+        android:textColor="#FF07110D"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
-</FrameLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Проекты"
+            android:textColor="@color/text"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/projectsCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dim"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/projectsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp" />
+
+            <TextView
+                android:id="@+id/emptyProjects"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingLeft="30dp"
+                android:paddingTop="40dp"
+                android:paddingRight="30dp"
+                android:paddingBottom="30dp"
+                android:text="Пока нет проектов.\nНажмите «Новый проект», импортируйте видео и соберите ролик."
+                android:textColor="@color/dim"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:text="Без водяных знаков · экспорт в Галерею"
+        android:textColor="@color/dim"
+        android:textSize="11sp" />
+
+</LinearLayout>

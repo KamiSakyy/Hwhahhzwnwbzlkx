@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'com.kamisakyy.webrecorder'
+    namespace 'com.kamisakyy.cutpro'
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.kamisakyy.webrecorder"
-        minSdk 24
+        applicationId "com.kamisakyy.cutpro"
+        minSdk 29
         targetSdk 34
         versionCode((System.getenv("VERSION_CODE") ?: "1").toInteger())
         versionName((System.getenv("VERSION_NAME") ?: "1.0"))
@@ -46,12 +46,22 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+    packaging {
+        resources {
+            excludes += ['/META-INF/{AL2.0,LGPL2.1}', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE']
+        }
+    }
+
     lint {
         abortOnError false
         checkReleaseBuilds false
     }
 }
 
-// Zero external dependencies on purpose: the APK builds offline and stays tiny.
 dependencies {
+    implementation 'androidx.media3:media3-exoplayer:1.5.1'
+    implementation 'androidx.media3:media3-ui:1.5.1'
+    implementation 'androidx.media3:media3-transformer:1.5.1'
+    implementation 'androidx.media3:media3-effect:1.5.1'
+    implementation 'com.google.guava:guava:33.3.1-android'
 }

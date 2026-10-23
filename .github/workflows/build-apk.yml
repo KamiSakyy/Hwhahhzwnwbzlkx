@@ -53,15 +53,15 @@ jobs:
           if [ -n "${KEYSTORE_BASE64:-}" ]; then
             printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keys/release.p12"
             echo "Using keystore from repository secrets"
-          elif [ -f signing/web-recorder.p12.b64 ]; then
-            base64 -d signing/web-recorder.p12.b64 > "$RUNNER_TEMP/keys/release.p12"
+          elif [ -f signing/cutpro.p12.b64 ]; then
+            base64 -d signing/cutpro.p12.b64 > "$RUNNER_TEMP/keys/release.p12"
             echo "Using the committed demo keystore (stable signature)"
           else
             keytool -genkeypair -v \
               -keystore "$RUNNER_TEMP/keys/release.p12" -storetype PKCS12 \
               -storepass android -keypass android \
               -alias webrecorder -keyalg RSA -keysize 2048 -validity 10950 \
-              -dname "CN=Web Recorder, O=KamiSakyy, C=NL"
+              -dname "CN=CutPro, O=KamiSakyy, C=NL"
             echo "Generated a fresh release keystore for this run"
           fi
 
@@ -79,9 +79,9 @@ jobs:
           set -o pipefail
           ./gradlew :app:assembleRelease :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-release.apk dist/WebRecorder-latest.apk
-          cp app/build/outputs/apk/release/app-release.apk "dist/WebRecorder-v${VERSION_NAME}.apk"
-          cp app/build/outputs/apk/debug/app-debug.apk dist/WebRecorder-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk dist/CutPro-latest.apk
+          cp app/build/outputs/apk/release/app-release.apk "dist/CutPro-v${VERSION_NAME}.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk dist/CutPro-debug.apk
           sha256sum dist/*.apk | tee dist/SHA256SUMS.txt
           ls -la dist
 
@@ -105,15 +105,15 @@ jobs:
           SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           APKSIGNER=$(ls "$SDK"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
           AAPT=$(ls "$SDK"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1)
-          "$APKSIGNER" verify --print-certs dist/WebRecorder-latest.apk | tee /tmp/certs.txt
-          "$AAPT" dump badging dist/WebRecorder-latest.apk | head -25
+          "$APKSIGNER" verify --print-certs dist/CutPro-latest.apk | tee /tmp/certs.txt
+          "$AAPT" dump badging dist/CutPro-latest.apk | head -25
           EXPECTED="c245776ee2215a4dff21ff0376886afea59065e0e8e184478ecab2258c7b947f"
           if ! grep -qi "SHA-256 digest: $EXPECTED" /tmp/certs.txt; then
-            echo "::error title=Signature::APK is not signed with the stable WebRecorder key"
+            echo "::error title=Signature::APK is not signed with the stable CutPro key"
             cat /tmp/certs.txt
             exit 1
           fi
-          echo "Signed with the stable WebRecorder key."
+          echo "Signed with the stable CutPro key."
 
       - name: Upload build log
         if: steps.build.outcome == 'failure'
@@ -127,7 +127,7 @@ jobs:
         if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: WebRecorder-apk-${{ github.run_number }}
+          name: CutPro-apk-${{ github.run_number }}
           path: dist/*
           retention-days: 30
 
@@ -140,13 +140,13 @@ jobs:
           set -euo pipefail
           if ! gh release view latest-apk >/dev/null 2>&1; then
             gh release create latest-apk \
-              --title "Web Recorder — последняя сборка" \
-              --notes "Свежая подписанная сборка APK (обновляется при каждом пуше)." \
+              --title "CutPro — последняя сборка" \
+              --notes "Свежая подписанная сборка CutPro (обновляется при каждом пуше)." \
               --prerelease
           fi
-          gh release upload latest-apk "dist/WebRecorder-latest.apk" --clobber
+          gh release upload latest-apk "dist/CutPro-latest.apk" --clobber
           gh release edit latest-apk \
-            --notes "Сборка #${{ github.run_number }} • версия ${VERSION_NAME} • Java + XML • MediaProjection"
+            --notes "Сборка #${{ github.run_number }} • версия ${VERSION_NAME} • видеоредактор на Media3 Transformer • Java + XML"
 
       - name: Publish version tag release
         if: steps.build.outcome == 'success' && startsWith(github.ref, 'refs/tags/v')
@@ -155,5 +155,5 @@ jobs:
         run: |
           set -euo pipefail
           gh release create "${GITHUB_REF_NAME}" dist/*.apk \
-            --title "Web Recorder ${GITHUB_REF_NAME}" \
+            --title "CutPro ${GITHUB_REF_NAME}" \
             --notes "APK-сборка ${GITHUB_REF_NAME}"

@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Top bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@color/bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="6dp"
+            android:paddingRight="12dp">
+
+            <TextView
+                android:id="@+id/btnBack"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="‹"
+                android:textColor="@color/text"
+                android:textSize="30sp" />
+
+            <TextView
+                android:id="@+id/projectTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Проект"
+                android:textColor="@color/text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnExport"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_accent"
+                android:gravity="center"
+                android:paddingLeft="18dp"
+                android:paddingRight="18dp"
+                android:text="Экспорт"
+                android:textColor="#FF07110D"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Preview -->
+        <FrameLayout
+            android:id="@+id/previewHost"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/black">
+
+            <com.kamisakyy.cutpro.AspectFrameLayout
+                android:id="@+id/previewBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <androidx.media3.ui.PlayerView
+                    android:id="@+id/playerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:resize_mode="fit"
+                    app:show_buffering="never"
+                    app:use_controller="false" />
+
+                <FrameLayout
+                    android:id="@+id/textOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/bigPlay"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_circle_dark"
+                    android:gravity="center"
+                    android:text="▶"
+                    android:textColor="@color/white"
+                    android:textSize="24sp" />
+            </com.kamisakyy.cutpro.AspectFrameLayout>
+
+            <TextView
+                android:id="@+id/emptyHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:lineSpacingExtra="4dp"
+                android:text="Пока пусто\nНажмите «＋ Видео», чтобы добавить клип"
+                android:textColor="@color/dim"
+                android:textSize="13sp"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Transport -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp">
+
+            <TextView
+                android:id="@+id/btnPlay"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:gravity="center"
+                android:text="▶"
+                android:textColor="@color/text"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/timeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:text="00:00 / 00:00"
+                android:textColor="@color/dim"
+                android:textSize="12sp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/btnAddClip"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_pill"
+                android:gravity="center"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:text="＋ Видео"
+                android:textColor="@color/accent"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Timeline header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ТАЙМЛАЙН"
+                android:textColor="@color/dim"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/timelineInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:textColor="@color/dim"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <com.kamisakyy.cutpro.TimelineView
+            android:id="@+id/timeline"
+            android:layout_width="match_parent"
+            android:layout_height="92dp"
+            android:layout_marginTop="4dp"
+            android:background="@color/surface" />
+
+        <!-- Tools -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/toolsRow1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp">
+
+                <Button
+                    android:id="@+id/btnSplit"
+                    style="@style/ToolButton"
+                    android:text="✂ Разрезать" />
+
+                <Button
+                    android:id="@+id/btnTrim"
+                    style="@style/ToolButton"
+                    android:text="⇤ Обрезать" />
+
+                <Button
+                    android:id="@+id/btnDelete"
+                    style="@style/ToolButton"
+                    android:text="✕ Удалить" />
+
+                <Button
+                    android:id="@+id/btnMoveLeft"
+                    style="@style/ToolButton"
+                    android:text="◀" />
+
+                <Button
+                    android:id="@+id/btnMoveRight"
+                    style="@style/ToolButton"
+                    android:text="▶" />
+
+                <Button
+                    android:id="@+id/btnDuplicate"
+                    style="@style/ToolButton"
+                    android:text="⧉ Дублировать" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/toolsRow2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp">
+
+                <Button
+                    android:id="@+id/btnFilter"
+                    style="@style/ToolButton"
+                    android:text="◐ Фильтр" />
+
+                <Button
+                    android:id="@+id/btnText"
+                    style="@style/ToolButton"
+                    android:text="T Текст" />
+
+                <Button
+                    android:id="@+id/btnSpeed"
+                    style="@style/ToolButton"
+                    android:text="⏩ Скорость" />
+
+                <Button
+                    android:id="@+id/btnVolume"
+                    style="@style/ToolButton"
+                    android:text="🔊 Звук" />
+
+                <Button
+                    android:id="@+id/btnAspect"
+                    style="@style/ToolButton"
+                    android:text="▭ Формат" />
+
+                <Button
+                    android:id="@+id/btnMusic"
+                    style="@style/ToolButton"
+                    android:text="♪ Музыка" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/selectionInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingLeft="14dp"
+            android:paddingTop="6dp"
+            android:paddingRight="14dp"
+            android:paddingBottom="10dp"
+            android:textColor="@color/dim"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+</FrameLayout>
