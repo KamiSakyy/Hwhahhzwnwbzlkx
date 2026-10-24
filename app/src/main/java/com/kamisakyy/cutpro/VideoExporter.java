@@ -200,7 +200,7 @@ public final class VideoExporter {
             List<Effect> videoEffects = new ArrayList<>();
             videoEffects.add(Presentation.createForWidthAndHeight(
                     outWidth, outHeight, Presentation.LAYOUT_SCALE_TO_FIT));
-            videoEffects.addAll(FilterPresets.effectsFor(clip.filter));
+            videoEffects.addAll(FilterPresets.effectsFor(clip));
 
             List<AudioProcessor> audioProcessors = new ArrayList<>();
             if (Math.abs(clip.volume - 1f) > 0.01f) {

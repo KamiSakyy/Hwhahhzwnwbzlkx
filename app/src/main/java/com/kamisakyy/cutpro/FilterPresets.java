@@ -1,6 +1,8 @@
 package com.kamisakyy.cutpro;
 
 import androidx.media3.common.Effect;
+import androidx.media3.effect.Brightness;
+import androidx.media3.effect.Contrast;
 import androidx.media3.effect.RgbAdjustment;
 import androidx.media3.effect.RgbFilter;
 
@@ -18,7 +20,19 @@ public final class FilterPresets {
     private FilterPresets() {
     }
 
+    public static List<Effect> effectsFor(Project.Clip clip) {
+        if (clip == null) {
+            return new ArrayList<>();
+        }
+        return effectsFor(clip.filter, clip.brightness, clip.contrast, clip.warmth);
+    }
+
     public static List<Effect> effectsFor(int index) {
+        return effectsFor(index, 0f, 1f, 0f);
+    }
+
+    public static List<Effect> effectsFor(int index, float brightness, float contrast,
+                                          float warmth) {
         List<Effect> list = new ArrayList<>();
         switch (index) {
             case 1:
@@ -50,7 +64,25 @@ public final class FilterPresets {
             default:
                 break;
         }
+        if (Math.abs(brightness) > 0.005f) {
+            list.add(new Brightness(clamp(brightness, -1f, 1f)));
+        }
+        if (Math.abs(contrast - 1f) > 0.005f) {
+            list.add(new Contrast(clamp(contrast - 1f, -1f, 1f)));
+        }
+        if (Math.abs(warmth) > 0.005f) {
+            float shift = clamp(warmth, -1f, 1f) * 0.25f;
+            list.add(new RgbAdjustment.Builder()
+                    .setRedScale(1f + shift)
+                    .setGreenScale(1f)
+                    .setBlueScale(1f - shift)
+                    .build());
+        }
         return list;
+    }
+
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     public static String name(int index) {

@@ -404,9 +404,76 @@ public class EditorActivity extends Activity {
         return bar;
     }
 
+    private interface SliderCallback {
+        void onProgress(int progress, TextView value);
+
+        void onDone();
+    }
+
+    private void addSliderRow(LinearLayout parent, String label, int max, int progress,
+                              String initial, final SliderCallback callback) {
+        LinearLayout line = row();
+        line.setPadding(0, dp(2), 0, 0);
+
+        TextView name = caption(label);
+        name.setTextSize(9f);
+        LinearLayout.LayoutParams nameLp = new LinearLayout.LayoutParams(
+                dp(46), ViewGroup.LayoutParams.WRAP_CONTENT);
+        line.addView(name, nameLp);
+
+        SeekBar bar = new SeekBar(this);
+        bar.setMax(max);
+        bar.setProgress(progress);
+        bar.setProgressTintList(ColorStateList.valueOf(getColor(R.color.accent)));
+        bar.setThumbTintList(ColorStateList.valueOf(getColor(R.color.accent)));
+        bar.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.surface3)));
+        LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(0, dp(24), 1f);
+        barLp.leftMargin = dp(6);
+        barLp.rightMargin = dp(6);
+        line.addView(bar, barLp);
+
+        final TextView value = new TextView(this);
+        value.setText(initial);
+        value.setTextColor(getColor(R.color.text));
+        value.setTextSize(9.5f);
+        value.setGravity(Gravity.RIGHT);
+        LinearLayout.LayoutParams valueLp = new LinearLayout.LayoutParams(
+                dp(44), ViewGroup.LayoutParams.WRAP_CONTENT);
+        line.addView(value, valueLp);
+
+        bar.setOnSeekBarChangeListener(new SimpleSeekListener() {
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                pushUndo();
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int p, boolean fromUser) {
+                if (fromUser) {
+                    callback.onProgress(p, value);
+                }
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                callback.onDone();
+                saveProject();
+                rebuildPlaylist(currentProjectTime());
+                refreshPanel();
+            }
+        });
+
+        parent.addView(line);
+    }
+
+    private static String signed(int value) {
+        return value > 0 ? "+" + value : String.valueOf(value);
+    }
+
     private View filterPanel() {
         final Project.Clip clip = selectedClip();
         LinearLayout box = newPanel();
+
         HorizontalScrollView scroll = new HorizontalScrollView(this);
         scroll.setHorizontalScrollBarEnabled(false);
         LinearLayout chips = row();
@@ -418,11 +485,62 @@ public class EditorActivity extends Activity {
                 saveProject();
                 rebuildPlaylist(currentProjectTime());
                 refreshPanel();
-                toast("Фильтр: " + FilterPresets.NAMES[index]);
             }));
         }
         scroll.addView(chips);
         box.addView(scroll);
+
+        addSliderRow(box, "ЯРК", 200, Math.round(clip.brightness * 100) + 100,
+                signed(Math.round(clip.brightness * 100)), new SliderCallback() {
+                    @Override
+                    public void onProgress(int progress, TextView value) {
+                        clip.brightness = (progress - 100) / 100f;
+                        value.setText(signed(progress - 100));
+                    }
+
+                    @Override
+                    public void onDone() {
+                    }
+                });
+
+        addSliderRow(box, "КОНТР", 100, Math.round(clip.contrast * 100) - 50,
+                Math.round(clip.contrast * 100) + "%", new SliderCallback() {
+                    @Override
+                    public void onProgress(int progress, TextView value) {
+                        clip.contrast = (progress + 50) / 100f;
+                        value.setText((progress + 50) + "%");
+                    }
+
+                    @Override
+                    public void onDone() {
+                    }
+                });
+
+        addSliderRow(box, "ТЕПЛО", 200, Math.round(clip.warmth * 100) + 100,
+                signed(Math.round(clip.warmth * 100)), new SliderCallback() {
+                    @Override
+                    public void onProgress(int progress, TextView value) {
+                        clip.warmth = (progress - 100) / 100f;
+                        value.setText(signed(progress - 100));
+                    }
+
+                    @Override
+                    public void onDone() {
+                    }
+                });
+
+        LinearLayout actions = row();
+        actions.setPadding(0, dp(2), 0, 0);
+        actions.addView(chip("Сброс коррекции", false, () -> {
+            pushUndo();
+            clip.brightness = 0f;
+            clip.contrast = 1f;
+            clip.warmth = 0f;
+            saveProject();
+            rebuildPlaylist(currentProjectTime());
+            refreshPanel();
+        }));
+        box.addView(actions);
         return box;
     }
 
@@ -1005,7 +1123,7 @@ public class EditorActivity extends Activity {
                 player.getMediaItemCount() - 1));
         selectedIndex = Math.min(index, project.clips.size() - 1);
         Project.Clip clip = project.clips.get(selectedIndex);
-        player.setVideoEffects(FilterPresets.effectsFor(clip.filter));
+        player.setVideoEffects(FilterPresets.effectsFor(clip));
         player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
         player.prepare();
         player.seekTo(index, Math.max(0, Math.round(

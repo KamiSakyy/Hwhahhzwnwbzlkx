@@ -125,6 +125,9 @@ public class Project {
         public float speed = 1f;
         public float volume = 1f;
         public int filter;
+        public float brightness;
+        public float contrast = 1f;
+        public float warmth;
         public final List<TextItem> texts = new ArrayList<>();
 
         public long trimmedDurationMs() {
@@ -148,6 +151,9 @@ public class Project {
                 o.put("speed", (double) speed);
                 o.put("volume", (double) volume);
                 o.put("filter", filter);
+                o.put("brightness", (double) brightness);
+                o.put("contrast", (double) contrast);
+                o.put("warmth", (double) warmth);
                 JSONArray arr = new JSONArray();
                 for (TextItem t : texts) {
                     arr.put(t.toJson());
@@ -169,6 +175,9 @@ public class Project {
             c.speed = (float) o.optDouble("speed", 1f);
             c.volume = (float) o.optDouble("volume", 1f);
             c.filter = o.optInt("filter", 0);
+            c.brightness = (float) o.optDouble("brightness", 0d);
+            c.contrast = (float) o.optDouble("contrast", 1d);
+            c.warmth = (float) o.optDouble("warmth", 0d);
             JSONArray arr = o.optJSONArray("texts");
             if (arr != null) {
                 for (int i = 0; i < arr.length(); i++) {
