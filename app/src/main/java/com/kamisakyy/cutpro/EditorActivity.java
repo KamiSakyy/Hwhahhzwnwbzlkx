@@ -8,7 +8,9 @@ import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
@@ -80,7 +82,7 @@ public class EditorActivity extends Activity {
     private TextView projectTitle;
     private TextView timeText;
     private TextView metaText;
-    private TextView btnExport;
+    private View btnExport;
     private TextView emptyHint;
     private TimelineView timeline;
     private LinearLayout toolRail;
@@ -106,6 +108,7 @@ public class EditorActivity extends Activity {
     private int exportShortSide = 1080;
     private int pendingTextColor = 0xFFFFFFFF;
     private int pendingTextPosition = 1;
+    private boolean skipPanelAnimation;
     private long[] loadedTrimStarts = new long[0];
 
     private VideoExporter exporter;
@@ -182,6 +185,7 @@ public class EditorActivity extends Activity {
         btnRedo.setOnClickListener(v -> redo());
         projectTitle.setOnClickListener(v -> renameProject());
         findViewById(R.id.previewHost).setOnClickListener(v -> togglePlay());
+        previewBox.setOnClickListener(v -> togglePlay());
         centerPlay.setOnClickListener(v -> togglePlay());
     }
 
@@ -201,34 +205,20 @@ public class EditorActivity extends Activity {
 
         toolRail.removeAllViews();
         railItems.clear();
+        LayoutInflater inflater = LayoutInflater.from(this);
         for (int i = 0; i < keys.length; i++) {
             final String key = keys[i];
-            LinearLayout item = new LinearLayout(this);
-            item.setOrientation(LinearLayout.VERTICAL);
-            item.setGravity(Gravity.CENTER);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(54), dp(54));
-            lp.rightMargin = dp(2);
+            View item = inflater.inflate(R.layout.item_tool, toolRail, false);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(64), dp(58));
+            lp.rightMargin = dp(3);
             item.setLayoutParams(lp);
-            item.setBackgroundResource(R.drawable.bg_rail);
 
-            ImageView icon = new ImageView(this);
-            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(20), dp(20));
-            icon.setLayoutParams(iconLp);
+            ImageView icon = item.findViewById(R.id.toolIcon);
+            TextView label = item.findViewById(R.id.toolLabel);
             icon.setImageResource(icons[i]);
-            icon.setImageTintList(ColorStateList.valueOf(getColor(R.color.text)));
             icon.setContentDescription(labels[i]);
-            item.addView(icon);
-
-            TextView label = new TextView(this);
             label.setText(labels[i]);
-            label.setTextSize(9f);
-            label.setTextColor(getColor(R.color.dim));
-            label.setGravity(Gravity.CENTER);
-            LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            labelLp.topMargin = dp(3);
-            label.setLayoutParams(labelLp);
-            item.addView(label);
+            label.setSelected(false);
 
             item.setOnClickListener(v -> onToolClick(key));
             toolRail.addView(item);
@@ -258,16 +248,19 @@ public class EditorActivity extends Activity {
         for (Map.Entry<String, View> entry : railItems.entrySet()) {
             View item = entry.getValue();
             boolean active = entry.getKey().equals(activePanel);
-            item.setBackgroundResource(active ? R.drawable.bg_rail_selected : R.drawable.bg_rail);
-            View icon = ((ViewGroup) item).getChildAt(0);
-            View label = ((ViewGroup) item).getChildAt(1);
-            if (icon instanceof ImageView) {
-                ((ImageView) icon).setImageTintList(ColorStateList.valueOf(
+            item.setBackground(ripple(active
+                    ? R.drawable.bg_tool_selected : R.drawable.bg_rail, 0x33FFFFFF));
+            ImageView icon = item.findViewById(R.id.toolIcon);
+            TextView label = item.findViewById(R.id.toolLabel);
+            if (icon != null) {
+                icon.setImageTintList(ColorStateList.valueOf(
                         getColor(active ? R.color.accent : R.color.text)));
             }
-            if (label instanceof TextView) {
-                ((TextView) label).setTextColor(getColor(active ? R.color.accent : R.color.dim));
+            if (label != null) {
+                label.setTextColor(getColor(active ? R.color.accent : R.color.dim));
             }
+            item.animate().scaleX(active ? 1.04f : 1f)
+                    .scaleY(active ? 1.04f : 1f).setDuration(120).start();
         }
     }
 
@@ -285,6 +278,7 @@ public class EditorActivity extends Activity {
     private void closePanel() {
         activePanel = null;
         panelHost.removeAllViews();
+        panelHost.setVisibility(View.GONE);
         timeline.setTrimMode(false);
         refreshRail();
     }
@@ -293,12 +287,15 @@ public class EditorActivity extends Activity {
         if (activePanel == null) {
             panelHost.removeAllViews();
         } else {
+            skipPanelAnimation = true;
             showPanel(activePanel);
+            skipPanelAnimation = false;
         }
     }
 
     private void showPanel(String key) {
         panelHost.removeAllViews();
+        panelHost.setVisibility(View.VISIBLE);
         boolean needsClip = P_TRIM.equals(key) || P_SPEED.equals(key) || P_VOLUME.equals(key)
                 || P_FILTER.equals(key) || P_TEXT.equals(key) || P_MORE.equals(key);
         if (needsClip && selectedClip() == null) {
@@ -328,6 +325,11 @@ public class EditorActivity extends Activity {
             panel = new LinearLayout(this);
         }
         panelHost.addView(panel);
+        if (!skipPanelAnimation) {
+            panel.setAlpha(0f);
+            panel.setTranslationY(dp(8));
+            panel.animate().alpha(1f).translationY(0f).setDuration(150).start();
+        }
     }
 
     // ------------------------------------------------------------------
@@ -350,16 +352,30 @@ public class EditorActivity extends Activity {
         return row;
     }
 
+    private Drawable ripple(int resId, int rippleColor) {
+        Drawable content = getDrawable(resId);
+        if (content == null) {
+            return null;
+        }
+        return new RippleDrawable(ColorStateList.valueOf(rippleColor), content, null);
+    }
+
     private TextView chip(String text, boolean selected, Runnable action) {
-        TextView view = new TextView(this);
+        AutoFitTextView view = new AutoFitTextView(this);
         view.setText(text);
-        view.setTextSize(10f);
+        view.setTextSize(10.5f);
         view.setGravity(Gravity.CENTER);
-        view.setPadding(dp(11), 0, dp(11), 0);
-        view.setBackgroundResource(selected ? R.drawable.bg_chip_selected : R.drawable.bg_chip);
+        view.setMaxLines(1);
+        view.setPadding(dp(12), dp(7), dp(12), dp(7));
+        view.setMinHeight(dp(30));
+        view.setBackground(ripple(selected ? R.drawable.bg_chip_selected : R.drawable.bg_chip,
+                selected ? 0x3306231B : 0x33FFFFFF));
         view.setTextColor(getColor(selected ? R.color.on_accent : R.color.text));
+        if (selected) {
+            view.setTypeface(Typeface.DEFAULT_BOLD);
+        }
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, dp(28));
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.rightMargin = dp(6);
         view.setLayoutParams(lp);
         view.setOnClickListener(v -> action.run());
@@ -381,11 +397,48 @@ public class EditorActivity extends Activity {
     }
 
     private TextView caption(String text) {
-        TextView view = new TextView(this);
+        AutoFitTextView view = new AutoFitTextView(this);
         view.setText(text);
         view.setTextColor(getColor(R.color.dim));
         view.setTextSize(10f);
         return view;
+    }
+
+    /** Small title row at the top of every tool panel. */
+    private View panelHeader(String title, String value) {
+        LinearLayout header = row();
+        header.setPadding(0, dp(2), 0, dp(6));
+
+        AutoFitTextView name = new AutoFitTextView(this);
+        name.setText(title);
+        name.setTextSize(11f);
+        name.setTypeface(Typeface.DEFAULT_BOLD);
+        name.setTextColor(getColor(R.color.text));
+        header.addView(name, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        if (value != null) {
+            AutoFitTextView extra = new AutoFitTextView(this);
+            extra.setText(value);
+            extra.setTextSize(10f);
+            extra.setGravity(Gravity.RIGHT);
+            extra.setTextColor(getColor(R.color.accent));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    dp(150), ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.leftMargin = dp(8);
+            header.addView(extra, lp);
+        }
+        return header;
+    }
+
+    private void addHeader(LinearLayout box, String title, String value) {
+        box.addView(panelHeader(title, value), 0);
+    }
+
+    private void addHeader(View panel, String title, String value) {
+        if (panel instanceof LinearLayout) {
+            addHeader((LinearLayout) panel, title, value);
+        }
     }
 
     private SeekBar panelSlider(int max, int progress, SeekBar.OnSeekBarChangeListener listener) {
@@ -416,9 +469,9 @@ public class EditorActivity extends Activity {
         line.setPadding(0, dp(2), 0, 0);
 
         TextView name = caption(label);
-        name.setTextSize(9f);
+        name.setTextSize(9.5f);
         LinearLayout.LayoutParams nameLp = new LinearLayout.LayoutParams(
-                dp(46), ViewGroup.LayoutParams.WRAP_CONTENT);
+                dp(54), ViewGroup.LayoutParams.WRAP_CONTENT);
         line.addView(name, nameLp);
 
         SeekBar bar = new SeekBar(this);
@@ -432,13 +485,13 @@ public class EditorActivity extends Activity {
         barLp.rightMargin = dp(6);
         line.addView(bar, barLp);
 
-        final TextView value = new TextView(this);
+        final TextView value = new AutoFitTextView(this);
         value.setText(initial);
         value.setTextColor(getColor(R.color.text));
         value.setTextSize(9.5f);
         value.setGravity(Gravity.RIGHT);
         LinearLayout.LayoutParams valueLp = new LinearLayout.LayoutParams(
-                dp(44), ViewGroup.LayoutParams.WRAP_CONTENT);
+                dp(50), ViewGroup.LayoutParams.WRAP_CONTENT);
         line.addView(value, valueLp);
 
         bar.setOnSeekBarChangeListener(new SimpleSeekListener() {
@@ -473,6 +526,7 @@ public class EditorActivity extends Activity {
     private View filterPanel() {
         final Project.Clip clip = selectedClip();
         LinearLayout box = newPanel();
+        addHeader(box, "Фильтр и цвет", null);
 
         HorizontalScrollView scroll = new HorizontalScrollView(this);
         scroll.setHorizontalScrollBarEnabled(false);
@@ -576,6 +630,7 @@ public class EditorActivity extends Activity {
 
     private View aspectPanel() {
         LinearLayout box = newPanel();
+        addHeader(box, "Формат кадра", project.aspectLabel());
         LinearLayout chips = row();
         final String[] labels = {"9:16", "16:9", "1:1", "4:5"};
         final float[] values = {9f / 16f, 16f / 9f, 1f, 4f / 5f};
@@ -598,6 +653,7 @@ public class EditorActivity extends Activity {
 
     private View morePanel() {
         LinearLayout box = newPanel();
+        addHeader(box, "Действия с клипом", null);
         LinearLayout chips = row();
         chips.addView(chip("Влево", false, () -> {
             moveClip(-1);
@@ -636,6 +692,7 @@ public class EditorActivity extends Activity {
 
     private View trimPanel() {
         LinearLayout box = newPanel();
+        addHeader(box, "Обрезка", null);
         final Project.Clip clip = selectedClip();
         LinearLayout line = row();
         line.addView(caption("Тяните жёлтые метки"));
@@ -677,6 +734,7 @@ public class EditorActivity extends Activity {
     private View speedPanel() {
         final Project.Clip clip = selectedClip();
         LinearLayout box = newPanel();
+        addHeader(box, "Скорость", null);
         final TextView value = new TextView(this);
         value.setTextColor(getColor(R.color.text));
         value.setTextSize(11f);
@@ -739,6 +797,7 @@ public class EditorActivity extends Activity {
     private View volumePanel() {
         final Project.Clip clip = selectedClip();
         LinearLayout box = newPanel();
+        addHeader(box, "Звук клипа", null);
         final TextView value = new TextView(this);
         value.setTextColor(getColor(R.color.text));
         value.setTextSize(11f);
@@ -798,7 +857,7 @@ public class EditorActivity extends Activity {
             applyClipVolume();
             refreshPanel();
         }));
-        box.addView(chips);
+        box.addView(scrollable(chips));
 
         LinearLayout master = row();
         master.setPadding(0, dp(4), 0, 0);
@@ -815,12 +874,21 @@ public class EditorActivity extends Activity {
                             ? "Звук видео отключён, музыка играет"
                             : "Звук видео включён");
                 }));
-        box.addView(master);
+        box.addView(scrollable(master));
         return box;
+    }
+
+    private View scrollable(View content) {
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        scroll.addView(content);
+        return scroll;
     }
 
     private View exportPanel() {
         LinearLayout box = newPanel();
+        addHeader(box, "Экспорт", null);
         LinearLayout chips = row();
         chips.addView(chip("720p", exportShortSide == 720, () -> {
             exportShortSide = 720;
@@ -847,6 +915,7 @@ public class EditorActivity extends Activity {
 
     private View musicPanel() {
         View view = LayoutInflater.from(this).inflate(R.layout.panel_music, panelHost, false);
+        addHeader(view, "Музыка", project.musicUri == null ? "нет дорожки" : "включена");
         TextView name = view.findViewById(R.id.musicName);
         name.setText(project.musicUri == null ? "Дорожка не выбрана"
                 : (project.musicName == null ? "Дорожка" : project.musicName));
@@ -919,6 +988,7 @@ public class EditorActivity extends Activity {
     private View textPanel() {
         final Project.Clip clip = selectedClip();
         View view = LayoutInflater.from(this).inflate(R.layout.panel_text, panelHost, false);
+        addHeader(view, "Текст", null);
         final android.widget.EditText input = view.findViewById(R.id.textInput);
         final SeekBar sizeSeek = view.findViewById(R.id.sizeSeek);
         final TextView sizeValue = view.findViewById(R.id.sizeValue);

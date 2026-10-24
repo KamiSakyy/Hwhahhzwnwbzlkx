@@ -3,14 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_card"
+    android:clipToOutline="true"
     android:orientation="vertical">
 
     <FrameLayout
         android:id="@+id/thumbFrame"
         android:layout_width="match_parent"
-        android:layout_height="94dp"
-        android:background="@drawable/bg_thumb"
-        android:clipToOutline="true">
+        android:layout_height="92dp"
+        android:background="@drawable/bg_thumb">
 
         <ImageView
             android:id="@+id/projectThumb"
@@ -19,13 +19,14 @@
             android:contentDescription="@string/app_name"
             android:scaleType="centerCrop" />
 
-        <TextView
+        <com.kamisakyy.cutpro.AutoFitTextView
             android:id="@+id/projectDuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|right"
             android:layout_margin="6dp"
             android:background="@drawable/bg_badge"
+            android:maxLines="1"
             android:paddingLeft="5dp"
             android:paddingTop="2dp"
             android:paddingRight="5dp"
@@ -43,22 +44,20 @@
         android:paddingRight="10dp"
         android:paddingBottom="9dp">
 
-        <TextView
+        <com.kamisakyy.cutpro.AutoFitTextView
             android:id="@+id/projectName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/text"
             android:textSize="12sp"
             android:textStyle="bold" />
 
-        <TextView
+        <com.kamisakyy.cutpro.AutoFitTextView
             android:id="@+id/projectMeta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/dim2"
             android:textSize="10sp" />

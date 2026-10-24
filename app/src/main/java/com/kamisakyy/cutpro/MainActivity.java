@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
             int cells = 0;
             if (first) {
                 View tile = inflater.inflate(R.layout.item_new_project, row, false);
+                tile.setForeground(getDrawable(R.drawable.ripple_rect));
                 tile.setLayoutParams(cellParams(cells, false));
                 tile.setOnClickListener(v -> newProject());
                 row.addView(tile);
@@ -82,6 +83,7 @@ public class MainActivity extends Activity {
             while (cells < 2 && position < projects.size()) {
                 final Project project = projects.get(position++);
                 View card = inflater.inflate(R.layout.item_project, row, false);
+                card.setForeground(getDrawable(R.drawable.ripple_rect));
                 card.setLayoutParams(cellParams(cells, false));
                 bindProject(card, project);
                 row.addView(card);
