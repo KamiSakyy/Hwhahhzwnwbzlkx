@@ -1737,6 +1737,17 @@ public class EditorActivity extends Activity {
         return project.startOfClip(clipIndex) + Math.round(position / Math.max(0.1f, clip.speed));
     }
 
+    private void updateTextVisibility(long positionInClip) {
+        for (TextView view : textViews) {
+            Project.TextItem item = (Project.TextItem) view.getTag();
+            if (item == null) {
+                continue;
+            }
+            boolean visible = positionInClip >= item.startMs && positionInClip <= item.endMs;
+            view.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
     private void updateTimeLabels() {
         if (project == null) {
             return;
