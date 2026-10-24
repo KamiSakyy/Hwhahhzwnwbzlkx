@@ -157,17 +157,36 @@
                     android:tint="@color/text" />
             </com.kamisakyy.cutpro.AspectFrameLayout>
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/emptyHint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:background="@drawable/bg_chip"
                 android:gravity="center"
-                android:lineSpacingExtra="3dp"
-                android:text="Импортируйте видео, чтобы начать монтаж"
-                android:textColor="@color/dim"
-                android:textSize="12sp"
-                android:visibility="gone" />
+                android:orientation="horizontal"
+                android:paddingLeft="14dp"
+                android:paddingTop="10dp"
+                android:paddingRight="16dp"
+                android:paddingBottom="10dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_add"
+                    android:tint="@color/accent" />
+
+                <com.kamisakyy.cutpro.AutoFitTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="7dp"
+                    android:maxLines="1"
+                    android:text="Импортировать видео"
+                    android:textColor="@color/text"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"

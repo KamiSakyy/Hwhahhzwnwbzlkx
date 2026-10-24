@@ -83,7 +83,7 @@ public class EditorActivity extends Activity {
     private TextView timeText;
     private TextView metaText;
     private View btnExport;
-    private TextView emptyHint;
+    private View emptyHint;
     private TimelineView timeline;
     private LinearLayout toolRail;
 
@@ -186,6 +186,7 @@ public class EditorActivity extends Activity {
         projectTitle.setOnClickListener(v -> renameProject());
         findViewById(R.id.previewHost).setOnClickListener(v -> togglePlay());
         previewBox.setOnClickListener(v -> togglePlay());
+        emptyHint.setOnClickListener(v -> pickVideos());
         centerPlay.setOnClickListener(v -> togglePlay());
     }
 
@@ -698,6 +699,8 @@ public class EditorActivity extends Activity {
         line.addView(caption("Тяните жёлтые метки"));
         LinearLayout.LayoutParams spacer = new LinearLayout.LayoutParams(0, 1, 1f);
         line.addView(new View(this), spacer);
+        line.addView(chip("Начало здесь", false, () -> setTrimAtPlayhead(true)));
+        line.addView(chip("Конец здесь", false, () -> setTrimAtPlayhead(false)));
         line.addView(chip("Сброс", false, () -> {
             if (clip == null) {
                 return;
@@ -720,6 +723,26 @@ public class EditorActivity extends Activity {
         info.addView(caption(trimSummary(clip)));
         box.addView(info);
         return box;
+    }
+
+    private void setTrimAtPlayhead(boolean start) {
+        Project.Clip clip = selectedClip();
+        if (clip == null || player == null) {
+            return;
+        }
+        long inClip = Math.max(0, player.getCurrentPosition());
+        long source = clip.trimStartMs + inClip;
+        pushUndo();
+        if (start) {
+            clip.trimStartMs = Math.max(0, Math.min(source, clip.trimEndMs - 250));
+        } else {
+            clip.trimEndMs = Math.min(clip.sourceDurationMs,
+                    Math.max(source, clip.trimStartMs + 250));
+        }
+        clampTextTimes(clip);
+        saveProject();
+        rebuildPlaylist(project.startOfClip(selectedIndex));
+        refreshPanel();
     }
 
     private String trimSummary(Project.Clip clip) {
@@ -787,10 +810,12 @@ public class EditorActivity extends Activity {
                 refreshPanel();
             }));
         }
-        HorizontalScrollView scroll = new HorizontalScrollView(this);
-        scroll.setHorizontalScrollBarEnabled(false);
-        scroll.addView(presets);
-        box.addView(scroll);
+        box.addView(scrollable(presets));
+
+        TextView impact = caption("Длительность: " + formatSeconds(clip.trimmedDurationMs())
+                + "  →  " + formatSeconds(clip.outputDurationMs()));
+        impact.setPadding(0, dp(4), 0, 0);
+        box.addView(impact);
         return box;
     }
 
@@ -1729,6 +1754,7 @@ public class EditorActivity extends Activity {
             return;
         }
         pushUndo();
+        playerView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
         long relative = cut - clip.trimStartMs;
 
         Project.Clip right = new Project.Clip();

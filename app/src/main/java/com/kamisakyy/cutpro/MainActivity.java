@@ -178,7 +178,7 @@ public class MainActivity extends Activity {
     }
 
     private void showMenu(final Project project) {
-        String[] items = {"Открыть", "Переименовать", "Удалить"};
+        String[] items = {"Открыть", "Переименовать", "Дублировать", "Удалить"};
         new AlertDialog.Builder(this)
                 .setTitle(project.name)
                 .setItems(items, new DialogInterface.OnClickListener() {
@@ -188,6 +188,8 @@ public class MainActivity extends Activity {
                             openEditor(project.id);
                         } else if (which == 1) {
                             rename(project);
+                        } else if (which == 2) {
+                            duplicate(project);
                         } else {
                             confirmDelete(project);
                         }
@@ -218,6 +220,15 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton("Отмена", null)
                 .show();
+    }
+
+    private void duplicate(Project project) {
+        Project copy = Project.fromJson(project.toJson());
+        copy.id = java.util.UUID.randomUUID().toString();
+        copy.name = project.name + " · копия";
+        ProjectStore.save(this, copy);
+        refresh();
+        Toast.makeText(this, "Проект дублирован", Toast.LENGTH_SHORT).show();
     }
 
     private void confirmDelete(final Project project) {

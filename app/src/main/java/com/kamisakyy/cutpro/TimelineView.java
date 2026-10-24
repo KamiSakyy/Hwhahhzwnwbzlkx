@@ -117,6 +117,7 @@ public class TimelineView extends View {
             reorderFrom = index;
             reorderTo = index;
             selectedIndex = index;
+            performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
             invalidate();
         }
     };
@@ -362,7 +363,7 @@ public class TimelineView extends View {
                 canvas.drawRoundRect(rect, radius, radius, clipPaint);
             }
             if (i == selectedIndex && !trimMode) {
-                borderPaint.setStrokeWidth(dp(1.6f));
+                borderPaint.setStrokeWidth(dp(2f));
                 canvas.drawRoundRect(rect, radius, radius, borderPaint);
                 if (!reordering) {
                     drawEdgeHandles(canvas, rect, top, bottom);
@@ -582,6 +583,7 @@ public class TimelineView extends View {
                         syncTrimBounds();
                         mainTrimStart = trimStartMs;
                         mainTrimEnd = trimEndMs;
+                        performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK);
                         return true;
                     }
                     if (Math.abs(downX - edges[1]) <= dp(18)) {
@@ -590,6 +592,7 @@ public class TimelineView extends View {
                         syncTrimBounds();
                         mainTrimStart = trimStartMs;
                         mainTrimEnd = trimEndMs;
+                        performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK);
                         return true;
                     }
                 }
