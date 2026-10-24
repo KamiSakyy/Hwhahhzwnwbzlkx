@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 public final class GainAudioProcessor extends BaseAudioProcessor {
 
     private final float gain;
+    private boolean passthrough;
 
     public GainAudioProcessor(float gain) {
         this.gain = Math.max(0f, Math.min(4f, gain));
@@ -18,16 +19,22 @@ public final class GainAudioProcessor extends BaseAudioProcessor {
     @Override
     protected AudioFormat onConfigure(AudioFormat inputAudioFormat) {
         int encoding = inputAudioFormat.encoding;
-        if (encoding != C.ENCODING_PCM_16BIT && encoding != C.ENCODING_PCM_FLOAT) {
-            return AudioFormat.NOT_SET;
-        }
+        // Never reject a format: an unsupported encoding is passed through untouched so
+        // that the export keeps working instead of failing the whole pipeline.
+        passthrough = encoding != C.ENCODING_PCM_16BIT && encoding != C.ENCODING_PCM_FLOAT;
         return inputAudioFormat;
     }
 
     @Override
     public void queueInput(ByteBuffer inputBuffer) {
         int remaining = inputBuffer.remaining();
-        if (remaining < 4) {
+        if (remaining < 2) {
+            return;
+        }
+        if (passthrough) {
+            ByteBuffer output = replaceOutputBuffer(remaining);
+            output.put(inputBuffer);
+            output.flip();
             return;
         }
         int encoding = inputAudioFormat.encoding;
