@@ -2,6 +2,7 @@ package com.kamisakyy.cutpro;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -850,6 +851,15 @@ public class TimelineView extends View {
                     bitmap = appContext.getContentResolver().loadThumbnail(
                             Uri.parse(key), new Size(360, 360), null);
                 } catch (Throwable ignored) {
+                }
+                if (bitmap == null) {
+                    // Photos imported from the picker live in app storage (file://).
+                    try {
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inSampleSize = 2;
+                        bitmap = BitmapFactory.decodeFile(Uri.parse(key).getPath(), options);
+                    } catch (Throwable ignored) {
+                    }
                 }
                 if (bitmap != null) {
                     final Bitmap result = bitmap;

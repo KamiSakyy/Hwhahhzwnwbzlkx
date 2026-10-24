@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -149,6 +150,16 @@ public class MainActivity extends Activity {
                     bitmap = getContentResolver().loadThumbnail(
                             Uri.parse(uriString), new Size(480, 480), null);
                 } catch (Throwable ignored) {
+                }
+                if (bitmap == null) {
+                    // Photos imported from the picker are copied into app storage.
+                    try {
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inSampleSize = 4;
+                        bitmap = BitmapFactory.decodeFile(
+                                Uri.parse(uriString).getPath(), options);
+                    } catch (Throwable ignored) {
+                    }
                 }
                 if (bitmap == null) {
                     return;

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -51,6 +52,9 @@ import androidx.media3.ui.PlayerView;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -1465,6 +1469,38 @@ public class EditorActivity extends Activity {
         updateImageLayer(clipIndex);
     }
 
+    /** Decodes a photo for the preview: app-storage copies, MediaStore or picker URIs. */
+    private Bitmap loadPhotoBitmap(String value, int targetWidth) {
+        Uri uri = Uri.parse(value);
+        if ("file".equals(uri.getScheme())) {
+            try {
+                BitmapFactory.Options bounds = new BitmapFactory.Options();
+                bounds.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(uri.getPath(), bounds);
+                int sample = 1;
+                int width = Math.max(1, bounds.outWidth);
+                while (width / (sample * 2) >= targetWidth) {
+                    sample *= 2;
+                }
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = sample;
+                return BitmapFactory.decodeFile(uri.getPath(), options);
+            } catch (Throwable t) {
+                return null;
+            }
+        }
+        try {
+            return getContentResolver().loadThumbnail(
+                    uri, new Size(targetWidth, targetWidth), null);
+        } catch (Throwable ignored) {
+        }
+        try {
+            return MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
     private void showPhoto(Project.Clip clip) {
         if (clip == null || clip.uri == null) {
             return;
@@ -1480,21 +1516,7 @@ public class EditorActivity extends Activity {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                Bitmap bitmap = null;
-                try {
-                    Bitmap full = getContentResolver().loadThumbnail(
-                            Uri.parse(key), new Size(targetWidth, targetWidth), null);
-                    bitmap = full;
-                } catch (Throwable ignored) {
-                }
-                if (bitmap == null) {
-                    try {
-                        bitmap = android.provider.MediaStore.Images.Media.getBitmap(
-                                getContentResolver(), Uri.parse(key));
-                    } catch (Throwable ignored) {
-                    }
-                }
-                final Bitmap result = bitmap;
+                final Bitmap result = loadPhotoBitmap(key, targetWidth);
                 ui.post(new Runnable() {
                     @Override
                     public void run() {
@@ -1988,9 +2010,31 @@ public class EditorActivity extends Activity {
                 mime = getContentResolver().getType(uri);
             } catch (Throwable ignored) {
             }
-            boolean image = allowPhotos && mime != null && mime.startsWith("image/");
-            if (!image && mime != null && !mime.startsWith("video/")) {
-                continue;
+            if (mime == null) {
+                mime = guessMime(uri);
+            }
+            boolean image;
+            if (mime != null) {
+                if (mime.startsWith("image/")) {
+                    image = allowPhotos;
+                    if (!image) {
+                        continue;
+                    }
+                } else if (mime.startsWith("video/")) {
+                    image = false;
+                } else {
+                    continue;
+                }
+            } else {
+                image = allowPhotos && readDuration(uri) <= 0;
+            }
+            String name = readName(uri);
+            String stored = uri.toString();
+            if (image) {
+                String local = copyPhotoToAppStorage(uri, name);
+                if (local != null) {
+                    stored = local;
+                }
             }
             long duration = image ? Project.PHOTO_DURATION_MS : readDuration(uri);
             if (!image && duration < 400) {
@@ -2000,8 +2044,8 @@ public class EditorActivity extends Activity {
                 duration = Project.PHOTO_DURATION_MS;
             }
             Project.Clip clip = new Project.Clip();
-            clip.uri = uri.toString();
-            clip.name = readName(uri);
+            clip.uri = stored;
+            clip.name = name;
             clip.image = image;
             clip.sourceDurationMs = duration;
             clip.trimStartMs = 0;
@@ -2021,6 +2065,101 @@ public class EditorActivity extends Activity {
         rebuildPlaylist(project.startOfClip(firstIndex));
         String what = photos == 0 ? "видео" : (photos == added ? "фото" : "медиа");
         toast(added + " " + what + " добавлено");
+    }
+
+    /** Cheap mime guess for providers that do not answer getType() (cloud photos). */
+    private String guessMime(Uri uri) {
+        String value = uri.getLastPathSegment();
+        if (value == null) {
+            return null;
+        }
+        int dot = value.lastIndexOf('.');
+        if (dot < 0 || dot == value.length() - 1) {
+            return null;
+        }
+        String ext = value.substring(dot + 1).toLowerCase(Locale.ROOT);
+        switch (ext) {
+            case "jpg":
+            case "jpeg":
+            case "png":
+            case "webp":
+            case "heic":
+            case "heif":
+            case "bmp":
+            case "gif":
+            case "avif":
+                return "image/" + ext;
+            case "mp4":
+            case "m4v":
+            case "mov":
+            case "mkv":
+            case "webm":
+            case "3gp":
+            case "avi":
+                return "video/" + ext;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Photos from the system picker (especially Google Photos) only grant temporary read
+     * access, so the bytes are copied into app storage. Keeps originals intact for export.
+     */
+    private String copyPhotoToAppStorage(Uri uri, String displayName) {
+        File dir = new File(getFilesDir(), "photos");
+        if (!dir.exists() && !dir.mkdirs()) {
+            return null;
+        }
+        String ext = "jpg";
+        String lower = displayName == null ? "" : displayName.toLowerCase(Locale.ROOT);
+        int dot = lower.lastIndexOf('.');
+        if (dot >= 0 && dot < lower.length() - 1) {
+            String candidate = lower.substring(dot + 1).replaceAll("[^a-z0-9]", "");
+            if (candidate.length() >= 2 && candidate.length() <= 5) {
+                ext = candidate;
+            }
+        }
+        File output = new File(dir, "photo_" + System.currentTimeMillis()
+                + "_" + Math.abs(uri.hashCode()) + "." + ext);
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = getContentResolver().openInputStream(uri);
+            if (in == null) {
+                return null;
+            }
+            out = new FileOutputStream(output);
+            byte[] buffer = new byte[64 * 1024];
+            int read;
+            long total = 0;
+            while ((read = in.read(buffer)) > 0) {
+                out.write(buffer, 0, read);
+                total += read;
+            }
+            out.flush();
+            if (total <= 0) {
+                output.delete();
+                return null;
+            }
+            return Uri.fromFile(output).toString();
+        } catch (Throwable t) {
+            output.delete();
+            return null;
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (Throwable ignored) {
+            }
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
     private long readDuration(Uri uri) {
