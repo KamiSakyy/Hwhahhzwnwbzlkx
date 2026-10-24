@@ -196,7 +196,7 @@ public class EditorActivity extends Activity {
                 R.drawable.ic_speed, R.drawable.ic_volume, R.drawable.ic_filter,
                 R.drawable.ic_text, R.drawable.ic_music, R.drawable.ic_aspect,
                 R.drawable.ic_more};
-        String[] labels = {"Клип", "Обрезка", "Разрез", "Скорость", "Звук", "Фильтр",
+        String[] labels = {"Добавить", "Обрезка", "Разрез", "Скорость", "Звук", "Фильтр",
                 "Текст", "Музыка", "Формат", "Ещё"};
 
         toolRail.removeAllViews();
@@ -830,6 +830,12 @@ public class EditorActivity extends Activity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 volumeValue.setText(progress + "%");
+                if (fromUser) {
+                    project.musicVolume = progress / 100f;
+                    if (musicPlayer != null) {
+                        musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+                    }
+                }
             }
 
             @Override
@@ -1212,6 +1218,7 @@ public class EditorActivity extends Activity {
         Project.Clip clip = project.clips.get(index);
         try {
             player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
+            player.setVolume(Math.max(0f, Math.min(1f, clip.volume)));
         } catch (Throwable ignored) {
         }
     }
