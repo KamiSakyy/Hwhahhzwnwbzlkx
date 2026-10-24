@@ -544,6 +544,22 @@ public class EditorActivity extends Activity {
 
         LinearLayout actions = row();
         actions.setPadding(0, dp(2), 0, 0);
+        actions.addView(chip("Ко всем клипам", false, () -> {
+            pushUndo();
+            for (Project.Clip other : project.clips) {
+                if (other == clip) {
+                    continue;
+                }
+                other.filter = clip.filter;
+                other.brightness = clip.brightness;
+                other.contrast = clip.contrast;
+                other.saturation = clip.saturation;
+                other.warmth = clip.warmth;
+            }
+            saveProject();
+            rebuildPlaylist(currentProjectTime());
+            toast("Эффект применён ко всем клипам");
+        }));
         actions.addView(chip("Сброс коррекции", false, () -> {
             pushUndo();
             clip.brightness = 0f;
@@ -1143,6 +1159,11 @@ public class EditorActivity extends Activity {
             public void onMusicTap() {
                 togglePanel(P_MUSIC);
             }
+
+            @Override
+            public void onReorder(int fromIndex, int toIndex) {
+                reorderClip(fromIndex, toIndex);
+            }
         });
     }
 
@@ -1688,6 +1709,21 @@ public class EditorActivity extends Activity {
         item.startMs = source.startMs;
         item.endMs = source.endMs;
         return item;
+    }
+
+    private void reorderClip(int fromIndex, int toIndex) {
+        if (fromIndex < 0 || fromIndex >= project.clips.size()
+                || toIndex < 0 || toIndex >= project.clips.size()
+                || fromIndex == toIndex) {
+            return;
+        }
+        pushUndo();
+        Project.Clip clip = project.clips.remove(fromIndex);
+        project.clips.add(toIndex, clip);
+        selectedIndex = toIndex;
+        saveProject();
+        rebuildPlaylist(project.startOfClip(toIndex));
+        toast("Клип перемещён");
     }
 
     private void deleteClip() {

@@ -46,6 +46,9 @@ public class TimelineView extends View {
 
         /** Tapped the music lane under the strip. */
         void onMusicTap();
+
+        /** Clip dragged to another position on the strip. */
+        void onReorder(int fromIndex, int toIndex);
     }
 
     private static final int MODE_NONE = 0;
@@ -95,6 +98,27 @@ public class TimelineView extends View {
     private float trimXEnd;
     private long trimStartMs;
     private long trimEndMs;
+
+    private boolean reordering;
+    private int reorderFrom = -1;
+    private int reorderTo = -1;
+    private final Runnable longPress = new Runnable() {
+        @Override
+        public void run() {
+            if (touchMode != MODE_NONE || project == null || project.clips.isEmpty()) {
+                return;
+            }
+            int index = indexAtX(downX);
+            if (index < 0) {
+                return;
+            }
+            reordering = true;
+            reorderFrom = index;
+            reorderTo = index;
+            selectedIndex = index;
+            invalidate();
+        }
+    };
 
     private long mainTrimStart;
     private long mainTrimEnd;
@@ -332,10 +356,16 @@ public class TimelineView extends View {
             canvas.drawRect(x, bottom - dp(15), right, bottom, scrimPaint);
             canvas.restore();
 
-            if (i == selectedIndex) {
+            if (reordering && i == reorderFrom) {
+                clipPaint.setColor(0x6600E5A0);
+                canvas.drawRoundRect(rect, radius, radius, clipPaint);
+            }
+            if (i == selectedIndex && !trimMode) {
                 borderPaint.setStrokeWidth(dp(1.6f));
                 canvas.drawRoundRect(rect, radius, radius, borderPaint);
-                drawEdgeHandles(canvas, rect, top, bottom);
+                if (!reordering) {
+                    drawEdgeHandles(canvas, rect, top, bottom);
+                }
             }
 
             if (width > dp(34)) {
@@ -346,6 +376,12 @@ public class TimelineView extends View {
             }
         }
 
+        if (reordering && reorderTo >= 0) {
+            float markerX = reorderTo >= project.clips.size()
+                    ? boundaryX(project.clips.size())
+                    : boundaryX(reorderTo) - (reorderTo > reorderFrom ? 0 : dp(2));
+            canvas.drawRect(markerX - dp(1.5f), top, markerX + dp(1.5f), bottom, playheadPaint);
+        }
         if (hasMusic) {
             drawMusicLane(canvas, rulerBottom, bottom, h, cx);
         }
@@ -531,6 +567,7 @@ public class TimelineView extends View {
                 if (getParent() != null) {
                     getParent().requestDisallowInterceptTouchEvent(true);
                 }
+                postDelayed(longPress, 420);
                 if (project.musicUri != null && !project.musicUri.isEmpty()
                         && event.getY() > getHeight() - dp(24)) {
                     if (listener != null) {
@@ -561,7 +598,17 @@ public class TimelineView extends View {
             }
             case MotionEvent.ACTION_MOVE: {
                 if (event.getPointerCount() > 1) {
+                    removeCallbacks(longPress);
                     return true;
+                }
+                if (reordering) {
+                    reorderTo = Math.max(0, Math.min(indexAtX(event.getX()),
+                            project.clips.size() - 1));
+                    invalidate();
+                    return true;
+                }
+                if (Math.abs(event.getX() - downX) > touchSlop) {
+                    removeCallbacks(longPress);
                 }
                 if (touchMode == MODE_EDGE_LEFT || touchMode == MODE_EDGE_RIGHT) {
                     Project.Clip clip = selectedClip();
@@ -606,6 +653,19 @@ public class TimelineView extends View {
                     getParent().requestDisallowInterceptTouchEvent(false);
                 }
                 userScrolling = false;
+                removeCallbacks(longPress);
+                if (reordering) {
+                    int from = reorderFrom;
+                    int to = reorderTo;
+                    reordering = false;
+                    reorderFrom = -1;
+                    reorderTo = -1;
+                    if (from >= 0 && to >= 0 && from != to && listener != null) {
+                        listener.onReorder(from, to);
+                    }
+                    invalidate();
+                    return true;
+                }
                 if (touchMode == MODE_EDGE_LEFT || touchMode == MODE_EDGE_RIGHT) {
                     touchMode = MODE_NONE;
                     mainTrimIndex = -1;
@@ -642,11 +702,33 @@ public class TimelineView extends View {
                 if (getParent() != null) {
                     getParent().requestDisallowInterceptTouchEvent(false);
                 }
+                removeCallbacks(longPress);
+                reordering = false;
                 userScrolling = false;
+                invalidate();
                 return true;
             default:
                 return true;
         }
+    }
+
+    private int indexAtX(float x) {
+        if (project == null || project.clips.isEmpty()) {
+            return -1;
+        }
+        float cx = getWidth() / 2f;
+        long time = positionMs + (long) ((x - cx) / pxPerMs);
+        time = Math.max(0, Math.min(time, project.durationMs()));
+        return project.clipIndexAt(time);
+    }
+
+    private float boundaryX(int clipIndex) {
+        if (project == null) {
+            return 0;
+        }
+        float cx = getWidth() / 2f;
+        long time = project.startOfClip(clipIndex);
+        return cx + (time - positionMs) * pxPerMs;
     }
 
     /** Screen x of the selected clip's left and right edges, or null when off screen. */
