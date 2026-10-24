@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="64dp"
+    android:layout_height="wrap_content"
+    android:minHeight="58dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp"
+    android:background="@drawable/bg_rail"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingLeft="3dp"
+    android:paddingRight="3dp">
+
+    <ImageView
+        android:id="@+id/toolIcon"
+        android:layout_width="19dp"
+        android:layout_height="19dp"
+        android:contentDescription="@string/app_name"
+        android:tint="@color/text" />
+
+    <com.kamisakyy.cutpro.AutoFitTextView
+        android:id="@+id/toolLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/dim"
+        android:textSize="10sp" />
+
+</LinearLayout>
