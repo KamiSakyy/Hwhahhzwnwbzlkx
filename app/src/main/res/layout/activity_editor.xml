@@ -10,52 +10,62 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Top bar -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:background="@color/bg"
+            android:layout_height="48dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingLeft="6dp"
-            android:paddingRight="12dp">
+            android:paddingLeft="4dp"
+            android:paddingRight="10dp">
 
-            <TextView
+            <ImageView
                 android:id="@+id/btnBack"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:gravity="center"
-                android:text="‹"
-                android:textColor="@color/text"
-                android:textSize="30sp" />
+                style="@style/IconButton"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_back"
+                android:tint="@color/text" />
 
             <TextView
                 android:id="@+id/projectTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="2dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="Проект"
                 android:textColor="@color/text"
-                android:textSize="16sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btnUndo"
+                style="@style/IconButton"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_undo"
+                android:tint="@color/dim" />
+
+            <ImageView
+                android:id="@+id/btnRedo"
+                style="@style/IconButton"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_redo"
+                android:tint="@color/dim" />
 
             <TextView
                 android:id="@+id/btnExport"
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
+                android:layout_height="30dp"
+                android:layout_marginLeft="6dp"
                 android:background="@drawable/bg_accent"
                 android:gravity="center"
-                android:paddingLeft="18dp"
-                android:paddingRight="18dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
                 android:text="Экспорт"
-                android:textColor="#FF07110D"
-                android:textSize="13sp"
+                android:textColor="@color/on_accent"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Preview -->
         <FrameLayout
             android:id="@+id/previewHost"
             android:layout_width="match_parent"
@@ -82,16 +92,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
-                <TextView
-                    android:id="@+id/bigPlay"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                <ImageView
+                    android:id="@+id/centerPlay"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/bg_circle_dark"
-                    android:gravity="center"
-                    android:text="▶"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
+                    android:background="@drawable/bg_circle_solid"
+                    android:contentDescription="@string/app_name"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_play"
+                    android:tint="@color/text" />
             </com.kamisakyy.cutpro.AspectFrameLayout>
 
             <TextView
@@ -100,199 +110,71 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:lineSpacingExtra="4dp"
-                android:text="Пока пусто\nНажмите «＋ Видео», чтобы добавить клип"
+                android:lineSpacingExtra="3dp"
+                android:text="Добавьте видео, чтобы начать"
                 android:textColor="@color/dim"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:visibility="gone" />
         </FrameLayout>
 
-        <!-- Transport -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp">
-
-            <TextView
-                android:id="@+id/btnPlay"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:gravity="center"
-                android:text="▶"
-                android:textColor="@color/text"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/timeText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:text="00:00 / 00:00"
-                android:textColor="@color/dim"
-                android:textSize="12sp" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/btnAddClip"
-                android:layout_width="wrap_content"
-                android:layout_height="34dp"
-                android:background="@drawable/bg_pill"
-                android:gravity="center"
-                android:paddingLeft="14dp"
-                android:paddingRight="14dp"
-                android:text="＋ Видео"
-                android:textColor="@color/accent"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Timeline header -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="26dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingLeft="14dp"
             android:paddingRight="14dp">
 
             <TextView
+                android:id="@+id/timeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ТАЙМЛАЙН"
-                android:textColor="@color/dim"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:text="0:00 / 0:00"
+                android:textColor="@color/text"
+                android:textSize="11sp" />
 
             <TextView
-                android:id="@+id/timelineInfo"
+                android:id="@+id/metaText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="right"
-                android:textColor="@color/dim"
+                android:textColor="@color/dim2"
                 android:textSize="10sp" />
         </LinearLayout>
 
-        <com.kamisakyy.cutpro.TimelineView
-            android:id="@+id/timeline"
-            android:layout_width="match_parent"
-            android:layout_height="92dp"
-            android:layout_marginTop="4dp"
-            android:background="@color/surface" />
-
-        <!-- Tools -->
-        <HorizontalScrollView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:scrollbars="none">
+            android:background="@drawable/bg_panel"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:id="@+id/toolsRow1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp">
+            <com.kamisakyy.cutpro.TimelineView
+                android:id="@+id/timeline"
+                android:layout_width="match_parent"
+                android:layout_height="96dp" />
 
-                <Button
-                    android:id="@+id/btnSplit"
-                    style="@style/ToolButton"
-                    android:text="✂ Разрезать" />
+            <FrameLayout
+                android:id="@+id/panelHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-                <Button
-                    android:id="@+id/btnTrim"
-                    style="@style/ToolButton"
-                    android:text="⇤ Обрезать" />
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="62dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
 
-                <Button
-                    android:id="@+id/btnDelete"
-                    style="@style/ToolButton"
-                    android:text="✕ Удалить" />
-
-                <Button
-                    android:id="@+id/btnMoveLeft"
-                    style="@style/ToolButton"
-                    android:text="◀" />
-
-                <Button
-                    android:id="@+id/btnMoveRight"
-                    style="@style/ToolButton"
-                    android:text="▶" />
-
-                <Button
-                    android:id="@+id/btnDuplicate"
-                    style="@style/ToolButton"
-                    android:text="⧉ Дублировать" />
-            </LinearLayout>
-        </HorizontalScrollView>
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/toolsRow2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp">
-
-                <Button
-                    android:id="@+id/btnFilter"
-                    style="@style/ToolButton"
-                    android:text="◐ Фильтр" />
-
-                <Button
-                    android:id="@+id/btnText"
-                    style="@style/ToolButton"
-                    android:text="T Текст" />
-
-                <Button
-                    android:id="@+id/btnSpeed"
-                    style="@style/ToolButton"
-                    android:text="⏩ Скорость" />
-
-                <Button
-                    android:id="@+id/btnVolume"
-                    style="@style/ToolButton"
-                    android:text="🔊 Звук" />
-
-                <Button
-                    android:id="@+id/btnAspect"
-                    style="@style/ToolButton"
-                    android:text="▭ Формат" />
-
-                <Button
-                    android:id="@+id/btnMusic"
-                    style="@style/ToolButton"
-                    android:text="♪ Музыка" />
-            </LinearLayout>
-        </HorizontalScrollView>
-
-        <TextView
-            android:id="@+id/selectionInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:paddingLeft="14dp"
-            android:paddingTop="6dp"
-            android:paddingRight="14dp"
-            android:paddingBottom="10dp"
-            android:textColor="@color/dim"
-            android:textSize="11sp" />
+                <LinearLayout
+                    android:id="@+id/toolRail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp" />
+            </HorizontalScrollView>
+        </LinearLayout>
 
     </LinearLayout>
 

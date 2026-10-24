@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg">#08080A</color>
-    <color name="surface">#111116</color>
-    <color name="surface2">#1A1A21</color>
-    <color name="surface3">#24242E</color>
+    <color name="bg">#0A0A0C</color>
+    <color name="surface">#141418</color>
+    <color name="surface2">#1B1B21</color>
+    <color name="surface3">#26262E</color>
+    <color name="panel">#101014</color>
+    <color name="stroke">#282830</color>
     <color name="accent">#00E5A0</color>
     <color name="accent_dark">#00A876</color>
     <color name="accent2">#7C6CFF</color>
     <color name="danger">#FF4D5E</color>
-    <color name="text">#F4F4F7</color>
-    <color name="dim">#8C8C99</color>
-    <color name="divider">#24242C</color>
+    <color name="text">#F2F2F5</color>
+    <color name="dim">#8A8A96</color>
+    <color name="dim2">#5C5C66</color>
+    <color name="divider">#202028</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="thumb_a">#1E3A36</color>
     <color name="thumb_b">#2A2438</color>
     <color name="thumb_c">#33262A</color>
+    <color name="on_accent">#06231B</color>
 </resources>

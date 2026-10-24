@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -18,68 +19,99 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-/** The editor: preview, timeline, tools and export. */
+/** Compact CapCut-style editor: preview, timeline, contextual tool panel and export. */
 public class EditorActivity extends Activity {
 
     private static final int REQ_ADD_VIDEO = 2001;
     private static final int REQ_MUSIC = 2002;
+    private static final int REQ_AUDIO_VIDEO = 2003;
+
+    private static final String P_TRIM = "trim";
+    private static final String P_SPEED = "speed";
+    private static final String P_VOLUME = "volume";
+    private static final String P_FILTER = "filter";
+    private static final String P_TEXT = "text";
+    private static final String P_MUSIC = "music";
+    private static final String P_ASPECT = "aspect";
+    private static final String P_MORE = "more";
+    private static final String P_EXPORT = "export";
 
     private Project project;
     private ExoPlayer player;
+    private ExoPlayer musicPlayer;
     private PlayerView playerView;
     private AspectFrameLayout previewBox;
     private FrameLayout textOverlay;
-    private TextView bigPlay;
-    private TextView btnPlay;
-    private TextView timeText;
-    private TextView emptyHint;
+    private FrameLayout panelHost;
+    private ImageView centerPlay;
+    private ImageView btnUndo;
+    private ImageView btnRedo;
     private TextView projectTitle;
-    private TextView timelineInfo;
-    private TextView selectionInfo;
+    private TextView timeText;
+    private TextView metaText;
     private TextView btnExport;
+    private TextView emptyHint;
     private TimelineView timeline;
+    private LinearLayout toolRail;
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final List<TextView> textViews = new ArrayList<>();
+    private final Map<String, View> railItems = new HashMap<>();
+    private final Deque<String> undoStack = new ArrayDeque<>();
+    private final Deque<String> redoStack = new ArrayDeque<>();
     private final Runnable ticker = new Runnable() {
         @Override
         public void run() {
             tick();
-            ui.postDelayed(this, 100);
+            ui.postDelayed(this, 120);
         }
     };
 
     private int selectedIndex = -1;
+    private String activePanel;
     private boolean exporting;
+    private boolean trimGesture;
+    private boolean updatingSlider;
+    private int exportShortSide = 1080;
+    private int pendingTextColor = 0xFFFFFFFF;
+    private int pendingTextPosition = 1;
+    private long[] loadedTrimStarts = new long[0];
+
     private VideoExporter exporter;
     private AlertDialog progressDialog;
     private ProgressBar progressBar;
     private TextView progressText;
-    private int pendingTextColor = 0xFFFFFFFF;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,14 +123,14 @@ public class EditorActivity extends Activity {
             finish();
             return;
         }
-
         setContentView(R.layout.activity_editor);
         bindViews();
         setupPlayer();
+        setupMusicPlayer();
         setupTimeline();
-        setupActions();
+        buildRail();
+        wireTopBar();
 
-        projectTitle.setText(project.name);
         previewBox.setAspectRatio(project.aspect);
         previewBox.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -110,30 +142,704 @@ public class EditorActivity extends Activity {
             }
         });
 
-        if (project.clips.isEmpty()) {
-            updateSelectionUi();
-            emptyHint.setVisibility(View.VISIBLE);
-        } else {
+        if (!project.clips.isEmpty()) {
             selectedIndex = 0;
             rebuildPlaylist(0);
+        } else {
+            updateChrome();
+            rebuildTextOverlays();
         }
-        ui.postDelayed(ticker, 100);
+        ui.postDelayed(ticker, 120);
     }
 
     private void bindViews() {
         playerView = findViewById(R.id.playerView);
         previewBox = findViewById(R.id.previewBox);
         textOverlay = findViewById(R.id.textOverlay);
-        bigPlay = findViewById(R.id.bigPlay);
-        btnPlay = findViewById(R.id.btnPlay);
-        timeText = findViewById(R.id.timeText);
-        emptyHint = findViewById(R.id.emptyHint);
+        panelHost = findViewById(R.id.panelHost);
+        centerPlay = findViewById(R.id.centerPlay);
         projectTitle = findViewById(R.id.projectTitle);
-        timelineInfo = findViewById(R.id.timelineInfo);
-        selectionInfo = findViewById(R.id.selectionInfo);
+        timeText = findViewById(R.id.timeText);
+        metaText = findViewById(R.id.metaText);
         btnExport = findViewById(R.id.btnExport);
+        emptyHint = findViewById(R.id.emptyHint);
         timeline = findViewById(R.id.timeline);
+        toolRail = findViewById(R.id.toolRail);
+        btnUndo = findViewById(R.id.btnUndo);
+        btnRedo = findViewById(R.id.btnRedo);
     }
+
+    private void wireTopBar() {
+        findViewById(R.id.btnBack).setOnClickListener(v -> {
+            if (activePanel != null) {
+                closePanel();
+            } else {
+                finish();
+            }
+        });
+        btnExport.setOnClickListener(v -> togglePanel(P_EXPORT));
+        btnUndo.setOnClickListener(v -> undo());
+        btnRedo.setOnClickListener(v -> redo());
+        projectTitle.setOnClickListener(v -> renameProject());
+        findViewById(R.id.previewHost).setOnClickListener(v -> togglePlay());
+        centerPlay.setOnClickListener(v -> togglePlay());
+    }
+
+    // ------------------------------------------------------------------
+    // Tool rail
+    // ------------------------------------------------------------------
+
+    private void buildRail() {
+        String[] keys = {"add", P_TRIM, "split", P_SPEED, P_VOLUME, P_FILTER, P_TEXT,
+                P_MUSIC, P_ASPECT, P_MORE};
+        int[] icons = {R.drawable.ic_add, R.drawable.ic_trim, R.drawable.ic_split,
+                R.drawable.ic_speed, R.drawable.ic_volume, R.drawable.ic_filter,
+                R.drawable.ic_text, R.drawable.ic_music, R.drawable.ic_aspect,
+                R.drawable.ic_more};
+        String[] labels = {"Клип", "Обрезка", "Разрез", "Скорость", "Звук", "Фильтр",
+                "Текст", "Музыка", "Формат", "Ещё"};
+
+        toolRail.removeAllViews();
+        railItems.clear();
+        for (int i = 0; i < keys.length; i++) {
+            final String key = keys[i];
+            LinearLayout item = new LinearLayout(this);
+            item.setOrientation(LinearLayout.VERTICAL);
+            item.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(54), dp(54));
+            lp.rightMargin = dp(2);
+            item.setLayoutParams(lp);
+            item.setBackgroundResource(R.drawable.bg_rail);
+
+            ImageView icon = new ImageView(this);
+            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(20), dp(20));
+            icon.setLayoutParams(iconLp);
+            icon.setImageResource(icons[i]);
+            icon.setImageTintList(ColorStateList.valueOf(getColor(R.color.text)));
+            icon.setContentDescription(labels[i]);
+            item.addView(icon);
+
+            TextView label = new TextView(this);
+            label.setText(labels[i]);
+            label.setTextSize(9f);
+            label.setTextColor(getColor(R.color.dim));
+            label.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            labelLp.topMargin = dp(3);
+            label.setLayoutParams(labelLp);
+            item.addView(label);
+
+            item.setOnClickListener(v -> onToolClick(key));
+            toolRail.addView(item);
+            railItems.put(key, item);
+        }
+        refreshRail();
+    }
+
+    private void onToolClick(String key) {
+        if ("add".equals(key)) {
+            pickVideos();
+            return;
+        }
+        if ("split".equals(key)) {
+            splitClip();
+            return;
+        }
+        boolean needsClip = !P_ASPECT.equals(key) && !P_EXPORT.equals(key) && !P_MUSIC.equals(key);
+        if (needsClip && selectedClip() == null) {
+            toast("Выберите клип на таймлайне");
+            return;
+        }
+        togglePanel(key);
+    }
+
+    private void refreshRail() {
+        for (Map.Entry<String, View> entry : railItems.entrySet()) {
+            View item = entry.getValue();
+            boolean active = entry.getKey().equals(activePanel);
+            item.setBackgroundResource(active ? R.drawable.bg_rail_selected : R.drawable.bg_rail);
+            View icon = ((ViewGroup) item).getChildAt(0);
+            View label = ((ViewGroup) item).getChildAt(1);
+            if (icon instanceof ImageView) {
+                ((ImageView) icon).setImageTintList(ColorStateList.valueOf(
+                        getColor(active ? R.color.accent : R.color.text)));
+            }
+            if (label instanceof TextView) {
+                ((TextView) label).setTextColor(getColor(active ? R.color.accent : R.color.dim));
+            }
+        }
+    }
+
+    private void togglePanel(String key) {
+        if (key.equals(activePanel)) {
+            closePanel();
+            return;
+        }
+        activePanel = key;
+        timeline.setTrimMode(P_TRIM.equals(key));
+        refreshRail();
+        showPanel(key);
+    }
+
+    private void closePanel() {
+        activePanel = null;
+        panelHost.removeAllViews();
+        timeline.setTrimMode(false);
+        refreshRail();
+    }
+
+    private void refreshPanel() {
+        if (activePanel == null) {
+            panelHost.removeAllViews();
+        } else {
+            showPanel(activePanel);
+        }
+    }
+
+    private void showPanel(String key) {
+        panelHost.removeAllViews();
+        boolean needsClip = P_TRIM.equals(key) || P_SPEED.equals(key) || P_VOLUME.equals(key)
+                || P_FILTER.equals(key) || P_TEXT.equals(key) || P_MORE.equals(key);
+        if (needsClip && selectedClip() == null) {
+            closePanel();
+            return;
+        }
+        View panel;
+        if (P_TRIM.equals(key)) {
+            panel = trimPanel();
+        } else if (P_SPEED.equals(key)) {
+            panel = speedPanel();
+        } else if (P_VOLUME.equals(key)) {
+            panel = volumePanel();
+        } else if (P_FILTER.equals(key)) {
+            panel = filterPanel();
+        } else if (P_TEXT.equals(key)) {
+            panel = textPanel();
+        } else if (P_MUSIC.equals(key)) {
+            panel = musicPanel();
+        } else if (P_ASPECT.equals(key)) {
+            panel = aspectPanel();
+        } else if (P_MORE.equals(key)) {
+            panel = morePanel();
+        } else if (P_EXPORT.equals(key)) {
+            panel = exportPanel();
+        } else {
+            panel = new LinearLayout(this);
+        }
+        panelHost.addView(panel);
+    }
+
+    // ------------------------------------------------------------------
+    // Panels
+    // ------------------------------------------------------------------
+
+    private LinearLayout newPanel() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(14), dp(8), dp(14), dp(8));
+        box.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return box;
+    }
+
+    private LinearLayout row() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        return row;
+    }
+
+    private TextView chip(String text, boolean selected, Runnable action) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextSize(10f);
+        view.setGravity(Gravity.CENTER);
+        view.setPadding(dp(11), 0, dp(11), 0);
+        view.setBackgroundResource(selected ? R.drawable.bg_chip_selected : R.drawable.bg_chip);
+        view.setTextColor(getColor(selected ? R.color.on_accent : R.color.text));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, dp(28));
+        lp.rightMargin = dp(6);
+        view.setLayoutParams(lp);
+        view.setOnClickListener(v -> action.run());
+        return view;
+    }
+
+    private TextView dangerChip(String text, Runnable action) {
+        TextView view = chip(text, false, action);
+        view.setBackgroundResource(R.drawable.bg_chip_danger);
+        view.setTextColor(getColor(R.color.danger));
+        return view;
+    }
+
+    private TextView primaryChip(String text, Runnable action) {
+        TextView view = chip(text, true, action);
+        view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setPadding(dp(16), 0, dp(16), 0);
+        return view;
+    }
+
+    private TextView caption(String text) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextColor(getColor(R.color.dim));
+        view.setTextSize(10f);
+        return view;
+    }
+
+    private SeekBar panelSlider(int max, int progress, SeekBar.OnSeekBarChangeListener listener) {
+        SeekBar bar = new SeekBar(this);
+        bar.setMax(max);
+        bar.setProgress(progress);
+        bar.setProgressTintList(ColorStateList.valueOf(getColor(R.color.accent)));
+        bar.setThumbTintList(ColorStateList.valueOf(getColor(R.color.accent)));
+        bar.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.surface3)));
+        bar.setOnSeekBarChangeListener(listener);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                0, dp(26), 1f);
+        lp.leftMargin = dp(8);
+        lp.rightMargin = dp(8);
+        bar.setLayoutParams(lp);
+        return bar;
+    }
+
+    private View filterPanel() {
+        final Project.Clip clip = selectedClip();
+        LinearLayout box = newPanel();
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout chips = row();
+        for (int i = 0; i < FilterPresets.NAMES.length; i++) {
+            final int index = i;
+            chips.addView(chip(FilterPresets.NAMES[i], clip.filter == i, () -> {
+                pushUndo();
+                clip.filter = index;
+                saveProject();
+                rebuildPlaylist(currentProjectTime());
+                refreshPanel();
+                toast("Фильтр: " + FilterPresets.NAMES[index]);
+            }));
+        }
+        scroll.addView(chips);
+        box.addView(scroll);
+        return box;
+    }
+
+    private View aspectPanel() {
+        LinearLayout box = newPanel();
+        LinearLayout chips = row();
+        final String[] labels = {"9:16", "16:9", "1:1", "4:5"};
+        final float[] values = {9f / 16f, 16f / 9f, 1f, 4f / 5f};
+        for (int i = 0; i < values.length; i++) {
+            final float aspect = values[i];
+            boolean selected = Math.abs(project.aspect - aspect) < 0.02f;
+            chips.addView(chip(labels[i], selected, () -> {
+                pushUndo();
+                project.aspect = aspect;
+                previewBox.setAspectRatio(aspect);
+                saveProject();
+                updateChrome();
+                refreshPanel();
+                rebuildTextOverlays();
+            }));
+        }
+        box.addView(chips);
+        return box;
+    }
+
+    private View morePanel() {
+        LinearLayout box = newPanel();
+        LinearLayout chips = row();
+        chips.addView(chip("Влево", false, () -> {
+            moveClip(-1);
+        }));
+        chips.addView(chip("Вправо", false, () -> {
+            moveClip(1);
+        }));
+        chips.addView(chip("Дублировать", false, () -> {
+            duplicateClip();
+        }));
+        chips.addView(dangerChip("Удалить", () -> {
+            deleteClip();
+        }));
+
+        LinearLayout second = row();
+        second.setPadding(0, dp(6), 0, 0);
+        second.addView(chip("Звук клипа в музыку", false, () -> {
+            Project.Clip clip = selectedClip();
+            if (clip == null || clip.uri == null) {
+                toast("Выберите клип");
+                return;
+            }
+            extractAudio(Uri.parse(clip.uri), clip.name);
+        }));
+
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        scroll.addView(chips);
+        HorizontalScrollView scroll2 = new HorizontalScrollView(this);
+        scroll2.setHorizontalScrollBarEnabled(false);
+        scroll2.addView(second);
+        box.addView(scroll);
+        box.addView(scroll2);
+        return box;
+    }
+
+    private View trimPanel() {
+        LinearLayout box = newPanel();
+        final Project.Clip clip = selectedClip();
+        LinearLayout line = row();
+        line.addView(caption("Тяните жёлтые метки"));
+        LinearLayout.LayoutParams spacer = new LinearLayout.LayoutParams(0, 1, 1f);
+        line.addView(new View(this), spacer);
+        line.addView(chip("Сброс", false, () -> {
+            if (clip == null) {
+                return;
+            }
+            pushUndo();
+            clip.trimStartMs = 0;
+            clip.trimEndMs = Math.max(250, clip.sourceDurationMs);
+            clampTextTimes(clip);
+            saveProject();
+            timeline.setSelectedIndex(selectedIndex);
+            refreshPanel();
+            seekToProjectTime(project.startOfClip(selectedIndex));
+            toast("Обрезка сброшена");
+        }));
+        line.addView(primaryChip("Готово", () -> closePanel()));
+        box.addView(line);
+
+        LinearLayout info = row();
+        info.setPadding(0, dp(4), 0, 0);
+        info.addView(caption(trimSummary(clip)));
+        box.addView(info);
+        return box;
+    }
+
+    private String trimSummary(Project.Clip clip) {
+        if (clip == null) {
+            return "";
+        }
+        return "Начало " + formatSeconds(clip.trimStartMs)
+                + "   ·   Конец " + formatSeconds(clip.trimEndMs)
+                + "   ·   В ролике " + formatSeconds(clip.trimmedDurationMs());
+    }
+
+    private View speedPanel() {
+        final Project.Clip clip = selectedClip();
+        LinearLayout box = newPanel();
+        final TextView value = new TextView(this);
+        value.setTextColor(getColor(R.color.text));
+        value.setTextSize(11f);
+        value.setText(String.format(Locale.US, "%.2fx", clip.speed));
+
+        LinearLayout line = row();
+        line.addView(value);
+        line.addView(panelSlider(375, (int) (clip.speed * 100) - 25,
+                new SimpleSeekListener() {
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        float speed = (progress + 25) / 100f;
+                        clip.speed = speed;
+                        value.setText(String.format(Locale.US, "%.2fx", speed));
+                        timeline.setProject(project);
+                        applyPlaybackParams();
+                        updateChrome();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        saveProject();
+                        refreshPanel();
+                    }
+                }));
+        box.addView(line);
+
+        LinearLayout presets = row();
+        presets.setPadding(0, dp(2), 0, 0);
+        final float[] values = {0.5f, 1f, 1.5f, 2f, 3f, 4f};
+        for (float preset : values) {
+            final float speed = preset;
+            String label = (speed == Math.round(speed) ? String.valueOf((int) speed)
+                    : String.valueOf(speed)) + "x";
+            presets.addView(chip(label, Math.abs(clip.speed - speed) < 0.01f, () -> {
+                pushUndo();
+                clip.speed = speed;
+                saveProject();
+                timeline.setProject(project);
+                applyPlaybackParams();
+                updateChrome();
+                refreshPanel();
+            }));
+        }
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        scroll.addView(presets);
+        box.addView(scroll);
+        return box;
+    }
+
+    private View volumePanel() {
+        final Project.Clip clip = selectedClip();
+        LinearLayout box = newPanel();
+        final TextView value = new TextView(this);
+        value.setTextColor(getColor(R.color.text));
+        value.setTextSize(11f);
+        value.setText(Math.round(clip.volume * 100) + "%");
+
+        LinearLayout line = row();
+        line.addView(value);
+        line.addView(panelSlider(200, Math.round(clip.volume * 100),
+                new SimpleSeekListener() {
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        clip.volume = progress / 100f;
+                        value.setText(progress + "%");
+                        updateChrome();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        saveProject();
+                        refreshPanel();
+                    }
+                }));
+        box.addView(line);
+
+        LinearLayout chips = row();
+        chips.setPadding(0, dp(2), 0, 0);
+        chips.addView(chip("Без звука", clip.volume < 0.01f, () -> {
+            pushUndo();
+            clip.volume = 0f;
+            saveProject();
+            refreshPanel();
+        }));
+        chips.addView(chip("100%", Math.abs(clip.volume - 1f) < 0.01f, () -> {
+            pushUndo();
+            clip.volume = 1f;
+            saveProject();
+            refreshPanel();
+        }));
+        chips.addView(chip("150%", Math.abs(clip.volume - 1.5f) < 0.01f, () -> {
+            pushUndo();
+            clip.volume = 1.5f;
+            saveProject();
+            refreshPanel();
+        }));
+        box.addView(chips);
+        return box;
+    }
+
+    private View exportPanel() {
+        LinearLayout box = newPanel();
+        LinearLayout chips = row();
+        chips.addView(chip("720p", exportShortSide == 720, () -> {
+            exportShortSide = 720;
+            refreshPanel();
+        }));
+        chips.addView(chip("1080p", exportShortSide == 1080, () -> {
+            exportShortSide = 1080;
+            refreshPanel();
+        }));
+        LinearLayout.LayoutParams spacer = new LinearLayout.LayoutParams(0, 1, 1f);
+        chips.addView(new View(this), spacer);
+        chips.addView(primaryChip("Экспорт", () -> startExport(exportShortSide)));
+        box.addView(chips);
+
+        TextView summary = caption(project.clips.size() + " клип.  ·  "
+                + formatDuration(project.durationMs()) + "  ·  " + project.aspectLabel()
+                + (project.musicUri == null ? "" : "  ·  с музыкой"));
+        summary.setPadding(0, dp(4), 0, 0);
+        box.addView(summary);
+        return box;
+    }
+
+    private View musicPanel() {
+        View view = LayoutInflater.from(this).inflate(R.layout.panel_music, panelHost, false);
+        TextView name = view.findViewById(R.id.musicName);
+        name.setText(project.musicUri == null ? "Дорожка не выбрана"
+                : (project.musicName == null ? "Дорожка" : project.musicName));
+
+        view.findViewById(R.id.btnMusicVideo).setOnClickListener(v -> pickVideoForAudio());
+        view.findViewById(R.id.btnMusicFile).setOnClickListener(v -> pickMusic());
+        view.findViewById(R.id.btnMusicClip).setOnClickListener(v -> {
+            Project.Clip clip = selectedClip();
+            if (clip == null) {
+                toast("Сначала выберите клип");
+                return;
+            }
+            extractAudio(Uri.parse(clip.uri), clip.name);
+        });
+        View remove = view.findViewById(R.id.btnMusicRemove);
+        remove.setVisibility(project.musicUri == null ? View.GONE : View.VISIBLE);
+        remove.setOnClickListener(v -> {
+            pushUndo();
+            project.musicUri = null;
+            project.musicName = null;
+            saveProject();
+            prepareMusic();
+            refreshPanel();
+            toast("Музыка убрана");
+        });
+
+        final SeekBar volume = view.findViewById(R.id.musicVolume);
+        final TextView volumeValue = view.findViewById(R.id.musicVolumeValue);
+        volume.setProgress(Math.round(project.musicVolume * 100));
+        volumeValue.setText(Math.round(project.musicVolume * 100) + "%");
+        volume.setOnSeekBarChangeListener(new SimpleSeekListener() {
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                pushUndo();
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                volumeValue.setText(progress + "%");
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                project.musicVolume = seekBar.getProgress() / 100f;
+                saveProject();
+            }
+        });
+        return view;
+    }
+
+    private View textPanel() {
+        final Project.Clip clip = selectedClip();
+        View view = LayoutInflater.from(this).inflate(R.layout.panel_text, panelHost, false);
+        final android.widget.EditText input = view.findViewById(R.id.textInput);
+        final SeekBar sizeSeek = view.findViewById(R.id.sizeSeek);
+        final TextView sizeValue = view.findViewById(R.id.sizeValue);
+        final SeekBar startSeek = view.findViewById(R.id.textStartSeek);
+        final SeekBar endSeek = view.findViewById(R.id.textEndSeek);
+        final TextView timeLabel = view.findViewById(R.id.textTimeLabel);
+        final LinearLayout colorRow = view.findViewById(R.id.colorRow);
+        final LinearLayout positionRow = view.findViewById(R.id.positionRow);
+
+        final int duration = (int) Math.max(400, clip.trimmedDurationMs());
+        startSeek.setMax(duration);
+        endSeek.setMax(duration);
+        startSeek.setProgress(0);
+        endSeek.setProgress(duration);
+        sizeSeek.setProgress(30);
+        sizeValue.setText("30");
+        pendingTextColor = 0xFFFFFFFF;
+        pendingTextPosition = 1;
+
+        final Runnable updateTime = () -> timeLabel.setText(
+                formatSeconds(startSeek.getProgress()) + "\n" + formatSeconds(endSeek.getProgress()));
+        updateTime.run();
+
+        sizeSeek.setOnSeekBarChangeListener(new SimpleSeekListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                sizeValue.setText(String.valueOf(progress));
+            }
+        });
+        startSeek.setOnSeekBarChangeListener(new SimpleSeekListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (progress > endSeek.getProgress() - 250) {
+                    seekBar.setProgress(Math.max(0, endSeek.getProgress() - 250));
+                }
+                updateTime.run();
+            }
+        });
+        endSeek.setOnSeekBarChangeListener(new SimpleSeekListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (progress < startSeek.getProgress() + 250) {
+                    seekBar.setProgress(Math.min(duration, startSeek.getProgress() + 250));
+                }
+                updateTime.run();
+            }
+        });
+
+        final int[] colors = {0xFFFFFFFF, 0xFF000000, 0xFF00E5A0, 0xFFFFD400,
+                0xFFFF4D5E, 0xFF7C6CFF};
+        buildColorChips(colorRow, colors);
+
+        positionChips(positionRow, true);
+
+        view.findViewById(R.id.btnTextAdd).setOnClickListener(v -> {
+            String text = input.getText().toString().trim();
+            if (text.isEmpty()) {
+                toast("Введите текст");
+                return;
+            }
+            pushUndo();
+            Project.TextItem item = new Project.TextItem();
+            item.text = text;
+            item.color = pendingTextColor;
+            item.size = 0.025f + (sizeSeek.getProgress() / 100f) * 0.10f;
+            item.position = pendingTextPosition;
+            item.startMs = startSeek.getProgress();
+            item.endMs = Math.max(item.startMs + 250, endSeek.getProgress());
+            clip.texts.add(item);
+            saveProject();
+            closePanel();
+            rebuildTextOverlays();
+            updateChrome();
+            toast("Текст добавлен");
+        });
+        return view;
+    }
+
+    private void buildColorChips(final LinearLayout row, final int[] colors) {
+        row.removeAllViews();
+        for (final int color : colors) {
+            View chip = new View(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(24), dp(24));
+            lp.rightMargin = dp(8);
+            chip.setLayoutParams(lp);
+            GradientDrawable background = new GradientDrawable();
+            background.setShape(GradientDrawable.OVAL);
+            background.setColor(color);
+            background.setStroke(dp(pendingTextColor == color ? 2 : 1),
+                    pendingTextColor == color ? 0xFF00E5A0 : 0xFF3A3A44);
+            chip.setBackground(background);
+            chip.setOnClickListener(v -> {
+                pendingTextColor = color;
+                buildColorChips(row, colors);
+            });
+            row.addView(chip);
+        }
+    }
+
+    private void positionChips(final LinearLayout container, boolean rebuild) {
+        final String[] labels = {"Сверху", "Центр", "Снизу"};
+        container.removeAllViews();
+        for (int i = 0; i < labels.length; i++) {
+            final int position = i;
+            container.addView(chip(labels[i], pendingTextPosition == position, () -> {
+                pendingTextPosition = position;
+                positionChips(container, true);
+            }));
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Player
+    // ------------------------------------------------------------------
 
     private void setupPlayer() {
         player = new ExoPlayer.Builder(this).build();
@@ -147,81 +853,135 @@ public class EditorActivity extends Activity {
                 if (index >= 0 && index < project.clips.size()) {
                     selectedIndex = index;
                     timeline.setSelectedIndex(index);
-                    applyClipPlayback();
+                    applyPlaybackParams();
                     rebuildTextOverlays();
-                    updateSelectionUi();
+                    updateChrome();
                 }
             }
 
             @Override
             public void onPlaybackStateChanged(int state) {
-                updatePlayButton();
+                updatePlayState();
             }
 
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
-                updatePlayButton();
+                updatePlayState();
             }
         });
+    }
+
+    private void setupMusicPlayer() {
+        musicPlayer = new ExoPlayer.Builder(this)
+                .setAudioAttributes(AudioAttributes.DEFAULT, false)
+                .build();
+        musicPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
+        musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+    }
+
+    private void prepareMusic() {
+        if (musicPlayer == null) {
+            return;
+        }
+        try {
+            musicPlayer.stop();
+            musicPlayer.clearMediaItems();
+            if (project.musicUri == null || project.musicUri.isEmpty()) {
+                return;
+            }
+            musicPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(project.musicUri)));
+            musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+            musicPlayer.prepare();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void syncMusicPosition(long projectTimeMs) {
+        if (musicPlayer == null || musicPlayer.getMediaItemCount() == 0) {
+            return;
+        }
+        try {
+            long duration = musicPlayer.getDuration();
+            long position = projectTimeMs;
+            if (duration > 0) {
+                position = projectTimeMs % duration;
+            }
+            musicPlayer.seekTo(Math.max(0, position));
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void updateMusicPlayback() {
+        if (musicPlayer == null || musicPlayer.getMediaItemCount() == 0) {
+            return;
+        }
+        try {
+            musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+            boolean playing = player != null && player.isPlaying();
+            if (playing) {
+                if (musicPlayer.getPlaybackState() == Player.STATE_IDLE) {
+                    musicPlayer.prepare();
+                }
+                if (!musicPlayer.isPlaying()) {
+                    musicPlayer.play();
+                }
+            } else if (musicPlayer.isPlaying()) {
+                musicPlayer.pause();
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     private void setupTimeline() {
         timeline.setListener(new TimelineView.Listener() {
             @Override
-            public void onSeekTo(long timeMs, int clipIndex) {
-                seekToProjectTime(timeMs);
+            public void onSeek(long timeMs) {
+                seekToProjectTime(timeMs, true);
             }
 
             @Override
-            public void onClipSelected(int clipIndex) {
-                selectedIndex = clipIndex;
-                timeline.setSelectedIndex(clipIndex);
-                updateSelectionUi();
+            public void onScrub(long timeMs) {
+                seekToProjectTime(timeMs, false);
+            }
+
+            @Override
+            public void onClipSelected(int index) {
+                selectedIndex = index;
+                timeline.setSelectedIndex(index);
+                updateChrome();
                 rebuildTextOverlays();
+            }
+
+            @Override
+            public void onTrim(int index, long trimStartMs, long trimEndMs, boolean finished) {
+                handleTrim(index, trimStartMs, trimEndMs, finished);
+            }
+
+            @Override
+            public void onTrimPreview(int index, long sourceMs) {
+                previewSourceFrame(index, sourceMs);
             }
         });
     }
 
-    private void setupActions() {
-        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
-        findViewById(R.id.btnAddClip).setOnClickListener(v -> pickVideos());
-        btnPlay.setOnClickListener(v -> togglePlay());
-        bigPlay.setOnClickListener(v -> togglePlay());
-        findViewById(R.id.previewHost).setOnClickListener(v -> togglePlay());
-
-        btnExport.setOnClickListener(v -> showExportDialog());
-
-        projectTitle.setOnClickListener(v -> renameProject());
-
-        findViewById(R.id.btnSplit).setOnClickListener(v -> splitClip());
-        findViewById(R.id.btnTrim).setOnClickListener(v -> showTrimDialog());
-        findViewById(R.id.btnDelete).setOnClickListener(v -> deleteClip());
-        findViewById(R.id.btnMoveLeft).setOnClickListener(v -> moveClip(-1));
-        findViewById(R.id.btnMoveRight).setOnClickListener(v -> moveClip(1));
-        findViewById(R.id.btnDuplicate).setOnClickListener(v -> duplicateClip());
-        findViewById(R.id.btnFilter).setOnClickListener(v -> showFilterDialog());
-        findViewById(R.id.btnText).setOnClickListener(v -> showTextDialog());
-        findViewById(R.id.btnSpeed).setOnClickListener(v -> showSpeedDialog());
-        findViewById(R.id.btnVolume).setOnClickListener(v -> showClipVolumeDialog());
-        findViewById(R.id.btnAspect).setOnClickListener(v -> showAspectDialog());
-        findViewById(R.id.btnMusic).setOnClickListener(v -> showMusicDialog());
-    }
-
-    // ------------------------------------------------------------------
-    // Playback
-    // ------------------------------------------------------------------
-
     private Project.Clip selectedClip() {
-        if (selectedIndex < 0 || selectedIndex >= project.clips.size()) {
+        if (project == null || selectedIndex < 0 || selectedIndex >= project.clips.size()) {
             return null;
         }
         return project.clips.get(selectedIndex);
     }
 
-    private void rebuildPlaylist(long seekToMs) {
+    private void rebuildPlaylist(long seekMs) {
+        if (player == null) {
+            return;
+        }
+        long target = Math.max(0, Math.min(seekMs, project.durationMs()));
         player.stop();
         player.clearMediaItems();
-        for (Project.Clip clip : project.clips) {
+        loadedTrimStarts = new long[project.clips.size()];
+        for (int i = 0; i < project.clips.size(); i++) {
+            Project.Clip clip = project.clips.get(i);
+            loadedTrimStarts[i] = clip.trimStartMs;
             if (clip.uri == null) {
                 continue;
             }
@@ -235,50 +995,104 @@ public class EditorActivity extends Activity {
                     .build();
             player.addMediaItem(item);
         }
-        if (project.clips.isEmpty()) {
-            updateSelectionUi();
-            updatePlayButton();
+        if (player.getMediaItemCount() == 0) {
+            updateChrome();
+            rebuildTextOverlays();
+            updatePlayState();
             return;
         }
-        int first = Math.max(0, Math.min(selectedIndex, project.clips.size() - 1));
-        player.setVideoEffects(FilterPresets.effectsFor(project.clips.get(first).filter));
+        int index = Math.max(0, Math.min(project.clipIndexAt(target),
+                player.getMediaItemCount() - 1));
+        selectedIndex = Math.min(index, project.clips.size() - 1);
+        Project.Clip clip = project.clips.get(selectedIndex);
+        player.setVideoEffects(FilterPresets.effectsFor(clip.filter));
+        player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
         player.prepare();
-        seekToProjectTime(seekToMs);
-        updatePlayButton();
+        player.seekTo(index, Math.max(0, Math.round(
+                (target - project.startOfClip(selectedIndex)) * Math.max(0.1f, clip.speed))));
+        timeline.setProject(project);
+        timeline.setSelectedIndex(selectedIndex);
+        timeline.setPosition(target);
+        prepareMusic();
+        syncMusicPosition(target);
+        updateChrome();
+        rebuildTextOverlays();
+        updateTimeLabels();
+        updatePlayState();
     }
 
     private void seekToProjectTime(long timeMs) {
-        if (project.clips.isEmpty()) {
+        seekToProjectTime(timeMs, true);
+    }
+
+    private void seekToProjectTime(long timeMs, boolean rebuildOverlay) {
+        if (project.clips.isEmpty() || player == null) {
             return;
         }
-        timeMs = Math.max(0, Math.min(timeMs, project.durationMs()));
-        int index = project.clipIndexAt(timeMs);
+        long target = Math.max(0, Math.min(timeMs, project.durationMs()));
+        int index = project.clipIndexAt(target);
         if (index < 0) {
             return;
         }
-        long start = project.startOfClip(index);
         Project.Clip clip = project.clips.get(index);
-        long position = Math.round((timeMs - start) * Math.max(0.1f, clip.speed));
+        long position = Math.round((target - project.startOfClip(index))
+                * Math.max(0.1f, clip.speed));
         selectedIndex = index;
         player.seekTo(index, Math.max(0, position));
+        syncMusicPosition(target);
         timeline.setSelectedIndex(index);
-        timeline.setPlayhead(timeMs);
-        applyClipPlayback();
-        rebuildTextOverlays();
-        updateSelectionUi();
+        timeline.setPosition(target);
+        if (rebuildOverlay) {
+            rebuildTextOverlays();
+        }
+        updateTimeLabels();
+        updateChrome();
     }
 
-    private void applyClipPlayback() {
-        int index = player.getCurrentMediaItemIndex();
+    private void previewSourceFrame(int index, long sourceMs) {
         if (index < 0 || index >= project.clips.size()) {
-            index = selectedIndex;
+            return;
         }
+        long loadedStart = index < loadedTrimStarts.length ? loadedTrimStarts[index] : 0;
+        long position = Math.max(0, sourceMs - loadedStart);
+        player.seekTo(index, position);
+    }
+
+    private void handleTrim(int index, long startMs, long endMs, boolean finished) {
+        if (index < 0 || index >= project.clips.size()) {
+            return;
+        }
+        Project.Clip clip = project.clips.get(index);
+        if (!trimGesture) {
+            pushUndo();
+            trimGesture = true;
+            player.pause();
+        }
+        clip.trimStartMs = startMs;
+        clip.trimEndMs = endMs;
+        clampTextTimes(clip);
+        selectedIndex = index;
+        timeline.setProject(project);
+        if (finished) {
+            trimGesture = false;
+            saveProject();
+            rebuildPlaylist(project.startOfClip(index));
+            refreshPanel();
+        } else {
+            updateChrome();
+        }
+    }
+
+    private void applyPlaybackParams() {
+        if (player == null) {
+            return;
+        }
+        int index = player.getCurrentMediaItemIndex();
         if (index < 0 || index >= project.clips.size()) {
             return;
         }
         Project.Clip clip = project.clips.get(index);
         try {
-            player.setVideoEffects(FilterPresets.effectsFor(clip.filter));
             player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
         } catch (Throwable ignored) {
         }
@@ -299,11 +1113,13 @@ public class EditorActivity extends Activity {
         player.play();
     }
 
-    private void updatePlayButton() {
+    private void updatePlayState() {
         boolean playing = player != null && player.isPlaying();
         boolean empty = project == null || project.clips.isEmpty();
-        btnPlay.setText(playing ? "❚❚" : "▶");
-        bigPlay.setVisibility(playing || empty ? View.GONE : View.VISIBLE);
+        centerPlay.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
+        centerPlay.setVisibility(playing || empty ? View.GONE : View.VISIBLE);
+        emptyHint.setVisibility(empty ? View.VISIBLE : View.GONE);
+        updateMusicPlayback();
     }
 
     private void tick() {
@@ -317,14 +1133,32 @@ public class EditorActivity extends Activity {
         Project.Clip clip = project.clips.get(index);
         long position = Math.max(0, player.getCurrentPosition());
         long output = project.startOfClip(index)
-                + (long) (position / Math.max(0.1f, clip.speed));
+                + Math.round(position / Math.max(0.1f, clip.speed));
         output = Math.max(0, Math.min(output, project.durationMs()));
-        timeline.setPlayhead(output);
-        if (player.isPlaying() && !timeline.isDragging()) {
-            timeline.ensureVisible(output);
-        }
-        timeText.setText(formatDuration(output) + " / " + formatDuration(project.durationMs()));
+        timeline.setPosition(output);
+        updateTimeLabels();
         updateTextVisibility(position);
+    }
+
+    private long currentProjectTime() {
+        if (project == null || project.clips.isEmpty() || player == null) {
+            return 0;
+        }
+        int index = player.getCurrentMediaItemIndex();
+        if (index < 0 || index >= project.clips.size()) {
+            return 0;
+        }
+        Project.Clip clip = project.clips.get(index);
+        long position = Math.max(0, player.getCurrentPosition());
+        return project.startOfClip(index) + Math.round(position / Math.max(0.1f, clip.speed));
+    }
+
+    private void updateTimeLabels() {
+        if (project == null) {
+            return;
+        }
+        long position = Math.max(0, currentProjectTime());
+        timeText.setText(formatDuration(position) + "  /  " + formatDuration(project.durationMs()));
     }
 
     private void updateTextVisibility(long positionInClip) {
@@ -340,6 +1174,9 @@ public class EditorActivity extends Activity {
     // ------------------------------------------------------------------
 
     private void rebuildTextOverlays() {
+        if (textOverlay == null) {
+            return;
+        }
         textOverlay.removeAllViews();
         textViews.clear();
         int index = player == null ? -1 : player.getCurrentMediaItemIndex();
@@ -352,49 +1189,46 @@ public class EditorActivity extends Activity {
         Project.Clip clip = project.clips.get(index);
         int height = previewBox.getHeight();
         if (height <= 0) {
-            height = dp(240);
+            height = dp(220);
         }
         for (final Project.TextItem item : clip.texts) {
-            if (item.text.trim().isEmpty()) {
+            if (item.text == null || item.text.trim().isEmpty()) {
                 continue;
             }
             TextView view = new TextView(this);
             view.setText(item.text);
             view.setTextColor(item.color);
-            view.setTextSize(TypedValue.COMPLEX_UNIT_PX, Math.max(dp(10), height * item.size));
+            view.setTextSize(TypedValue.COMPLEX_UNIT_PX, Math.max(dp(9), height * item.size));
             view.setTypeface(Typeface.DEFAULT_BOLD);
             view.setGravity(Gravity.CENTER);
             view.setShadowLayer(dp(3), 0, dp(1), 0xCC000000);
-            view.setPadding(dp(8), dp(4), dp(8), dp(4));
+            view.setPadding(dp(8), dp(2), dp(8), dp(2));
 
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT);
             if (item.position == 0) {
                 lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                lp.topMargin = dp(24);
+                lp.topMargin = dp(14);
             } else if (item.position == 2) {
                 lp.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-                lp.bottomMargin = dp(24);
+                lp.bottomMargin = dp(14);
             } else {
                 lp.gravity = Gravity.CENTER;
             }
-            lp.leftMargin = dp(12);
-            lp.rightMargin = dp(12);
+            lp.leftMargin = dp(10);
+            lp.rightMargin = dp(10);
             view.setLayoutParams(lp);
             view.setTag(item);
             view.setVisibility(View.GONE);
-            view.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    confirmDeleteText(item);
-                    return true;
-                }
+            view.setOnLongClickListener(v -> {
+                confirmDeleteText(item);
+                return true;
             });
             textOverlay.addView(view);
             textViews.add(view);
         }
-        updateTextVisibility(Math.max(0, player.getCurrentPosition()));
+        updateTextVisibility(Math.max(0, player == null ? 0 : player.getCurrentPosition()));
     }
 
     private void confirmDeleteText(final Project.TextItem item) {
@@ -404,13 +1238,30 @@ public class EditorActivity extends Activity {
                 .setPositiveButton("Удалить", (dialog, which) -> {
                     Project.Clip clip = selectedClip();
                     if (clip != null) {
+                        pushUndo();
                         clip.texts.remove(item);
                         saveProject();
                         rebuildTextOverlays();
+                        updateChrome();
                     }
                 })
                 .setNegativeButton("Отмена", null)
                 .show();
+    }
+
+    private void clampTextTimes(Project.Clip clip) {
+        long max = clip.trimmedDurationMs();
+        for (Project.TextItem item : clip.texts) {
+            if (item.startMs > max) {
+                item.startMs = max;
+            }
+            if (item.endMs > max) {
+                item.endMs = max;
+            }
+            if (item.endMs < item.startMs) {
+                item.endMs = item.startMs;
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -438,6 +1289,7 @@ public class EditorActivity extends Activity {
         } else if (data.getData() != null) {
             uris.add(data.getData());
         }
+        pushUndo();
         int firstIndex = project.clips.size();
         int added = 0;
         for (Uri uri : uris) {
@@ -503,7 +1355,8 @@ public class EditorActivity extends Activity {
                 cursor.close();
             }
         }
-        return "Клип";
+        String last = uri.getLastPathSegment();
+        return last == null ? "Клип" : last;
     }
 
     // ------------------------------------------------------------------
@@ -511,6 +1364,10 @@ public class EditorActivity extends Activity {
     // ------------------------------------------------------------------
 
     private void splitClip() {
+        if (project.clips.isEmpty()) {
+            toast("Добавьте видео");
+            return;
+        }
         int index = player.getCurrentMediaItemIndex();
         if (index < 0) {
             index = selectedIndex;
@@ -523,9 +1380,10 @@ public class EditorActivity extends Activity {
         long position = Math.max(0, player.getCurrentPosition());
         long cut = clip.trimStartMs + position;
         if (cut <= clip.trimStartMs + 250 || cut >= clip.trimEndMs - 250) {
-            toast("Поставьте курсор внутрь клипа");
+            toast("Переместите плейхед внутрь клипа");
             return;
         }
+        pushUndo();
         long relative = cut - clip.trimStartMs;
 
         Project.Clip right = new Project.Clip();
@@ -545,13 +1403,12 @@ public class EditorActivity extends Activity {
             if (end <= relative) {
                 continue;
             }
+            Project.TextItem copy = copyText(item);
             if (start >= relative) {
-                Project.TextItem copy = copyText(item);
                 copy.startMs = start - relative;
                 copy.endMs = end - relative;
                 moving.add(copy);
             } else {
-                Project.TextItem copy = copyText(item);
                 copy.startMs = 0;
                 copy.endMs = end - relative;
                 moving.add(copy);
@@ -564,7 +1421,7 @@ public class EditorActivity extends Activity {
         project.clips.add(index + 1, right);
         saveProject();
         selectedIndex = index + 1;
-        rebuildPlaylist(project.startOfClip(index + 1));
+        rebuildPlaylist(project.startOfClip(selectedIndex));
         toast("Клип разрезан");
     }
 
@@ -585,16 +1442,22 @@ public class EditorActivity extends Activity {
             toast("Выберите клип");
             return;
         }
+        pushUndo();
         long time = project.startOfClip(index);
         project.clips.remove(index);
         saveProject();
         if (project.clips.isEmpty()) {
+            selectedIndex = -1;
             player.stop();
             player.clearMediaItems();
-            selectedIndex = -1;
+            closePanel();
+            timeline.setProject(project);
+            timeline.setSelectedIndex(-1);
+            updateChrome();
             rebuildTextOverlays();
-            updateSelectionUi();
-            updatePlayButton();
+            updatePlayState();
+            updateTimeLabels();
+            toast("Клип удалён");
             return;
         }
         selectedIndex = Math.min(index, project.clips.size() - 1);
@@ -609,6 +1472,7 @@ public class EditorActivity extends Activity {
                 || target < 0 || target >= project.clips.size()) {
             return;
         }
+        pushUndo();
         Project.Clip clip = project.clips.remove(index);
         project.clips.add(target, clip);
         selectedIndex = target;
@@ -622,444 +1486,18 @@ public class EditorActivity extends Activity {
             toast("Выберите клип");
             return;
         }
+        pushUndo();
         Project.Clip copy = Project.Clip.fromJson(project.clips.get(index).toJson());
         copy.id = java.util.UUID.randomUUID().toString();
         project.clips.add(index + 1, copy);
         saveProject();
         selectedIndex = index + 1;
-        rebuildPlaylist(project.startOfClip(index + 1));
+        rebuildPlaylist(project.startOfClip(selectedIndex));
         toast("Клип дублирован");
     }
 
-    private void showTrimDialog() {
-        final Project.Clip clip = selectedClip();
-        if (clip == null) {
-            toast("Выберите клип");
-            return;
-        }
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_trim, null);
-        final SeekBar seekStart = view.findViewById(R.id.seekStart);
-        final SeekBar seekEnd = view.findViewById(R.id.seekEnd);
-        final TextView startLabel = view.findViewById(R.id.startLabel);
-        final TextView endLabel = view.findViewById(R.id.endLabel);
-        final TextView trimInfo = view.findViewById(R.id.trimInfo);
-        final TextView trimDuration = view.findViewById(R.id.trimDuration);
-
-        final int max = (int) Math.max(1, clip.sourceDurationMs);
-        seekStart.setMax(max);
-        seekEnd.setMax(max);
-        seekStart.setProgress((int) Math.min(clip.trimStartMs, max));
-        seekEnd.setProgress((int) Math.min(clip.trimEndMs, max));
-        trimInfo.setText("Длительность исходника: " + formatSeconds(clip.sourceDurationMs));
-
-        final Runnable update = new Runnable() {
-            @Override
-            public void run() {
-                int start = Math.min(seekStart.getProgress(), seekEnd.getProgress() - 250);
-                if (start < 0) {
-                    start = 0;
-                }
-                int end = Math.max(seekEnd.getProgress(), start + 250);
-                startLabel.setText("Начало: " + formatSeconds(start));
-                endLabel.setText("Конец: " + formatSeconds(end));
-                trimDuration.setText("В ролике: " + formatSeconds((long) (end - start)));
-            }
-        };
-        update.run();
-
-        seekStart.setOnSeekBarChangeListener(new SimpleSeekListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (progress > seekEnd.getProgress() - 250) {
-                    seekBar.setProgress(Math.max(0, seekEnd.getProgress() - 250));
-                }
-                update.run();
-                player.seekTo(selectedIndex,
-                        Math.max(0, seekBar.getProgress() - clip.trimStartMs));
-            }
-        });
-        seekEnd.setOnSeekBarChangeListener(new SimpleSeekListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (progress < seekStart.getProgress() + 250) {
-                    seekBar.setProgress(Math.min(max, seekStart.getProgress() + 250));
-                }
-                update.run();
-                long preview = seekBar.getProgress() - clip.trimStartMs;
-                preview = Math.max(0, Math.min(preview, clip.trimmedDurationMs() - 100));
-                player.seekTo(selectedIndex, preview);
-            }
-        });
-
-        final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(view)
-                .setCancelable(true)
-                .create();
-        view.findViewById(R.id.btnTrimCancel).setOnClickListener(v -> dialog.dismiss());
-        view.findViewById(R.id.btnTrimOk).setOnClickListener(v -> {
-            long start = Math.max(0, Math.min(seekStart.getProgress(), max - 250));
-            long end = Math.max(start + 250, Math.min(seekEnd.getProgress(), max));
-            clip.trimStartMs = start;
-            clip.trimEndMs = end;
-            for (Project.TextItem item : clip.texts) {
-                item.startMs = Math.min(item.startMs, clip.trimmedDurationMs());
-                item.endMs = Math.min(item.endMs, clip.trimmedDurationMs());
-                if (item.endMs < item.startMs) {
-                    item.endMs = item.startMs;
-                }
-            }
-            saveProject();
-            dialog.dismiss();
-            rebuildPlaylist(project.startOfClip(selectedIndex));
-        });
-        dialog.show();
-    }
-
-    private void showFilterDialog() {
-        final Project.Clip clip = selectedClip();
-        if (clip == null) {
-            toast("Выберите клип");
-            return;
-        }
-        new AlertDialog.Builder(this)
-                .setTitle("Фильтр")
-                .setSingleChoiceItems(FilterPresets.NAMES, clip.filter,
-                        (dialog, which) -> {
-                            clip.filter = which;
-                            saveProject();
-                            int index = player.getCurrentMediaItemIndex();
-                            if (index == selectedIndex) {
-                                player.setVideoEffects(FilterPresets.effectsFor(which));
-                            }
-                            updateSelectionUi();
-                            dialog.dismiss();
-                            toast("Фильтр: " + FilterPresets.NAMES[which]);
-                        })
-                .setNegativeButton("Отмена", null)
-                .show();
-    }
-
-    private void showSpeedDialog() {
-        final Project.Clip clip = selectedClip();
-        if (clip == null) {
-            toast("Выберите клип");
-            return;
-        }
-        final String[] labels = {"0.25x", "0.5x", "0.75x", "1x", "1.25x", "1.5x", "2x", "3x", "4x"};
-        final float[] values = {0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f, 3f, 4f};
-        int checked = 3;
-        for (int i = 0; i < values.length; i++) {
-            if (Math.abs(values[i] - clip.speed) < 0.01f) {
-                checked = i;
-            }
-        }
-        new AlertDialog.Builder(this)
-                .setTitle("Скорость клипа")
-                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
-                    clip.speed = values[which];
-                    saveProject();
-                    dialog.dismiss();
-                    rebuildPlaylist(project.startOfClip(selectedIndex));
-                })
-                .setNegativeButton("Отмена", null)
-                .show();
-    }
-
-    private void showClipVolumeDialog() {
-        final Project.Clip clip = selectedClip();
-        if (clip == null) {
-            toast("Выберите клип");
-            return;
-        }
-        showVolumeDialog("Громкость клипа", clip.volume, value -> {
-            clip.volume = value;
-            saveProject();
-            toast("Громкость: " + Math.round(value * 100) + "%");
-        });
-    }
-
-    private interface VolumeCallback {
-        void onVolume(float value);
-    }
-
-    private void showVolumeDialog(String title, float initial, final VolumeCallback callback) {
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_volume, null);
-        TextView titleView = view.findViewById(R.id.volumeTitle);
-        final TextView valueView = view.findViewById(R.id.volumeValue);
-        final SeekBar seekBar = view.findViewById(R.id.volumeSeek);
-        titleView.setText(title);
-        seekBar.setProgress(Math.round(initial * 100f));
-        valueView.setText(Math.round(initial * 100f) + "%");
-
-        seekBar.setOnSeekBarChangeListener(new SimpleSeekListener() {
-            @Override
-            public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
-                valueView.setText(progress + "%");
-            }
-        });
-
-        final AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
-        view.findViewById(R.id.btnVolumeCancel).setOnClickListener(v -> dialog.dismiss());
-        view.findViewById(R.id.btnVolumeOk).setOnClickListener(v -> {
-            callback.onVolume(seekBar.getProgress() / 100f);
-            dialog.dismiss();
-        });
-        dialog.show();
-    }
-
-    private void showAspectDialog() {
-        final String[] labels = {"9:16 · Reels / TikTok", "16:9 · YouTube", "1:1 · Квадрат", "4:5 · Instagram"};
-        final float[] values = {9f / 16f, 16f / 9f, 1f, 4f / 5f};
-        int checked = 1;
-        for (int i = 0; i < values.length; i++) {
-            if (Math.abs(values[i] - project.aspect) < 0.01f) {
-                checked = i;
-            }
-        }
-        new AlertDialog.Builder(this)
-                .setTitle("Формат кадра")
-                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
-                    project.aspect = values[which];
-                    previewBox.setAspectRatio(project.aspect);
-                    saveProject();
-                    updateSelectionUi();
-                    dialog.dismiss();
-                })
-                .setNegativeButton("Отмена", null)
-                .show();
-    }
-
-    private void showTextDialog() {
-        final Project.Clip clip = selectedClip();
-        if (clip == null) {
-            toast("Выберите клип");
-            return;
-        }
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_text, null);
-        final EditText input = view.findViewById(R.id.textInput);
-        final SeekBar sizeSeek = view.findViewById(R.id.sizeSeek);
-        final SeekBar startSeek = view.findViewById(R.id.textStartSeek);
-        final SeekBar endSeek = view.findViewById(R.id.textEndSeek);
-        final TextView timeLabel = view.findViewById(R.id.textTimeLabel);
-        final RadioGroup positions = view.findViewById(R.id.positionGroup);
-        final LinearLayout colorRow = view.findViewById(R.id.colorRow);
-
-        final int duration = (int) Math.max(300, clip.trimmedDurationMs());
-        startSeek.setMax(duration);
-        endSeek.setMax(duration);
-        endSeek.setProgress(duration);
-        sizeSeek.setProgress(30);
-        pendingTextColor = 0xFFFFFFFF;
-
-        final int[] colors = {
-                0xFFFFFFFF, 0xFF000000, 0xFF00E5A0, 0xFFFFD400, 0xFFFF4D5E, 0xFF7C6CFF
-        };
-        buildColorChips(colorRow, colors);
-
-        startSeek.setOnSeekBarChangeListener(new SimpleSeekListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (progress > endSeek.getProgress() - 250) {
-                    seekBar.setProgress(Math.max(0, endSeek.getProgress() - 250));
-                }
-                updateTextTimeLabel(timeLabel, startSeek.getProgress(), endSeek.getProgress());
-            }
-        });
-        endSeek.setOnSeekBarChangeListener(new SimpleSeekListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (progress < startSeek.getProgress() + 250) {
-                    seekBar.setProgress(Math.min(duration, startSeek.getProgress() + 250));
-                }
-                updateTextTimeLabel(timeLabel, startSeek.getProgress(), endSeek.getProgress());
-            }
-        });
-        updateTextTimeLabel(timeLabel, 0, duration);
-
-        final AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
-        view.findViewById(R.id.btnTextCancel).setOnClickListener(v -> dialog.dismiss());
-        view.findViewById(R.id.btnTextOk).setOnClickListener(v -> {
-            String text = input.getText().toString().trim();
-            if (text.isEmpty()) {
-                toast("Введите текст");
-                return;
-            }
-            Project.TextItem item = new Project.TextItem();
-            item.text = text;
-            item.color = pendingTextColor;
-            item.size = 0.025f + (sizeSeek.getProgress() / 100f) * 0.10f;
-            int checked = positions.getCheckedRadioButtonId();
-            item.position = checked == R.id.posTop ? 0 : checked == R.id.posBottom ? 2 : 1;
-            item.startMs = startSeek.getProgress();
-            item.endMs = Math.max(item.startMs + 250, endSeek.getProgress());
-            clip.texts.add(item);
-            saveProject();
-            dialog.dismiss();
-            rebuildTextOverlays();
-            toast("Текст добавлен");
-        });
-        dialog.show();
-    }
-
-    private void updateTextTimeLabel(TextView label, int start, int end) {
-        label.setText("Показ: " + formatSeconds(start) + " – " + formatSeconds(end));
-    }
-
-    private void buildColorChips(final LinearLayout row, final int[] colors) {
-        row.removeAllViews();
-        for (final int color : colors) {
-            View chip = new View(this);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(36), dp(36));
-            lp.rightMargin = dp(10);
-            chip.setLayoutParams(lp);
-            GradientDrawable background = new GradientDrawable();
-            background.setShape(GradientDrawable.OVAL);
-            background.setColor(color);
-            background.setStroke(dp(pendingTextColor == color ? 3 : 1),
-                    pendingTextColor == color ? 0xFF00E5A0 : 0xFF3A3A44);
-            chip.setBackground(background);
-            chip.setOnClickListener(v -> {
-                pendingTextColor = color;
-                buildColorChips(row, colors);
-            });
-            row.addView(chip);
-        }
-    }
-
-    private void showMusicDialog() {
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        int padding = dp(22);
-        box.setPadding(padding, padding, padding, dp(10));
-
-        TextView title = new TextView(this);
-        title.setText("Музыка");
-        title.setTextColor(getColor(R.color.text));
-        title.setTextSize(18);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        box.addView(title);
-
-        TextView name = new TextView(this);
-        name.setText(project.musicUri == null ? "Трек не выбран" : project.musicName);
-        name.setTextColor(getColor(R.color.dim));
-        name.setTextSize(12);
-        name.setPadding(0, dp(6), 0, dp(14));
-        box.addView(name);
-
-        final TextView volumeValue = new TextView(this);
-        volumeValue.setTextColor(getColor(R.color.accent));
-        volumeValue.setTextSize(13);
-        volumeValue.setText("Громкость музыки: " + Math.round(project.musicVolume * 100) + "%");
-        box.addView(volumeValue);
-
-        final SeekBar volume = new SeekBar(this);
-        volume.setMax(100);
-        volume.setProgress(Math.round(project.musicVolume * 100));
-        volume.setOnSeekBarChangeListener(new SimpleSeekListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                volumeValue.setText("Громкость музыки: " + progress + "%");
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                project.musicVolume = seekBar.getProgress() / 100f;
-                saveProject();
-            }
-        });
-        box.addView(volume);
-
-        LinearLayout buttons = new LinearLayout(this);
-        buttons.setOrientation(LinearLayout.HORIZONTAL);
-        buttons.setGravity(Gravity.RIGHT);
-        buttons.setPadding(0, dp(12), 0, 0);
-
-        Button pick = new Button(this);
-        pick.setText("Выбрать трек");
-        pick.setAllCaps(false);
-        pick.setTextSize(13);
-        pick.setBackgroundResource(R.drawable.bg_accent);
-        pick.setTextColor(0xFF07110D);
-        pick.setMinHeight(0);
-        pick.setMinWidth(0);
-        pick.setHeight(dp(44));
-        pick.setPadding(dp(18), 0, dp(18), 0);
-        pick.setOnClickListener(v -> {
-            pickMusic();
-        });
-        buttons.addView(pick);
-
-        if (project.musicUri != null) {
-            Button remove = new Button(this);
-            remove.setText("Убрать");
-            remove.setAllCaps(false);
-            remove.setTextSize(13);
-            remove.setBackgroundResource(R.drawable.bg_pill);
-            remove.setTextColor(getColor(R.color.text));
-            remove.setMinHeight(0);
-            remove.setMinWidth(0);
-            remove.setHeight(dp(44));
-            remove.setPadding(dp(18), 0, dp(18), 0);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.leftMargin = dp(8);
-            remove.setLayoutParams(lp);
-            remove.setOnClickListener(v -> {
-                project.musicUri = null;
-                project.musicName = null;
-                saveProject();
-                toast("Музыка убрана");
-                dialogRef.dismiss();
-                showMusicDialog();
-            });
-            buttons.addView(remove);
-        }
-        box.addView(buttons);
-
-        dialogRef = new AlertDialog.Builder(this).setView(box).create();
-        dialogRef.show();
-    }
-
-    private AlertDialog dialogRef;
-
-    private void pickMusic() {
-        if (dialogRef != null) {
-            dialogRef.dismiss();
-        }
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("audio/*");
-        try {
-            startActivityForResult(intent, REQ_MUSIC);
-        } catch (Throwable t) {
-            toast("Не удалось выбрать музыку");
-        }
-    }
-
-    private void handlePickedMusic(Intent data) {
-        Uri uri = data.getData();
-        if (uri == null) {
-            return;
-        }
-        try {
-            getContentResolver().takePersistableUriPermission(
-                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        } catch (Throwable ignored) {
-        }
-        project.musicUri = uri.toString();
-        project.musicName = readName(uri);
-        saveProject();
-        toast("Музыка: " + project.musicName);
-        showMusicDialog();
-    }
-
-    // ------------------------------------------------------------------
-    // Project
-    // ------------------------------------------------------------------
-
     private void renameProject() {
-        final EditText input = new EditText(this);
+        final android.widget.EditText input = new android.widget.EditText(this);
         input.setText(project.name);
         input.setSingleLine(true);
         input.setSelection(project.name.length());
@@ -1073,8 +1511,8 @@ public class EditorActivity extends Activity {
                         String value = input.getText().toString().trim();
                         if (!value.isEmpty()) {
                             project.name = value;
-                            projectTitle.setText(value);
                             saveProject();
+                            updateChrome();
                         }
                     }
                 })
@@ -1082,87 +1520,80 @@ public class EditorActivity extends Activity {
                 .show();
     }
 
-    private void saveProject() {
-        if (project != null) {
-            ProjectStore.save(this, project);
+    // ------------------------------------------------------------------
+    // Music / audio extraction
+    // ------------------------------------------------------------------
+
+    private void pickMusic() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("audio/*");
+        try {
+            startActivityForResult(intent, REQ_MUSIC);
+        } catch (Throwable t) {
+            toast("Не удалось выбрать музыку");
         }
     }
 
-    private void updateSelectionUi() {
-        boolean hasClips = !project.clips.isEmpty();
-        boolean hasSelection = selectedIndex >= 0 && selectedIndex < project.clips.size();
-        timeline.setProject(project);
-        timeline.setSelectedIndex(selectedIndex);
-
-        int[] tools = {
-                R.id.btnSplit, R.id.btnTrim, R.id.btnDelete, R.id.btnMoveLeft,
-                R.id.btnMoveRight, R.id.btnDuplicate, R.id.btnFilter, R.id.btnText,
-                R.id.btnSpeed, R.id.btnVolume
-        };
-        for (int id : tools) {
-            View v = findViewById(id);
-            v.setEnabled(hasSelection);
-            v.setAlpha(hasSelection ? 1f : 0.35f);
+    private void pickVideoForAudio() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("video/*");
+        try {
+            startActivityForResult(intent, REQ_AUDIO_VIDEO);
+        } catch (Throwable t) {
+            toast("Не удалось открыть проводник");
         }
-        btnExport.setEnabled(hasClips);
-        btnExport.setAlpha(hasClips ? 1f : 0.4f);
-        emptyHint.setVisibility(hasClips ? View.GONE : View.VISIBLE);
-        bigPlay.setVisibility(hasClips ? bigPlay.getVisibility() : View.GONE);
-
-        if (hasSelection) {
-            Project.Clip clip = project.clips.get(selectedIndex);
-            selectionInfo.setText("Клип " + (selectedIndex + 1) + "/" + project.clips.size()
-                    + " · " + formatDuration(clip.outputDurationMs())
-                    + " · " + FilterPresets.name(clip.filter)
-                    + " · " + String.format(Locale.US, "%.2fx", clip.speed)
-                    + (clip.texts.isEmpty() ? "" : " · текстов: " + clip.texts.size()));
-        } else {
-            selectionInfo.setText(hasClips ? "Выберите клип на таймлайне" : "Добавьте видео, чтобы начать");
-        }
-        timelineInfo.setText(project.aspectLabel() + " · "
-                + formatDuration(project.durationMs()) + " · "
-                + project.clips.size() + " клип.");
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode != RESULT_OK || data == null) {
+    private void handlePickedMusic(Intent data) {
+        Uri uri = data.getData();
+        if (uri == null) {
             return;
         }
-        if (requestCode == REQ_ADD_VIDEO) {
-            handlePickedVideos(data);
-        } else if (requestCode == REQ_MUSIC) {
-            handlePickedMusic(data);
+        try {
+            getContentResolver().takePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (Throwable ignored) {
         }
+        pushUndo();
+        project.musicUri = uri.toString();
+        project.musicName = readName(uri);
+        saveProject();
+        prepareMusic();
+        refreshPanel();
+        toast("Музыка: " + project.musicName);
+    }
+
+    private void extractAudio(final Uri uri, String label) {
+        File dir = new File(getFilesDir(), "audio");
+        final File output = new File(dir, "audio_" + System.currentTimeMillis() + ".m4a");
+        toast("Извлекаю звук…");
+        AudioExtractor.extract(this, uri.toString(), output, new AudioExtractor.Callback() {
+            @Override
+            public void onDone(File file) {
+                pushUndo();
+                project.musicUri = Uri.fromFile(file).toString();
+                String name = file.getName();
+                project.musicName = label == null ? name : label + " · звук";
+                saveProject();
+                prepareMusic();
+                refreshPanel();
+                toast("Звук добавлен как музыка");
+            }
+
+            @Override
+            public void onError(String message) {
+                toast("Не удалось извлечь звук: " + message);
+            }
+        });
     }
 
     // ------------------------------------------------------------------
     // Export
     // ------------------------------------------------------------------
 
-    private void showExportDialog() {
-        if (project.clips.isEmpty()) {
-            toast("Добавьте хотя бы один клип");
-            return;
-        }
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_export, null);
-        TextView summary = view.findViewById(R.id.exportSummary);
-        summary.setText(project.clips.size() + " клип. · "
-                + formatDuration(project.durationMs()) + " · " + project.aspectLabel()
-                + (project.musicUri == null ? "" : " · с музыкой"));
-        final AlertDialog dialog = new AlertDialog.Builder(this).setView(view).create();
-        view.findViewById(R.id.btnExportCancel).setOnClickListener(v -> dialog.dismiss());
-        view.findViewById(R.id.btnExportStart).setOnClickListener(v -> {
-            RadioGroup group = view.findViewById(R.id.resolutionGroup);
-            int height = group.getCheckedRadioButtonId() == R.id.res720 ? 720 : 1080;
-            dialog.dismiss();
-            startExport(height);
-        });
-        dialog.show();
-    }
-
-    private void startExport(int height) {
+    private void startExport(int shortSide) {
         if (exporting) {
             toast("Экспорт уже идёт");
             return;
@@ -1185,7 +1616,7 @@ public class EditorActivity extends Activity {
         showProgressDialog();
 
         exporter = new VideoExporter(this);
-        exporter.export(project, height, output, new VideoExporter.Callback() {
+        exporter.export(project, shortSide, output, new VideoExporter.Callback() {
             @Override
             public void onProgress(int percent) {
                 if (progressBar != null) {
@@ -1248,7 +1679,7 @@ public class EditorActivity extends Activity {
 
     private void showDoneDialog(final Uri uri) {
         new AlertDialog.Builder(this)
-                .setTitle("Готово!")
+                .setTitle("Готово")
                 .setMessage("Видео сохранено в Галерею: Movies/" + MediaSaver.ALBUM)
                 .setPositiveButton("Открыть", new DialogInterface.OnClickListener() {
                     @Override
@@ -1287,6 +1718,10 @@ public class EditorActivity extends Activity {
             toast("Экспорт отменён");
         });
         progressDialog.show();
+        if (progressDialog.getWindow() != null) {
+            progressDialog.getWindow().setLayout(dp(300),
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
     }
 
     private void dismissProgress() {
@@ -1299,6 +1734,125 @@ public class EditorActivity extends Activity {
         }
         progressBar = null;
         progressText = null;
+    }
+
+    // ------------------------------------------------------------------
+    // State, undo/redo, chrome
+    // ------------------------------------------------------------------
+
+    private void saveProject() {
+        if (project != null) {
+            ProjectStore.save(this, project);
+        }
+    }
+
+    private void pushUndo() {
+        try {
+            undoStack.push(project.toJson().toString());
+            while (undoStack.size() > 40) {
+                undoStack.removeLast();
+            }
+            redoStack.clear();
+            refreshHistoryButtons();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void undo() {
+        if (undoStack.isEmpty()) {
+            toast("Отменить нечего");
+            return;
+        }
+        try {
+            redoStack.push(project.toJson().toString());
+            restore(undoStack.pop());
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void redo() {
+        if (redoStack.isEmpty()) {
+            toast("Повторить нечего");
+            return;
+        }
+        try {
+            undoStack.push(project.toJson().toString());
+            restore(redoStack.pop());
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void restore(String json) {
+        try {
+            Project restored = Project.fromJson(new JSONObject(json));
+            project = restored;
+        } catch (Throwable t) {
+            toast("Не удалось восстановить состояние");
+            return;
+        }
+        if (project.clips.isEmpty()) {
+            selectedIndex = -1;
+        } else {
+            selectedIndex = Math.max(0, Math.min(selectedIndex, project.clips.size() - 1));
+        }
+        previewBox.setAspectRatio(project.aspect);
+        saveProject();
+        rebuildPlaylist(project.clips.isEmpty() ? 0 : project.startOfClip(selectedIndex));
+        timeline.setProject(project);
+        timeline.setSelectedIndex(selectedIndex);
+        refreshPanel();
+        refreshHistoryButtons();
+        updateChrome();
+        rebuildTextOverlays();
+    }
+
+    private void refreshHistoryButtons() {
+        if (btnUndo == null || btnRedo == null) {
+            return;
+        }
+        btnUndo.setAlpha(undoStack.isEmpty() ? 0.35f : 1f);
+        btnRedo.setAlpha(redoStack.isEmpty() ? 0.35f : 1f);
+    }
+
+    private void updateChrome() {
+        if (project == null) {
+            return;
+        }
+        projectTitle.setText(project.name);
+        boolean hasClips = !project.clips.isEmpty();
+        boolean hasSelection = selectedIndex >= 0 && selectedIndex < project.clips.size();
+
+        timeline.setProject(project);
+        timeline.setSelectedIndex(selectedIndex);
+        metaText.setText(project.aspectLabel() + "  ·  " + project.clips.size() + " клип."
+                + (project.musicUri == null ? "" : "  ·  музыка"));
+        emptyHint.setVisibility(hasClips ? View.GONE : View.VISIBLE);
+        btnExport.setAlpha(hasClips ? 1f : 0.4f);
+        btnExport.setEnabled(hasClips);
+        centerPlay.setVisibility(hasClips ? centerPlay.getVisibility() : View.GONE);
+        if (!hasSelection && hasClips) {
+            metaText.setText(project.aspectLabel() + "  ·  выберите клип  ·  "
+                    + project.clips.size() + " клип.");
+        }
+        refreshHistoryButtons();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null) {
+            return;
+        }
+        if (requestCode == REQ_ADD_VIDEO) {
+            handlePickedVideos(data);
+        } else if (requestCode == REQ_MUSIC) {
+            handlePickedMusic(data);
+        } else if (requestCode == REQ_AUDIO_VIDEO) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                extractAudio(uri, readName(uri));
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1335,6 +1889,10 @@ public class EditorActivity extends Activity {
             player.release();
             player = null;
         }
+        if (musicPlayer != null) {
+            musicPlayer.release();
+            musicPlayer = null;
+        }
         super.onDestroy();
     }
 
@@ -1342,6 +1900,10 @@ public class EditorActivity extends Activity {
     public void onBackPressed() {
         if (exporting) {
             toast("Дождитесь окончания экспорта");
+            return;
+        }
+        if (activePanel != null) {
+            closePanel();
             return;
         }
         super.onBackPressed();
@@ -1355,7 +1917,7 @@ public class EditorActivity extends Activity {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
-    private int dp(float value) {
+    private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
@@ -1365,7 +1927,7 @@ public class EditorActivity extends Activity {
     }
 
     private static String formatSeconds(long ms) {
-        return String.format(Locale.US, "%.1f с", ms / 1000f);
+        return String.format(Locale.US, "%.1f с", Math.max(0, ms) / 1000f);
     }
 
     private abstract static class SimpleSeekListener implements SeekBar.OnSeekBarChangeListener {
