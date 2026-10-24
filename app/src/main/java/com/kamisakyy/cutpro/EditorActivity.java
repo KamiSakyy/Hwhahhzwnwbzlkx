@@ -1010,6 +1010,17 @@ public class EditorActivity extends Activity {
                 : (project.musicName == null ? "Дорожка" : project.musicName));
 
         view.findViewById(R.id.btnMusicVideo).setOnClickListener(v -> pickVideoForAudio());
+        TextView hint = note("Звук из видео можно взять в Google Фото");
+        hint.setPadding(0, dp(7), 0, 0);
+        LinearLayout box = (LinearLayout) view;
+        int insertAt = box.getChildCount();
+        for (int i = 0; i < box.getChildCount(); i++) {
+            if (box.getChildAt(i) instanceof HorizontalScrollView) {
+                insertAt = i + 1;
+                break;
+            }
+        }
+        box.addView(hint, insertAt);
         view.findViewById(R.id.btnMusicFile).setOnClickListener(v -> pickMusic());
         view.findViewById(R.id.btnMusicClip).setOnClickListener(v -> {
             Project.Clip clip = selectedClip();
@@ -2394,7 +2405,20 @@ public class EditorActivity extends Activity {
         }
     }
 
+    /**
+     * Sound from a video: the same surface as the media import, so Google Photos
+     * is available here too. System photo picker on Android 13+, document UI below.
+     */
     private void pickVideoForAudio() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+                intent.setType("video/*");
+                startActivityForResult(intent, REQ_AUDIO_VIDEO);
+                return;
+            } catch (Throwable ignored) {
+            }
+        }
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("video/*");
@@ -2711,8 +2735,30 @@ public class EditorActivity extends Activity {
             handlePickedMusic(data);
         } else if (requestCode == REQ_AUDIO_VIDEO) {
             Uri uri = data.getData();
+            if (uri == null && data.getClipData() != null
+                    && data.getClipData().getItemCount() > 0) {
+                uri = data.getClipData().getItemAt(0).getUri();
+            }
             if (uri != null) {
-                extractAudio(uri, readName(uri));
+                try {
+                    getContentResolver().takePersistableUriPermission(
+                            uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (Throwable ignored) {
+                }
+                String name = readName(uri);
+                String mime = null;
+                try {
+                    mime = getContentResolver().getType(uri);
+                } catch (Throwable ignored) {
+                }
+                if (mime == null) {
+                    mime = guessMime(uri);
+                }
+                if (mime != null && mime.startsWith("image/")) {
+                    toast("Для звука нужно видео");
+                    return;
+                }
+                extractAudio(uri, name);
             }
         }
     }
