@@ -1229,6 +1229,67 @@ public class EditorActivity extends Activity {
         });
     }
 
+    private void setupMusicPlayer() {
+        musicPlayer = new ExoPlayer.Builder(this)
+                .setAudioAttributes(AudioAttributes.DEFAULT, false)
+                .build();
+        musicPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
+        musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+    }
+
+    private void prepareMusic() {
+        if (musicPlayer == null) {
+            return;
+        }
+        try {
+            musicPlayer.stop();
+            musicPlayer.clearMediaItems();
+            if (project.musicUri == null || project.musicUri.isEmpty()) {
+                return;
+            }
+            musicPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(project.musicUri)));
+            musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+            musicPlayer.prepare();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void syncMusicPosition(long projectTimeMs) {
+        if (musicPlayer == null || musicPlayer.getMediaItemCount() == 0) {
+            return;
+        }
+        try {
+            long duration = musicPlayer.getDuration();
+            long position = projectTimeMs;
+            if (duration > 0) {
+                position = projectTimeMs % duration;
+            }
+            musicPlayer.seekTo(Math.max(0, position));
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void updateMusicPlayback() {
+        if (musicPlayer == null || musicPlayer.getMediaItemCount() == 0) {
+            return;
+        }
+        try {
+            musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+            boolean playing = isPlaying();
+            if (playing) {
+                if (musicPlayer.getPlaybackState() == Player.STATE_IDLE) {
+                    musicPlayer.prepare();
+                }
+                if (!musicPlayer.isPlaying()) {
+                    musicPlayer.play();
+                }
+            } else if (musicPlayer.isPlaying()) {
+                musicPlayer.pause();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     private void setupTimeline() {
         timeline.setListener(new TimelineView.Listener() {
             @Override
