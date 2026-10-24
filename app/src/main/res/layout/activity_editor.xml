@@ -140,6 +140,14 @@
                     app:show_buffering="never"
                     app:use_controller="false" />
 
+                <ImageView
+                    android:id="@+id/imagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/app_name"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone" />
+
                 <FrameLayout
                     android:id="@+id/textOverlay"
                     android:layout_width="match_parent"

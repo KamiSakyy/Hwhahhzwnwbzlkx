@@ -119,6 +119,9 @@ public class Project {
     }
 
     /** A trimmed segment of a source video. */
+    /** Default on-screen duration for imported photos. */
+    public static final long PHOTO_DURATION_MS = 3000L;
+
     public static class Clip {
         public String id = UUID.randomUUID().toString();
         public String uri;
@@ -129,6 +132,8 @@ public class Project {
         public float speed = 1f;
         public float volume = 1f;
         public int filter;
+        /** True when the clip is a still image rather than a video. */
+        public boolean image;
         public float brightness;
         public float contrast = 1f;
         public float saturation;
@@ -156,6 +161,7 @@ public class Project {
                 o.put("speed", (double) speed);
                 o.put("volume", (double) volume);
                 o.put("filter", filter);
+                o.put("image", image);
                 o.put("brightness", (double) brightness);
                 o.put("contrast", (double) contrast);
                 o.put("saturation", (double) saturation);
@@ -181,6 +187,7 @@ public class Project {
             c.speed = (float) o.optDouble("speed", 1f);
             c.volume = (float) o.optDouble("volume", 1f);
             c.filter = o.optInt("filter", 0);
+            c.image = o.optBoolean("image", false);
             c.brightness = (float) o.optDouble("brightness", 0d);
             c.contrast = (float) o.optDouble("contrast", 1d);
             c.saturation = (float) o.optDouble("saturation", 0d);

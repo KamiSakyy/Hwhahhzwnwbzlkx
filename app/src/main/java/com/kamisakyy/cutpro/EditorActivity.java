@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -13,10 +14,13 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.util.Size;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -36,7 +40,12 @@ import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
+import androidx.media3.exoplayer.Renderer;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.image.ImageDecoder;
+import androidx.media3.exoplayer.image.ImageOutput;
+import androidx.media3.exoplayer.image.ImageRenderer;
 import androidx.media3.ui.PlayerView;
 
 import org.json.JSONObject;
@@ -58,6 +67,8 @@ public class EditorActivity extends Activity {
     private static final int REQ_ADD_VIDEO = 2001;
     private static final int REQ_MUSIC = 2002;
     private static final int REQ_AUDIO_VIDEO = 2003;
+    private static final int REQ_PICK_MEDIA = 2004;
+    private static final int REQ_PICK_FILES = 2005;
 
     private static final String P_TRIM = "trim";
     private static final String P_SPEED = "speed";
@@ -75,6 +86,7 @@ public class EditorActivity extends Activity {
     private PlayerView playerView;
     private AspectFrameLayout previewBox;
     private FrameLayout textOverlay;
+    private ImageView imagePreview;
     private FrameLayout panelHost;
     private ImageView centerPlay;
     private ImageView btnUndo;
@@ -90,6 +102,16 @@ public class EditorActivity extends Activity {
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final List<TextView> textViews = new ArrayList<>();
     private final Map<String, View> railItems = new HashMap<>();
+    private final List<Integer> playerClipIndexes = new ArrayList<>();
+    private final Map<String, Bitmap> photoCache = new HashMap<>();
+    private final java.util.concurrent.ExecutorService executor =
+            java.util.concurrent.Executors.newFixedThreadPool(2);
+    private boolean photoMode;
+    private int photoClipIndex = -1;
+    private long photoPositionMs;
+    private boolean photoPlaying;
+    private long photoLastTickMs;
+
     private final Deque<String> undoStack = new ArrayDeque<>();
     private final Deque<String> redoStack = new ArrayDeque<>();
     private final Runnable ticker = new Runnable() {
@@ -159,6 +181,7 @@ public class EditorActivity extends Activity {
         playerView = findViewById(R.id.playerView);
         previewBox = findViewById(R.id.previewBox);
         textOverlay = findViewById(R.id.textOverlay);
+        imagePreview = findViewById(R.id.imagePreview);
         panelHost = findViewById(R.id.panelHost);
         centerPlay = findViewById(R.id.centerPlay);
         projectTitle = findViewById(R.id.projectTitle);
@@ -186,7 +209,7 @@ public class EditorActivity extends Activity {
         projectTitle.setOnClickListener(v -> renameProject());
         findViewById(R.id.previewHost).setOnClickListener(v -> togglePlay());
         previewBox.setOnClickListener(v -> togglePlay());
-        emptyHint.setOnClickListener(v -> pickVideos());
+        emptyHint.setOnClickListener(v -> pickMedia());
         centerPlay.setOnClickListener(v -> togglePlay());
     }
 
@@ -195,14 +218,14 @@ public class EditorActivity extends Activity {
     // ------------------------------------------------------------------
 
     private void buildRail() {
-        String[] keys = {"add", P_TRIM, "split", P_SPEED, P_VOLUME, P_FILTER, P_TEXT,
+        String[] keys = {"add", "files", P_TRIM, "split", P_SPEED, P_VOLUME, P_FILTER, P_TEXT,
                 P_MUSIC, P_ASPECT, P_MORE};
-        int[] icons = {R.drawable.ic_add, R.drawable.ic_trim, R.drawable.ic_split,
-                R.drawable.ic_speed, R.drawable.ic_volume, R.drawable.ic_filter,
-                R.drawable.ic_text, R.drawable.ic_music, R.drawable.ic_aspect,
-                R.drawable.ic_more};
-        String[] labels = {"Добавить", "Обрезка", "Разрез", "Скорость", "Звук", "Фильтр",
-                "Текст", "Музыка", "Формат", "Ещё"};
+        int[] icons = {R.drawable.ic_add, R.drawable.ic_folder, R.drawable.ic_trim,
+                R.drawable.ic_split, R.drawable.ic_speed, R.drawable.ic_volume,
+                R.drawable.ic_filter, R.drawable.ic_text, R.drawable.ic_music,
+                R.drawable.ic_aspect, R.drawable.ic_more};
+        String[] labels = {"Галерея", "Файлы", "Обрезка", "Разрез", "Скорость", "Звук",
+                "Фильтр", "Текст", "Музыка", "Формат", "Ещё"};
 
         toolRail.removeAllViews();
         railItems.clear();
@@ -230,7 +253,11 @@ public class EditorActivity extends Activity {
 
     private void onToolClick(String key) {
         if ("add".equals(key)) {
-            pickVideos();
+            pickMedia();
+            return;
+        }
+        if ("files".equals(key)) {
+            pickFiles();
             return;
         }
         if ("split".equals(key)) {
@@ -684,8 +711,8 @@ public class EditorActivity extends Activity {
         second.setPadding(0, dp(6), 0, 0);
         second.addView(chip("Звук клипа в музыку", false, () -> {
             Project.Clip clip = selectedClip();
-            if (clip == null || clip.uri == null) {
-                toast("Выберите клип");
+            if (clip == null || clip.uri == null || clip.image) {
+                toast("Звук можно взять только из видео");
                 return;
             }
             extractAudio(Uri.parse(clip.uri), clip.name);
@@ -733,6 +760,27 @@ public class EditorActivity extends Activity {
         info.setPadding(0, dp(4), 0, 0);
         info.addView(note(trimSummary(clip)));
         box.addView(info);
+
+        if (clip != null && clip.image) {
+            LinearLayout durations = row();
+            durations.setPadding(0, dp(4), 0, 0);
+            final int[] seconds = {2, 3, 5, 10};
+            for (int value : seconds) {
+                final long millis = value * 1000L;
+                boolean selected = Math.abs(clip.trimmedDurationMs() - millis) < 60;
+                durations.addView(chip(value + " с", selected, () -> {
+                    pushUndo();
+                    clip.sourceDurationMs = Math.max(clip.sourceDurationMs, millis);
+                    clip.trimStartMs = 0;
+                    clip.trimEndMs = millis;
+                    clampTextTimes(clip);
+                    saveProject();
+                    rebuildPlaylist(project.startOfClip(selectedIndex));
+                    refreshPanel();
+                }));
+            }
+            box.addView(scrollable(durations));
+        }
         return box;
     }
 
@@ -741,7 +789,7 @@ public class EditorActivity extends Activity {
         if (clip == null || player == null) {
             return;
         }
-        long inClip = Math.max(0, player.getCurrentPosition());
+        long inClip = Math.max(0, positionInCurrentClip());
         long source = clip.trimStartMs + inClip;
         pushUndo();
         if (start) {
@@ -961,8 +1009,8 @@ public class EditorActivity extends Activity {
         view.findViewById(R.id.btnMusicFile).setOnClickListener(v -> pickMusic());
         view.findViewById(R.id.btnMusicClip).setOnClickListener(v -> {
             Project.Clip clip = selectedClip();
-            if (clip == null) {
-                toast("Сначала выберите клип");
+            if (clip == null || clip.image) {
+                toast("Сначала выберите видеоклип");
                 return;
             }
             extractAudio(Uri.parse(clip.uri), clip.name);
@@ -1138,7 +1186,7 @@ public class EditorActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Player
+    // Preview: videos through ExoPlayer, photos through our own still layer
     // ------------------------------------------------------------------
 
     private void setupPlayer() {
@@ -1149,10 +1197,14 @@ public class EditorActivity extends Activity {
         player.addListener(new Player.Listener() {
             @Override
             public void onMediaItemTransition(MediaItem mediaItem, int reason) {
-                int index = player.getCurrentMediaItemIndex();
-                if (index >= 0 && index < project.clips.size()) {
-                    selectedIndex = index;
-                    timeline.setSelectedIndex(index);
+                int playerIndex = player.getCurrentMediaItemIndex();
+                if (playerIndex >= 0 && playerIndex < playerClipIndexes.size()) {
+                    int clipIndex = playerClipIndexes.get(playerIndex);
+                    photoMode = false;
+                    photoPlaying = false;
+                    updateImageLayer(-1);
+                    selectedIndex = clipIndex;
+                    timeline.setSelectedIndex(clipIndex);
                     applyPlaybackParams();
                     rebuildTextOverlays();
                     updateChrome();
@@ -1168,68 +1220,13 @@ public class EditorActivity extends Activity {
             public void onIsPlayingChanged(boolean isPlaying) {
                 updatePlayState();
             }
+
+            @Override
+            public void onPlayerError(androidx.media3.common.PlaybackException error) {
+                // A broken source should not kill the whole preview.
+                toast("Не удалось воспроизвести клип");
+            }
         });
-    }
-
-    private void setupMusicPlayer() {
-        musicPlayer = new ExoPlayer.Builder(this)
-                .setAudioAttributes(AudioAttributes.DEFAULT, false)
-                .build();
-        musicPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
-        musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
-    }
-
-    private void prepareMusic() {
-        if (musicPlayer == null) {
-            return;
-        }
-        try {
-            musicPlayer.stop();
-            musicPlayer.clearMediaItems();
-            if (project.musicUri == null || project.musicUri.isEmpty()) {
-                return;
-            }
-            musicPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(project.musicUri)));
-            musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
-            musicPlayer.prepare();
-        } catch (Throwable ignored) {
-        }
-    }
-
-    private void syncMusicPosition(long projectTimeMs) {
-        if (musicPlayer == null || musicPlayer.getMediaItemCount() == 0) {
-            return;
-        }
-        try {
-            long duration = musicPlayer.getDuration();
-            long position = projectTimeMs;
-            if (duration > 0) {
-                position = projectTimeMs % duration;
-            }
-            musicPlayer.seekTo(Math.max(0, position));
-        } catch (Throwable ignored) {
-        }
-    }
-
-    private void updateMusicPlayback() {
-        if (musicPlayer == null || musicPlayer.getMediaItemCount() == 0) {
-            return;
-        }
-        try {
-            musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
-            boolean playing = player != null && player.isPlaying();
-            if (playing) {
-                if (musicPlayer.getPlaybackState() == Player.STATE_IDLE) {
-                    musicPlayer.prepare();
-                }
-                if (!musicPlayer.isPlaying()) {
-                    musicPlayer.play();
-                }
-            } else if (musicPlayer.isPlaying()) {
-                musicPlayer.pause();
-            }
-        } catch (Throwable ignored) {
-        }
     }
 
     private void setupTimeline() {
@@ -1281,20 +1278,51 @@ public class EditorActivity extends Activity {
         return project.clips.get(selectedIndex);
     }
 
+    /** Clip index currently shown in the preview, -1 when nothing is selected. */
+    private int currentClipIndex() {
+        if (photoMode) {
+            return photoClipIndex;
+        }
+        if (player == null) {
+            return -1;
+        }
+        int playerIndex = player.getCurrentMediaItemIndex();
+        if (playerIndex < 0 || playerIndex >= playerClipIndexes.size()) {
+            return -1;
+        }
+        return playerClipIndexes.get(playerIndex);
+    }
+
+    private int playerIndexForClip(int clipIndex) {
+        return playerClipIndexes.indexOf(clipIndex);
+    }
+
+    private long positionInCurrentClip() {
+        int clipIndex = currentClipIndex();
+        if (clipIndex < 0) {
+            return 0;
+        }
+        if (photoMode) {
+            return Math.max(0, photoPositionMs - project.startOfClip(clipIndex));
+        }
+        return Math.max(0, player.getCurrentPosition());
+    }
+
     private void rebuildPlaylist(long seekMs) {
         if (player == null) {
             return;
         }
-        long target = Math.max(0, Math.min(seekMs, project.durationMs()));
+        playerClipIndexes.clear();
+        loadedTrimStarts = new long[project.clips.size()];
         player.stop();
         player.clearMediaItems();
-        loadedTrimStarts = new long[project.clips.size()];
         for (int i = 0; i < project.clips.size(); i++) {
             Project.Clip clip = project.clips.get(i);
             loadedTrimStarts[i] = clip.trimStartMs;
-            if (clip.uri == null) {
+            if (clip.uri == null || clip.image) {
                 continue;
             }
+            playerClipIndexes.add(i);
             MediaItem item = new MediaItem.Builder()
                     .setUri(Uri.parse(clip.uri))
                     .setMediaId(clip.id)
@@ -1305,31 +1333,23 @@ public class EditorActivity extends Activity {
                     .build();
             player.addMediaItem(item);
         }
-        if (player.getMediaItemCount() == 0) {
-            updateChrome();
-            rebuildTextOverlays();
-            updatePlayState();
-            return;
+        long target = Math.max(0, Math.min(seekMs, project.durationMs()));
+        int clipIndex = project.clipIndexAt(target);
+        if (clipIndex >= 0) {
+            Project.Clip clip = project.clips.get(clipIndex);
+            try {
+                player.setVideoEffects(FilterPresets.effectsFor(clip));
+                player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
+            } catch (Throwable ignored) {
+            }
         }
-        int index = Math.max(0, Math.min(project.clipIndexAt(target),
-                player.getMediaItemCount() - 1));
-        selectedIndex = Math.min(index, project.clips.size() - 1);
-        Project.Clip clip = project.clips.get(selectedIndex);
-        player.setVideoEffects(FilterPresets.effectsFor(clip));
-        player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
-        player.prepare();
-        applyClipVolume();
-        player.seekTo(index, Math.max(0, Math.round(
-                (target - project.startOfClip(selectedIndex)) * Math.max(0.1f, clip.speed))));
+        if (player.getMediaItemCount() > 0) {
+            player.prepare();
+        }
         timeline.setProject(project);
         timeline.setSelectedIndex(selectedIndex);
-        timeline.setPosition(target);
-        prepareMusic();
-        syncMusicPosition(target);
-        updateChrome();
-        rebuildTextOverlays();
-        updateTimeLabels();
-        updatePlayState();
+        seekToProjectTime(target, true);
+        refreshHistoryButtons();
     }
 
     private void seekToProjectTime(long timeMs) {
@@ -1337,36 +1357,127 @@ public class EditorActivity extends Activity {
     }
 
     private void seekToProjectTime(long timeMs, boolean rebuildOverlay) {
-        if (project.clips.isEmpty() || player == null) {
+        if (project.clips.isEmpty()) {
             return;
         }
         long target = Math.max(0, Math.min(timeMs, project.durationMs()));
-        int index = project.clipIndexAt(target);
-        if (index < 0) {
+        int clipIndex = project.clipIndexAt(target);
+        if (clipIndex < 0) {
             return;
         }
-        Project.Clip clip = project.clips.get(index);
-        long position = Math.round((target - project.startOfClip(index))
-                * Math.max(0.1f, clip.speed));
-        selectedIndex = index;
-        player.seekTo(index, Math.max(0, position));
-        syncMusicPosition(target);
-        timeline.setSelectedIndex(index);
+        Project.Clip clip = project.clips.get(clipIndex);
+        selectedIndex = clipIndex;
+        timeline.setSelectedIndex(clipIndex);
         timeline.setPosition(target);
+        photoPositionMs = target;
+
+        if (clip.image) {
+            enterPhotoMode(clipIndex, target);
+        } else {
+            photoMode = false;
+            updateImageLayer(-1);
+            int playerIndex = playerIndexForClip(clipIndex);
+            if (playerIndex >= 0) {
+                long position = Math.round((target - project.startOfClip(clipIndex))
+                        * Math.max(0.1f, clip.speed));
+                player.seekTo(playerIndex, Math.max(0, position));
+            }
+        }
+        syncMusicPosition(target);
         if (rebuildOverlay) {
             rebuildTextOverlays();
         }
         updateTimeLabels();
         updateChrome();
+        updatePlayState();
+    }
+
+    private void enterPhotoMode(int clipIndex, long projectTimeMs) {
+        photoMode = true;
+        photoClipIndex = clipIndex;
+        photoPositionMs = projectTimeMs;
+        photoLastTickMs = System.currentTimeMillis();
+        if (player != null && player.isPlaying()) {
+            player.pause();
+        }
+        showPhoto(project.clips.get(clipIndex));
+        updateImageLayer(clipIndex);
+    }
+
+    private void showPhoto(Project.Clip clip) {
+        if (clip == null || clip.uri == null) {
+            return;
+        }
+        Bitmap cached = photoCache.get(clip.uri);
+        if (cached != null && !cached.isRecycled()) {
+            imagePreview.setImageBitmap(cached);
+            imagePreview.setVisibility(View.VISIBLE);
+            return;
+        }
+        final String key = clip.uri;
+        final int targetWidth = Math.max(480, previewBox.getWidth());
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                Bitmap bitmap = null;
+                try {
+                    Bitmap full = getContentResolver().loadThumbnail(
+                            Uri.parse(key), new Size(targetWidth, targetWidth), null);
+                    bitmap = full;
+                } catch (Throwable ignored) {
+                }
+                if (bitmap == null) {
+                    try {
+                        bitmap = android.provider.MediaStore.Images.Media.getBitmap(
+                                getContentResolver(), Uri.parse(key));
+                    } catch (Throwable ignored) {
+                    }
+                }
+                final Bitmap result = bitmap;
+                ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result == null) {
+                            return;
+                        }
+                        photoCache.put(key, result);
+                        int clipIndex = currentClipIndex();
+                        if (clipIndex >= 0 && clipIndex < project.clips.size()
+                                && project.clips.get(clipIndex).image) {
+                            imagePreview.setImageBitmap(result);
+                            imagePreview.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private void updateImageLayer(int clipIndex) {
+        if (imagePreview == null) {
+            return;
+        }
+        boolean photo = clipIndex >= 0 && clipIndex < project.clips.size()
+                && project.clips.get(clipIndex).image;
+        if (!photo) {
+            imagePreview.setVisibility(View.GONE);
+            imagePreview.setImageDrawable(null);
+        }
     }
 
     private void previewSourceFrame(int index, long sourceMs) {
         if (index < 0 || index >= project.clips.size()) {
             return;
         }
+        if (project.clips.get(index).image) {
+            return;
+        }
         long loadedStart = index < loadedTrimStarts.length ? loadedTrimStarts[index] : 0;
         long position = Math.max(0, sourceMs - loadedStart);
-        player.seekTo(index, position);
+        int playerIndex = playerIndexForClip(index);
+        if (playerIndex >= 0) {
+            player.seekTo(playerIndex, position);
+        }
     }
 
     private void handleTrim(int index, long startMs, long endMs, boolean finished) {
@@ -1377,7 +1488,7 @@ public class EditorActivity extends Activity {
         if (!trimGesture) {
             pushUndo();
             trimGesture = true;
-            player.pause();
+            pause();
         }
         clip.trimStartMs = startMs;
         clip.trimEndMs = endMs;
@@ -1388,7 +1499,6 @@ public class EditorActivity extends Activity {
             trimGesture = false;
             saveProject();
             rebuildPlaylist(project.startOfClip(index));
-            refreshPanel();
         } else {
             updateChrome();
         }
@@ -1398,11 +1508,11 @@ public class EditorActivity extends Activity {
         if (player == null) {
             return;
         }
-        int index = player.getCurrentMediaItemIndex();
-        if (index < 0 || index >= project.clips.size()) {
+        int clipIndex = currentClipIndex();
+        if (clipIndex < 0 || clipIndex >= project.clips.size()) {
             return;
         }
-        Project.Clip clip = project.clips.get(index);
+        Project.Clip clip = project.clips.get(clipIndex);
         try {
             player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
             applyClipVolume();
@@ -1414,9 +1524,9 @@ public class EditorActivity extends Activity {
         if (player == null || project == null) {
             return;
         }
-        int index = player.getCurrentMediaItemIndex();
-        Project.Clip clip = (index >= 0 && index < project.clips.size())
-                ? project.clips.get(index) : selectedClip();
+        int clipIndex = currentClipIndex();
+        Project.Clip clip = (clipIndex >= 0 && clipIndex < project.clips.size())
+                ? project.clips.get(clipIndex) : selectedClip();
         float volume = clip == null ? 1f : clip.volume;
         if (project.muteOriginal || volume <= 0.01f) {
             volume = 0f;
@@ -1427,23 +1537,78 @@ public class EditorActivity extends Activity {
         }
     }
 
-    private void togglePlay() {
+    private static Bitmap copyBitmap(Bitmap source) {
+        if (source == null) {
+            return null;
+        }
+        try {
+            Bitmap copy = source.copy(Bitmap.Config.ARGB_8888, false);
+            return copy == null ? source : copy;
+        } catch (Throwable t) {
+            return source;
+        }
+    }
+
+    private boolean isPlaying() {
+        if (photoMode) {
+            return photoPlaying;
+        }
+        return player != null && player.isPlaying();
+    }
+
+    private void play() {
         if (project.clips.isEmpty()) {
-            pickVideos();
+            pickMedia();
             return;
         }
-        if (player.isPlaying()) {
+        int clipIndex = currentClipIndex();
+        if (clipIndex < 0) {
+            seekToProjectTime(0, true);
+            clipIndex = currentClipIndex();
+        }
+        if (clipIndex < 0) {
+            return;
+        }
+        Project.Clip clip = project.clips.get(clipIndex);
+        if (clip.image) {
+            if (photoPositionMs >= project.startOfClip(clipIndex) + clip.outputDurationMs() - 20) {
+                photoPositionMs = project.startOfClip(clipIndex);
+            }
+            photoMode = true;
+            photoClipIndex = clipIndex;
+            photoPlaying = true;
+            photoLastTickMs = System.currentTimeMillis();
+        } else {
+            photoPlaying = false;
+            int playerIndex = playerIndexForClip(clipIndex);
+            if (playerIndex >= 0) {
+                if (player.getPlaybackState() == Player.STATE_ENDED) {
+                    seekToProjectTime(0, true);
+                }
+                player.play();
+            }
+        }
+        updatePlayState();
+    }
+
+    private void pause() {
+        photoPlaying = false;
+        if (player != null) {
             player.pause();
-            return;
         }
-        if (player.getPlaybackState() == Player.STATE_ENDED) {
-            seekToProjectTime(0);
+        updatePlayState();
+    }
+
+    private void togglePlay() {
+        if (isPlaying()) {
+            pause();
+        } else {
+            play();
         }
-        player.play();
     }
 
     private void updatePlayState() {
-        boolean playing = player != null && player.isPlaying();
+        boolean playing = isPlaying();
         boolean empty = project == null || project.clips.isEmpty();
         centerPlay.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
         centerPlay.setVisibility(playing || empty ? View.GONE : View.VISIBLE);
@@ -1452,34 +1617,63 @@ public class EditorActivity extends Activity {
     }
 
     private void tick() {
-        if (project == null || project.clips.isEmpty() || player == null) {
+        if (project == null || project.clips.isEmpty()) {
             return;
         }
-        int index = player.getCurrentMediaItemIndex();
-        if (index < 0 || index >= project.clips.size()) {
+        long output;
+        int clipIndex = currentClipIndex();
+        if (clipIndex < 0) {
             return;
         }
-        Project.Clip clip = project.clips.get(index);
-        long position = Math.max(0, player.getCurrentPosition());
-        long output = project.startOfClip(index)
-                + Math.round(position / Math.max(0.1f, clip.speed));
-        output = Math.max(0, Math.min(output, project.durationMs()));
+        Project.Clip clip = project.clips.get(clipIndex);
+
+        if (photoMode) {
+            long now = System.currentTimeMillis();
+            if (photoPlaying) {
+                photoPositionMs += Math.max(0, now - photoLastTickMs);
+            }
+            photoLastTickMs = now;
+            long clipStart = project.startOfClip(clipIndex);
+            long clipEnd = clipStart + clip.outputDurationMs();
+            if (photoPlaying && photoPositionMs >= clipEnd - 10) {
+                boolean continuePlaying = true;
+                photoPlaying = false;
+                photoMode = false;
+                long next = Math.min(clipEnd + 5, project.durationMs());
+                seekToProjectTime(next, true);
+                if (continuePlaying) {
+                    play();
+                }
+                return;
+            }
+            output = Math.max(clipStart, Math.min(photoPositionMs, clipEnd));
+            updateTextVisibility(output - clipStart);
+        } else {
+            long position = Math.max(0, player.getCurrentPosition());
+            output = project.startOfClip(clipIndex)
+                    + Math.round(position / Math.max(0.1f, clip.speed));
+            output = Math.max(0, Math.min(output, project.durationMs()));
+            updateTextVisibility(position);
+        }
+
         timeline.setPosition(output);
         updateTimeLabels();
-        updateTextVisibility(position);
     }
 
     private long currentProjectTime() {
-        if (project == null || project.clips.isEmpty() || player == null) {
+        if (project == null || project.clips.isEmpty()) {
             return 0;
         }
-        int index = player.getCurrentMediaItemIndex();
-        if (index < 0 || index >= project.clips.size()) {
+        int clipIndex = currentClipIndex();
+        if (clipIndex < 0) {
             return 0;
         }
-        Project.Clip clip = project.clips.get(index);
+        if (photoMode) {
+            return Math.max(0, photoPositionMs);
+        }
+        Project.Clip clip = project.clips.get(clipIndex);
         long position = Math.max(0, player.getCurrentPosition());
-        return project.startOfClip(index) + Math.round(position / Math.max(0.1f, clip.speed));
+        return project.startOfClip(clipIndex) + Math.round(position / Math.max(0.1f, clip.speed));
     }
 
     private void updateTimeLabels() {
@@ -1488,14 +1682,6 @@ public class EditorActivity extends Activity {
         }
         long position = Math.max(0, currentProjectTime());
         timeText.setText(formatDuration(position) + "  /  " + formatDuration(project.durationMs()));
-    }
-
-    private void updateTextVisibility(long positionInClip) {
-        for (TextView view : textViews) {
-            Project.TextItem item = (Project.TextItem) view.getTag();
-            boolean visible = positionInClip >= item.startMs && positionInClip <= item.endMs;
-            view.setVisibility(visible ? View.VISIBLE : View.GONE);
-        }
     }
 
     // ------------------------------------------------------------------
@@ -1508,7 +1694,7 @@ public class EditorActivity extends Activity {
         }
         textOverlay.removeAllViews();
         textViews.clear();
-        int index = player == null ? -1 : player.getCurrentMediaItemIndex();
+        int index = currentClipIndex();
         if (index < 0) {
             index = selectedIndex;
         }
@@ -1650,6 +1836,39 @@ public class EditorActivity extends Activity {
     // Import
     // ------------------------------------------------------------------
 
+    /** System photo picker: Google Photos, gallery and other cloud providers. */
+    private void pickMedia() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+                intent.setType("*/*");
+                intent.putExtra(Intent.EXTRA_MIME_TYPES,
+                        new String[]{"image/*", "video/*"});
+                intent.putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX,
+                        Math.max(1, MediaStore.getPickImagesMaxLimit()));
+                startActivityForResult(intent, REQ_PICK_MEDIA);
+                return;
+            }
+            pickFiles();
+        } catch (Throwable t) {
+            pickFiles();
+        }
+    }
+
+    /** Document picker fallback: works everywhere and also reaches Google Photos files. */
+    private void pickFiles() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        try {
+            startActivityForResult(intent, REQ_PICK_FILES);
+        } catch (Throwable t) {
+            toast("Не удалось открыть проводник");
+        }
+    }
+
     private void pickVideos() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -1663,6 +1882,14 @@ public class EditorActivity extends Activity {
     }
 
     private void handlePickedVideos(Intent data) {
+        addPickedUris(data, false);
+    }
+
+    private void handlePickedMedia(Intent data) {
+        addPickedUris(data, true);
+    }
+
+    private void addPickedUris(Intent data, boolean allowPhotos) {
         List<Uri> uris = new ArrayList<>();
         if (data.getClipData() != null) {
             for (int i = 0; i < data.getClipData().getItemCount(); i++) {
@@ -1671,36 +1898,57 @@ public class EditorActivity extends Activity {
         } else if (data.getData() != null) {
             uris.add(data.getData());
         }
+        if (uris.isEmpty()) {
+            return;
+        }
         pushUndo();
         int firstIndex = project.clips.size();
         int added = 0;
+        int photos = 0;
         for (Uri uri : uris) {
             try {
                 getContentResolver().takePersistableUriPermission(
                         uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             } catch (Throwable ignored) {
             }
-            long duration = readDuration(uri);
-            if (duration < 400) {
+            String mime = null;
+            try {
+                mime = getContentResolver().getType(uri);
+            } catch (Throwable ignored) {
+            }
+            boolean image = allowPhotos && mime != null && mime.startsWith("image/");
+            if (!image && mime != null && !mime.startsWith("video/")) {
                 continue;
+            }
+            long duration = image ? Project.PHOTO_DURATION_MS : readDuration(uri);
+            if (!image && duration < 400) {
+                continue;
+            }
+            if (image && duration <= 0) {
+                duration = Project.PHOTO_DURATION_MS;
             }
             Project.Clip clip = new Project.Clip();
             clip.uri = uri.toString();
             clip.name = readName(uri);
+            clip.image = image;
             clip.sourceDurationMs = duration;
             clip.trimStartMs = 0;
             clip.trimEndMs = duration;
             project.clips.add(clip);
             added++;
+            if (image) {
+                photos++;
+            }
         }
         if (added == 0) {
-            toast("Не удалось прочитать видео");
+            toast("Не удалось прочитать выбранные файлы");
             return;
         }
         saveProject();
         selectedIndex = firstIndex;
         rebuildPlaylist(project.startOfClip(firstIndex));
-        toast(added + " видео добавлено");
+        String what = photos == 0 ? "видео" : (photos == added ? "фото" : "медиа");
+        toast(added + " " + what + " добавлено");
     }
 
     private long readDuration(Uri uri) {
@@ -1750,7 +1998,7 @@ public class EditorActivity extends Activity {
             toast("Добавьте видео");
             return;
         }
-        int index = player.getCurrentMediaItemIndex();
+        int index = currentClipIndex();
         if (index < 0) {
             index = selectedIndex;
         }
@@ -1759,7 +2007,7 @@ public class EditorActivity extends Activity {
             return;
         }
         Project.Clip clip = project.clips.get(index);
-        long position = Math.max(0, player.getCurrentPosition());
+        long position = Math.max(0, positionInCurrentClip());
         long cut = clip.trimStartMs + position;
         if (cut <= clip.trimStartMs + 250 || cut >= clip.trimEndMs - 250) {
             toast("Переместите плейхед внутрь клипа");
@@ -1849,6 +2097,7 @@ public class EditorActivity extends Activity {
             player.stop();
             player.clearMediaItems();
             closePanel();
+            updateImageLayer(-1);
             timeline.setProject(project);
             timeline.setSelectedIndex(-1);
             updateChrome();
@@ -1859,6 +2108,7 @@ public class EditorActivity extends Activity {
             return;
         }
         selectedIndex = Math.min(index, project.clips.size() - 1);
+        updateImageLayer(selectedIndex);
         rebuildPlaylist(Math.min(time, project.durationMs() - 10));
         toast("Клип удалён");
     }
@@ -2244,6 +2494,8 @@ public class EditorActivity extends Activity {
         }
         if (requestCode == REQ_ADD_VIDEO) {
             handlePickedVideos(data);
+        } else if (requestCode == REQ_PICK_MEDIA || requestCode == REQ_PICK_FILES) {
+            handlePickedMedia(data);
         } else if (requestCode == REQ_MUSIC) {
             handlePickedMusic(data);
         } else if (requestCode == REQ_AUDIO_VIDEO) {
@@ -2292,6 +2544,8 @@ public class EditorActivity extends Activity {
             musicPlayer.release();
             musicPlayer = null;
         }
+        executor.shutdownNow();
+        photoCache.clear();
         super.onDestroy();
     }
 

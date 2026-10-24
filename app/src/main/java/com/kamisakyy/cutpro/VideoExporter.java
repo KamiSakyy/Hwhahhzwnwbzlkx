@@ -208,7 +208,7 @@ public final class VideoExporter {
             if (!muted && Math.abs(clip.volume - 1f) > 0.01f) {
                 audioProcessors.add(new GainAudioProcessor(clip.volume));
             }
-            if (Math.abs(clip.speed - 1f) > 0.01f) {
+            if (!clip.image && Math.abs(clip.speed - 1f) > 0.01f) {
                 Pair<AudioProcessor, Effect> speed =
                         Effects.createExperimentalSpeedChangingEffect(constantSpeed(clip.speed));
                 if (speed.first != null) {
@@ -217,17 +217,30 @@ public final class VideoExporter {
                 videoEffects.add(speed.second);
             }
 
-            MediaItem item = new MediaItem.Builder()
-                    .setUri(Uri.parse(clip.uri))
-                    .setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder()
-                            .setStartPositionMs(clip.trimStartMs)
-                            .setEndPositionMs(clip.trimEndMs)
-                            .build())
-                    .build();
-            items.add(new EditedMediaItem.Builder(item)
-                    .setRemoveAudio(muted)
-                    .setEffects(new Effects(audioProcessors, videoEffects))
-                    .build());
+            MediaItem item;
+            EditedMediaItem.Builder editedBuilder;
+            if (clip.image) {
+                item = new MediaItem.Builder()
+                        .setUri(Uri.parse(clip.uri))
+                        .build();
+                editedBuilder = new EditedMediaItem.Builder(item)
+                        .setDurationUs(Math.max(100_000L, clip.outputDurationMs() * 1000L))
+                        .setFrameRate(30)
+                        .setRemoveAudio(true)
+                        .setEffects(new Effects(new ArrayList<AudioProcessor>(), videoEffects));
+            } else {
+                item = new MediaItem.Builder()
+                        .setUri(Uri.parse(clip.uri))
+                        .setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder()
+                                .setStartPositionMs(clip.trimStartMs)
+                                .setEndPositionMs(clip.trimEndMs)
+                                .build())
+                        .build();
+                editedBuilder = new EditedMediaItem.Builder(item)
+                        .setRemoveAudio(muted)
+                        .setEffects(new Effects(audioProcessors, videoEffects));
+            }
+            items.add(editedBuilder.build());
 
             long clipStartMs = project.startOfClip(i);
             float speed = Math.max(0.1f, clip.speed);
