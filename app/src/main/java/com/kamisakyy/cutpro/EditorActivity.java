@@ -397,6 +397,17 @@ public class EditorActivity extends Activity {
         return view;
     }
 
+    /** Multi-line secondary text that may wrap instead of shrinking to unreadable size. */
+    private TextView note(String text) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextColor(getColor(R.color.dim));
+        view.setTextSize(10f);
+        view.setLineSpacing(dp(1), 1f);
+        view.setMaxLines(2);
+        return view;
+    }
+
     private TextView caption(String text) {
         AutoFitTextView view = new AutoFitTextView(this);
         view.setText(text);
@@ -720,7 +731,7 @@ public class EditorActivity extends Activity {
 
         LinearLayout info = row();
         info.setPadding(0, dp(4), 0, 0);
-        info.addView(caption(trimSummary(clip)));
+        info.addView(note(trimSummary(clip)));
         box.addView(info);
         return box;
     }
@@ -812,7 +823,7 @@ public class EditorActivity extends Activity {
         }
         box.addView(scrollable(presets));
 
-        TextView impact = caption("Длительность: " + formatSeconds(clip.trimmedDurationMs())
+        TextView impact = note("Длительность: " + formatSeconds(clip.trimmedDurationMs())
                 + "  →  " + formatSeconds(clip.outputDurationMs()));
         impact.setPadding(0, dp(4), 0, 0);
         box.addView(impact);
@@ -930,7 +941,8 @@ public class EditorActivity extends Activity {
 
         String audio = project.muteOriginal ? "без звука видео"
                 : (project.musicUri == null ? "звук видео" : "видео + музыка");
-        TextView summary = caption(project.clips.size() + " клип.  ·  "
+        TextView summary = note(project.clips.size() + " " + clipsWord(project.clips.size())
+                + "  ·  "
                 + formatDuration(project.durationMs()) + "  ·  " + project.aspectLabel()
                 + "  ·  " + audio);
         summary.setPadding(0, dp(4), 0, 0);
@@ -2210,7 +2222,8 @@ public class EditorActivity extends Activity {
 
         timeline.setProject(project);
         timeline.setSelectedIndex(selectedIndex);
-        metaText.setText(project.aspectLabel() + "  ·  " + project.clips.size() + " клип."
+        metaText.setText(project.aspectLabel() + "  ·  "
+                + project.clips.size() + " " + clipsWord(project.clips.size())
                 + (project.musicUri == null ? "" : "  ·  музыка"));
         emptyHint.setVisibility(hasClips ? View.GONE : View.VISIBLE);
         btnExport.setAlpha(hasClips ? 1f : 0.4f);
@@ -2218,7 +2231,7 @@ public class EditorActivity extends Activity {
         centerPlay.setVisibility(hasClips ? centerPlay.getVisibility() : View.GONE);
         if (!hasSelection && hasClips) {
             metaText.setText(project.aspectLabel() + "  ·  выберите клип  ·  "
-                    + project.clips.size() + " клип.");
+                    + project.clips.size() + " " + clipsWord(project.clips.size()));
         }
         refreshHistoryButtons();
     }
@@ -2305,6 +2318,21 @@ public class EditorActivity extends Activity {
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    static String clipsWord(int count) {
+        int mod100 = count % 100;
+        int mod10 = count % 10;
+        if (mod100 >= 11 && mod100 <= 14) {
+            return "клипов";
+        }
+        if (mod10 == 1) {
+            return "клип";
+        }
+        if (mod10 >= 2 && mod10 <= 4) {
+            return "клипа";
+        }
+        return "клипов";
     }
 
     private static String formatDuration(long ms) {

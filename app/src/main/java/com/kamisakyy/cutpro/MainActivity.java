@@ -115,7 +115,8 @@ public class MainActivity extends Activity {
         ImageView thumb = card.findViewById(R.id.projectThumb);
 
         name.setText(project.name);
-        meta.setText(project.clips.size() + " клип. · " + project.aspectLabel());
+        meta.setText(project.clips.size() + " " + EditorActivity.clipsWord(project.clips.size())
+                + " · " + project.aspectLabel());
         duration.setText(formatDuration(project.durationMs()));
         duration.setVisibility(project.durationMs() > 0 ? View.VISIBLE : View.GONE);
 
