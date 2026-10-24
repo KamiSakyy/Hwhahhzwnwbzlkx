@@ -99,6 +99,7 @@ public class TimelineView extends View {
     private long trimStartMs;
     private long trimEndMs;
 
+    private boolean musicTap;
     private boolean reordering;
     private int reorderFrom = -1;
     private int reorderTo = -1;
@@ -567,16 +568,14 @@ public class TimelineView extends View {
                 if (getParent() != null) {
                     getParent().requestDisallowInterceptTouchEvent(true);
                 }
-                postDelayed(longPress, 420);
-                if (project.musicUri != null && !project.musicUri.isEmpty()
-                        && event.getY() > getHeight() - dp(24)) {
-                    if (listener != null) {
-                        listener.onMusicTap();
-                    }
+                musicTap = project.musicUri != null && !project.musicUri.isEmpty()
+                        && event.getY() > getHeight() - dp(24);
+                if (musicTap) {
                     return true;
                 }
+                postDelayed(longPress, 420);
                 int[] edges = selectedClipEdges();
-                if (edges != null) {
+                if (edges != null && Math.abs(downX - getWidth() / 2f) > dp(14)) {
                     if (Math.abs(downX - edges[0]) <= dp(18)) {
                         touchMode = MODE_EDGE_LEFT;
                         mainTrimIndex = selectedIndex;
@@ -599,6 +598,9 @@ public class TimelineView extends View {
             case MotionEvent.ACTION_MOVE: {
                 if (event.getPointerCount() > 1) {
                     removeCallbacks(longPress);
+                    return true;
+                }
+                if (musicTap) {
                     return true;
                 }
                 if (reordering) {
@@ -654,6 +656,13 @@ public class TimelineView extends View {
                 }
                 userScrolling = false;
                 removeCallbacks(longPress);
+                if (musicTap) {
+                    musicTap = false;
+                    if (listener != null) {
+                        listener.onMusicTap();
+                    }
+                    return true;
+                }
                 if (reordering) {
                     int from = reorderFrom;
                     int to = reorderTo;
@@ -704,6 +713,7 @@ public class TimelineView extends View {
                 }
                 removeCallbacks(longPress);
                 reordering = false;
+                musicTap = false;
                 userScrolling = false;
                 invalidate();
                 return true;
