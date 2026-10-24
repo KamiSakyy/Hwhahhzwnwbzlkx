@@ -3,6 +3,7 @@ package com.kamisakyy.cutpro;
 import androidx.media3.common.Effect;
 import androidx.media3.effect.Brightness;
 import androidx.media3.effect.Contrast;
+import androidx.media3.effect.HslAdjustment;
 import androidx.media3.effect.RgbAdjustment;
 import androidx.media3.effect.RgbFilter;
 
@@ -24,15 +25,16 @@ public final class FilterPresets {
         if (clip == null) {
             return new ArrayList<>();
         }
-        return effectsFor(clip.filter, clip.brightness, clip.contrast, clip.warmth);
+        return effectsFor(clip.filter, clip.brightness, clip.contrast, clip.saturation,
+                clip.warmth);
     }
 
     public static List<Effect> effectsFor(int index) {
-        return effectsFor(index, 0f, 1f, 0f);
+        return effectsFor(index, 0f, 1f, 0f, 0f);
     }
 
     public static List<Effect> effectsFor(int index, float brightness, float contrast,
-                                          float warmth) {
+                                          float saturation, float warmth) {
         List<Effect> list = new ArrayList<>();
         switch (index) {
             case 1:
@@ -69,6 +71,11 @@ public final class FilterPresets {
         }
         if (Math.abs(contrast - 1f) > 0.005f) {
             list.add(new Contrast(clamp(contrast - 1f, -1f, 1f)));
+        }
+        if (Math.abs(saturation) > 0.005f) {
+            list.add(new HslAdjustment.Builder()
+                    .adjustSaturation(clamp(saturation, -1f, 1f) * 100f)
+                    .build());
         }
         if (Math.abs(warmth) > 0.005f) {
             float shift = clamp(warmth, -1f, 1f) * 0.25f;

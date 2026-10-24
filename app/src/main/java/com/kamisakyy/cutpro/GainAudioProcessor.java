@@ -17,7 +17,8 @@ public final class GainAudioProcessor extends BaseAudioProcessor {
 
     @Override
     protected AudioFormat onConfigure(AudioFormat inputAudioFormat) {
-        if (inputAudioFormat.encoding != C.ENCODING_PCM_16BIT) {
+        int encoding = inputAudioFormat.encoding;
+        if (encoding != C.ENCODING_PCM_16BIT && encoding != C.ENCODING_PCM_FLOAT) {
             return AudioFormat.NOT_SET;
         }
         return inputAudioFormat;
@@ -26,19 +27,27 @@ public final class GainAudioProcessor extends BaseAudioProcessor {
     @Override
     public void queueInput(ByteBuffer inputBuffer) {
         int remaining = inputBuffer.remaining();
-        if (remaining < 2) {
+        if (remaining < 4) {
             return;
         }
+        int encoding = inputAudioFormat.encoding;
         ByteBuffer output = replaceOutputBuffer(remaining);
-        while (inputBuffer.remaining() >= 2) {
-            short sample = inputBuffer.getShort();
-            int value = Math.round(sample * gain);
-            if (value > 32767) {
-                value = 32767;
-            } else if (value < -32768) {
-                value = -32768;
+        if (encoding == C.ENCODING_PCM_FLOAT) {
+            while (inputBuffer.remaining() >= 4) {
+                float sample = inputBuffer.getFloat() * gain;
+                output.putFloat(Math.max(-1f, Math.min(1f, sample)));
             }
-            output.putShort((short) value);
+        } else {
+            while (inputBuffer.remaining() >= 2) {
+                short sample = inputBuffer.getShort();
+                int value = Math.round(sample * gain);
+                if (value > 32767) {
+                    value = 32767;
+                } else if (value < -32768) {
+                    value = -32768;
+                }
+                output.putShort((short) value);
+            }
         }
         output.flip();
     }

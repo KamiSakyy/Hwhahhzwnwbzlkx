@@ -21,8 +21,9 @@ import androidx.media3.common.audio.AudioProcessor;
 import androidx.media3.common.audio.SpeedProvider;
 import androidx.media3.effect.BitmapOverlay;
 import androidx.media3.effect.OverlayEffect;
-import androidx.media3.effect.OverlaySettings;
+import androidx.media3.common.OverlaySettings;
 import androidx.media3.effect.Presentation;
+import androidx.media3.effect.StaticOverlaySettings;
 import androidx.media3.effect.TextureOverlay;
 import androidx.media3.transformer.Composition;
 import androidx.media3.transformer.DefaultEncoderFactory;
@@ -202,8 +203,9 @@ public final class VideoExporter {
                     outWidth, outHeight, Presentation.LAYOUT_SCALE_TO_FIT));
             videoEffects.addAll(FilterPresets.effectsFor(clip));
 
+            boolean muted = project.muteOriginal || clip.volume <= 0.01f;
             List<AudioProcessor> audioProcessors = new ArrayList<>();
-            if (Math.abs(clip.volume - 1f) > 0.01f) {
+            if (!muted && Math.abs(clip.volume - 1f) > 0.01f) {
                 audioProcessors.add(new GainAudioProcessor(clip.volume));
             }
             if (Math.abs(clip.speed - 1f) > 0.01f) {
@@ -223,6 +225,7 @@ public final class VideoExporter {
                             .build())
                     .build();
             items.add(new EditedMediaItem.Builder(item)
+                    .setRemoveAudio(muted)
                     .setEffects(new Effects(audioProcessors, videoEffects))
                     .build());
 
@@ -256,9 +259,7 @@ public final class VideoExporter {
 
         if (project.musicUri != null && !project.musicUri.isEmpty()) {
             List<AudioProcessor> musicAudio = new ArrayList<>();
-            if (Math.abs(project.musicVolume - 1f) > 0.01f) {
-                musicAudio.add(new GainAudioProcessor(project.musicVolume));
-            }
+            musicAudio.add(new GainAudioProcessor(Math.max(0f, Math.min(4f, project.musicVolume))));
             MediaItem music = new MediaItem.Builder()
                     .setUri(Uri.parse(project.musicUri))
                     .build();
@@ -329,12 +330,12 @@ public final class VideoExporter {
             y = 0f;
         }
         y = Math.max(-1f, Math.min(1f, y));
-        OverlaySettings visible = new OverlaySettings.Builder()
+        OverlaySettings visible = new StaticOverlaySettings.Builder()
                 .setBackgroundFrameAnchor(0f, y)
                 .setOverlayFrameAnchor(0f, 0f)
                 .setScale(1f, 1f)
                 .build();
-        OverlaySettings hidden = new OverlaySettings.Builder()
+        OverlaySettings hidden = new StaticOverlaySettings.Builder()
                 .setBackgroundFrameAnchor(0f, y)
                 .setOverlayFrameAnchor(0f, 0f)
                 .setScale(1f, 1f)

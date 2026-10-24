@@ -18,6 +18,8 @@ public class Project {
     public String musicUri;
     public String musicName;
     public float musicVolume = 0.55f;
+    /** Mutes every clip's original sound while keeping the music track. */
+    public boolean muteOriginal;
     public final List<Clip> clips = new ArrayList<>();
 
     public Project() {
@@ -83,6 +85,7 @@ public class Project {
             o.put("musicUri", musicUri == null ? JSONObject.NULL : musicUri);
             o.put("musicName", musicName == null ? JSONObject.NULL : musicName);
             o.put("musicVolume", (double) musicVolume);
+            o.put("muteOriginal", muteOriginal);
             JSONArray arr = new JSONArray();
             for (Clip c : clips) {
                 arr.put(c.toJson());
@@ -102,6 +105,7 @@ public class Project {
         p.musicUri = o.isNull("musicUri") ? null : o.optString("musicUri", null);
         p.musicName = o.isNull("musicName") ? null : o.optString("musicName", null);
         p.musicVolume = (float) o.optDouble("musicVolume", 0.55f);
+        p.muteOriginal = o.optBoolean("muteOriginal", false);
         JSONArray arr = o.optJSONArray("clips");
         if (arr != null) {
             for (int i = 0; i < arr.length(); i++) {
@@ -127,6 +131,7 @@ public class Project {
         public int filter;
         public float brightness;
         public float contrast = 1f;
+        public float saturation;
         public float warmth;
         public final List<TextItem> texts = new ArrayList<>();
 
@@ -153,6 +158,7 @@ public class Project {
                 o.put("filter", filter);
                 o.put("brightness", (double) brightness);
                 o.put("contrast", (double) contrast);
+                o.put("saturation", (double) saturation);
                 o.put("warmth", (double) warmth);
                 JSONArray arr = new JSONArray();
                 for (TextItem t : texts) {
@@ -177,6 +183,7 @@ public class Project {
             c.filter = o.optInt("filter", 0);
             c.brightness = (float) o.optDouble("brightness", 0d);
             c.contrast = (float) o.optDouble("contrast", 1d);
+            c.saturation = (float) o.optDouble("saturation", 0d);
             c.warmth = (float) o.optDouble("warmth", 0d);
             JSONArray arr = o.optJSONArray("texts");
             if (arr != null) {

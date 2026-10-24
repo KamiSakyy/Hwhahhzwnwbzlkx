@@ -516,6 +516,19 @@ public class EditorActivity extends Activity {
                     }
                 });
 
+        addSliderRow(box, "НАСЫЩ", 200, Math.round(clip.saturation * 100) + 100,
+                signed(Math.round(clip.saturation * 100)), new SliderCallback() {
+                    @Override
+                    public void onProgress(int progress, TextView value) {
+                        clip.saturation = (progress - 100) / 100f;
+                        value.setText(signed(progress - 100));
+                    }
+
+                    @Override
+                    public void onDone() {
+                    }
+                });
+
         addSliderRow(box, "ТЕПЛО", 200, Math.round(clip.warmth * 100) + 100,
                 signed(Math.round(clip.warmth * 100)), new SliderCallback() {
                     @Override
@@ -535,6 +548,7 @@ public class EditorActivity extends Activity {
             pushUndo();
             clip.brightness = 0f;
             clip.contrast = 1f;
+            clip.saturation = 0f;
             clip.warmth = 0f;
             saveProject();
             rebuildPlaylist(currentProjectTime());
@@ -728,14 +742,18 @@ public class EditorActivity extends Activity {
                         if (!fromUser) {
                             return;
                         }
+                        if (progress > 0 && project.muteOriginal) {
+                            project.muteOriginal = false;
+                        }
                         clip.volume = progress / 100f;
                         value.setText(progress + "%");
-                        updateChrome();
+                        applyClipVolume();
                     }
 
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
                         saveProject();
+                        updateChrome();
                         refreshPanel();
                     }
                 }));
@@ -747,21 +765,41 @@ public class EditorActivity extends Activity {
             pushUndo();
             clip.volume = 0f;
             saveProject();
+            applyClipVolume();
             refreshPanel();
         }));
         chips.addView(chip("100%", Math.abs(clip.volume - 1f) < 0.01f, () -> {
             pushUndo();
             clip.volume = 1f;
             saveProject();
+            applyClipVolume();
             refreshPanel();
         }));
         chips.addView(chip("150%", Math.abs(clip.volume - 1.5f) < 0.01f, () -> {
             pushUndo();
             clip.volume = 1.5f;
             saveProject();
+            applyClipVolume();
             refreshPanel();
         }));
         box.addView(chips);
+
+        LinearLayout master = row();
+        master.setPadding(0, dp(4), 0, 0);
+        master.addView(chip(project.muteOriginal
+                        ? "Оригинальный звук: выкл"
+                        : "Оригинальный звук: вкл",
+                project.muteOriginal, () -> {
+                    pushUndo();
+                    project.muteOriginal = !project.muteOriginal;
+                    saveProject();
+                    applyClipVolume();
+                    refreshPanel();
+                    toast(project.muteOriginal
+                            ? "Звук видео отключён, музыка играет"
+                            : "Звук видео включён");
+                }));
+        box.addView(master);
         return box;
     }
 
@@ -781,9 +819,11 @@ public class EditorActivity extends Activity {
         chips.addView(primaryChip("Экспорт", () -> startExport(exportShortSide)));
         box.addView(chips);
 
+        String audio = project.muteOriginal ? "без звука видео"
+                : (project.musicUri == null ? "звук видео" : "видео + музыка");
         TextView summary = caption(project.clips.size() + " клип.  ·  "
                 + formatDuration(project.durationMs()) + "  ·  " + project.aspectLabel()
-                + (project.musicUri == null ? "" : "  ·  с музыкой"));
+                + "  ·  " + audio);
         summary.setPadding(0, dp(4), 0, 0);
         box.addView(summary);
         return box;
@@ -816,6 +856,19 @@ public class EditorActivity extends Activity {
             refreshPanel();
             toast("Музыка убрана");
         });
+
+        LinearLayout masterRow = row();
+        masterRow.setPadding(0, dp(6), 0, 0);
+        masterRow.addView(chip(project.muteOriginal
+                ? "Звук видео: выключен"
+                : "Звук видео: включён", project.muteOriginal, () -> {
+            pushUndo();
+            project.muteOriginal = !project.muteOriginal;
+            saveProject();
+            applyClipVolume();
+            refreshPanel();
+        }));
+        ((LinearLayout) view).addView(masterRow);
 
         final SeekBar volume = view.findViewById(R.id.musicVolume);
         final TextView volumeValue = view.findViewById(R.id.musicVolumeValue);
@@ -1085,6 +1138,11 @@ public class EditorActivity extends Activity {
             public void onTrimPreview(int index, long sourceMs) {
                 previewSourceFrame(index, sourceMs);
             }
+
+            @Override
+            public void onMusicTap() {
+                togglePanel(P_MUSIC);
+            }
         });
     }
 
@@ -1132,6 +1190,7 @@ public class EditorActivity extends Activity {
         player.setVideoEffects(FilterPresets.effectsFor(clip));
         player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
         player.prepare();
+        applyClipVolume();
         player.seekTo(index, Math.max(0, Math.round(
                 (target - project.startOfClip(selectedIndex)) * Math.max(0.1f, clip.speed))));
         timeline.setProject(project);
@@ -1218,7 +1277,24 @@ public class EditorActivity extends Activity {
         Project.Clip clip = project.clips.get(index);
         try {
             player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
-            player.setVolume(Math.max(0f, Math.min(1f, clip.volume)));
+            applyClipVolume();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void applyClipVolume() {
+        if (player == null || project == null) {
+            return;
+        }
+        int index = player.getCurrentMediaItemIndex();
+        Project.Clip clip = (index >= 0 && index < project.clips.size())
+                ? project.clips.get(index) : selectedClip();
+        float volume = clip == null ? 1f : clip.volume;
+        if (project.muteOriginal || volume <= 0.01f) {
+            volume = 0f;
+        }
+        try {
+            player.setVolume(Math.max(0f, Math.min(1f, volume)));
         } catch (Throwable ignored) {
         }
     }
@@ -1349,6 +1425,59 @@ public class EditorActivity extends Activity {
             view.setOnLongClickListener(v -> {
                 confirmDeleteText(item);
                 return true;
+            });
+            view.setOnTouchListener(new View.OnTouchListener() {
+                private float startY;
+                private float startRawY;
+                private int startPosition;
+                private boolean moved;
+
+                @Override
+                public boolean onTouch(View v, android.view.MotionEvent event) {
+                    switch (event.getActionMasked()) {
+                        case android.view.MotionEvent.ACTION_DOWN:
+                            startY = v.getY();
+                            startRawY = event.getRawY();
+                            startPosition = item.position;
+                            moved = false;
+                            return false;
+                        case android.view.MotionEvent.ACTION_MOVE: {
+                            float dy = event.getRawY() - startRawY;
+                            if (Math.abs(dy) > dp(6)) {
+                                moved = true;
+                            }
+                            if (moved) {
+                                float target = startY + dy;
+                                float height = Math.max(1, textOverlay.getHeight());
+                                v.setY(Math.max(0, Math.min(height - v.getHeight(), target)));
+                            }
+                            return moved;
+                        }
+                        case android.view.MotionEvent.ACTION_UP:
+                        case android.view.MotionEvent.ACTION_CANCEL: {
+                            if (!moved) {
+                                return false;
+                            }
+                            float center = v.getY() + v.getHeight() / 2f;
+                            float height = Math.max(1, textOverlay.getHeight());
+                            int newPosition = center < height * 0.34f ? 0
+                                    : center > height * 0.66f ? 2 : 1;
+                            if (newPosition != startPosition) {
+                                pushUndo();
+                                item.position = newPosition;
+                                saveProject();
+                                rebuildTextOverlays();
+                                toast(newPosition == 0 ? "Текст сверху"
+                                        : newPosition == 2 ? "Текст снизу" : "Текст по центру");
+                            } else {
+                                rebuildTextOverlays();
+                            }
+                            return true;
+                        }
+                        default:
+                            return false;
+                    }
+                }
             });
             textOverlay.addView(view);
             textViews.add(view);
