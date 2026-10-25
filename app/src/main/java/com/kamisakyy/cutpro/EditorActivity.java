@@ -76,6 +76,7 @@ public class EditorActivity extends Activity {
 
     private static final String P_TRIM = "trim";
     private static final String P_SPEED = "speed";
+    private static final String P_MUSIC_TRIM = "music_trim";
     private static final String P_VOLUME = "volume";
     private static final String P_FILTER = "filter";
     private static final String P_TEXT = "text";
@@ -130,6 +131,8 @@ public class EditorActivity extends Activity {
     private String activePanel;
     private boolean exporting;
     private boolean trimGesture;
+    private boolean pendingTextFade = true;
+    private String copiedClipJson;
     private boolean updatingSlider;
     private int exportShortSide = 1080;
     private int pendingTextColor = 0xFFFFFFFF;
@@ -360,6 +363,8 @@ public class EditorActivity extends Activity {
             panel = textPanel();
         } else if (P_MUSIC.equals(key)) {
             panel = musicPanel();
+        } else if (P_MUSIC_TRIM.equals(key)) {
+            panel = musicTrimPanel();
         } else if (P_ASPECT.equals(key)) {
             panel = aspectPanel();
         } else if (P_MORE.equals(key)) {
@@ -724,6 +729,15 @@ public class EditorActivity extends Activity {
             deleteClip();
         }));
 
+        LinearLayout transform = row();
+        transform.setPadding(0, dp(6), 0, 0);
+        transform.addView(chip("Повернуть 90°", false, () -> rotateClip(90)));
+        transform.addView(chip("Отразить", false, () -> mirrorClip()));
+        transform.addView(chip("Сбросить вид", false, () -> resetTransform()));
+        transform.addView(chip("Копировать", false, () -> copyClip()));
+        transform.addView(chip("Вставить после", copiedClipJson != null, () -> pasteClip()));
+        box.addView(scrollable(transform));
+
         LinearLayout second = row();
         second.setPadding(0, dp(6), 0, 0);
         second.addView(chip("Звук клипа в музыку", false, () -> {
@@ -1000,6 +1014,232 @@ public class EditorActivity extends Activity {
         return view;
     }
 
+    /** Trim window, fades and looping of the music track. */
+    private View musicTrimPanel() {
+        LinearLayout box = newPanel();
+        long known = project.musicDurationMs;
+        addHeader(box, "Обрезка музыки",
+                known > 0 ? formatSeconds(known) : "длина неизвестна");
+
+        if (project.musicUri == null) {
+            box.addView(note("Сначала выберите музыку: «Аудиофайл», «Звук из видео» "
+                    + "или «Из клипа»."));
+            return box;
+        }
+
+        final long totalMs = known > 0 ? known : Math.max(project.durationMs(), 1000L);
+        final long startNow = Math.max(0, Math.min(project.musicStartMs, totalMs - 200));
+        final long endNow = project.musicEndMs > startNow
+                ? Math.min(project.musicEndMs, totalMs) : totalMs;
+
+        final TextView rangeValue = new TextView(this);
+        rangeValue.setTextColor(getColor(R.color.text));
+        rangeValue.setTextSize(11f);
+        rangeValue.setText(musicRangeLabel(startNow, endNow));
+
+        final SeekBar startBar = panelSlider((int) (totalMs / 100) , (int) (startNow / 100),
+                new SimpleSeekListener() {
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        long start = progress * 100L;
+                        if (start > endNow - 300) {
+                            start = Math.max(0, endNow - 300);
+                            seekBar.setProgress((int) (start / 100));
+                        }
+                        project.musicStartMs = start;
+                        project.musicEndMs = Math.max(start + 300, endNow);
+                        rangeValue.setText(musicRangeLabel(project.musicStartMs, endNow));
+                        prepareMusic();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        saveProject();
+                        timeline.invalidate();
+                        refreshPanel();
+                    }
+                });
+        final SeekBar endBar = panelSlider((int) (totalMs / 100),
+                (int) (Math.min(endNow, totalMs) / 100), new SimpleSeekListener() {
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        long end = progress * 100L;
+                        if (end < project.musicStartMs + 300) {
+                            end = project.musicStartMs + 300;
+                            seekBar.setProgress((int) (end / 100));
+                        }
+                        project.musicEndMs = Math.min(totalMs, end);
+                        rangeValue.setText(musicRangeLabel(project.musicStartMs,
+                                project.musicEndMs));
+                        prepareMusic();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        saveProject();
+                        timeline.invalidate();
+                        refreshPanel();
+                    }
+                });
+
+        LinearLayout startLine = row();
+        startLine.addView(smallCaption("С"));
+        startLine.addView(startBar);
+        box.addView(startLine);
+        LinearLayout endLine = row();
+        endLine.addView(smallCaption("По"));
+        endLine.addView(endBar);
+        box.addView(endLine);
+        rangeValue.setPadding(dp(2), dp(2), 0, 0);
+        box.addView(rangeValue);
+
+        LinearLayout quick = row();
+        quick.setPadding(0, dp(2), 0, 0);
+        quick.addView(chip("Начало здесь", false, () -> {
+            pushUndo();
+            long here = musicSourceTimeAt(currentProjectTime());
+            project.musicStartMs = Math.max(0, Math.min(here, project.musicEndMs - 300));
+            saveProject();
+            prepareMusic();
+            refreshPanel();
+        }));
+        quick.addView(chip("Конец здесь", false, () -> {
+            pushUndo();
+            long here = musicSourceTimeAt(currentProjectTime());
+            project.musicEndMs = Math.max(project.musicStartMs + 300, Math.min(here, totalMs));
+            saveProject();
+            prepareMusic();
+            refreshPanel();
+        }));
+        quick.addView(chip("Весь трек", false, () -> {
+            pushUndo();
+            project.musicStartMs = 0;
+            project.musicEndMs = totalMs;
+            saveProject();
+            prepareMusic();
+            refreshPanel();
+        }));
+        box.addView(scrollable(quick));
+
+        final TextView fadeValue = new TextView(this);
+        fadeValue.setTextColor(getColor(R.color.text));
+        fadeValue.setTextSize(11f);
+        fadeValue.setText("вход " + formatSeconds(project.musicFadeInMs)
+                + "   ·   выход " + formatSeconds(project.musicFadeOutMs));
+
+        LinearLayout fadeLine = row();
+        fadeLine.setPadding(0, dp(6), 0, 0);
+        fadeLine.addView(smallCaption("Плавно"));
+        fadeLine.addView(panelSlider(50, (int) (project.musicFadeOutMs / 100),
+                new SimpleSeekListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        project.musicFadeOutMs = progress * 100L;
+                        fadeValue.setText("вход " + formatSeconds(project.musicFadeInMs)
+                                + "   ·   выход " + formatSeconds(project.musicFadeOutMs));
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                        saveProject();
+                    }
+                }));
+        box.addView(fadeLine);
+
+        LinearLayout fadeInRow = row();
+        fadeInRow.addView(chip("Без фейда", project.musicFadeInMs <= 0
+                && project.musicFadeOutMs <= 0, () -> {
+            pushUndo();
+            project.musicFadeInMs = 0;
+            project.musicFadeOutMs = 0;
+            saveProject();
+            refreshPanel();
+            toast("Фейды убраны");
+        }));
+        fadeInRow.addView(chip("Фейд 1,5 с", project.musicFadeInMs > 0
+                && project.musicFadeOutMs > 0, () -> {
+            pushUndo();
+            project.musicFadeInMs = 1500;
+            project.musicFadeOutMs = 1500;
+            saveProject();
+            refreshPanel();
+        }));
+        fadeInRow.addView(chip(project.musicLoop ? "Повтор: вкл" : "Повтор: выкл",
+                project.musicLoop, () -> {
+                    pushUndo();
+                    project.musicLoop = !project.musicLoop;
+                    saveProject();
+                    prepareMusic();
+                    refreshPanel();
+                }));
+        fadeInRow.addView(primaryChip("Готово", () -> closePanel()));
+        box.addView(scrollable(fadeInRow));
+
+        fadeValue.setPadding(dp(2), dp(4), 0, 0);
+        box.addView(fadeValue);
+        TextView hint = note("Сейчас играет фрагмент " + formatSeconds(startNow)
+                + " – " + formatSeconds(endNow) + ", он повторяется до конца ролика."
+                + " Фейд выхода считается от конца проекта.");
+        hint.setPadding(0, dp(2), 0, 0);
+        box.addView(hint);
+        return box;
+    }
+
+    private String musicRangeLabel(long startMs, long endMs) {
+        return formatSeconds(startMs) + "  –  " + formatSeconds(endMs)
+                + "   ·   " + formatSeconds(Math.max(0, endMs - startMs));
+    }
+
+    /** Project time to the position inside the music file, honouring trim and looping. */
+    private long musicSourceTimeAt(long projectTimeMs) {
+        long start = Math.max(0, project.musicStartMs);
+        long span = project.musicSpan();
+        if (span <= 0 && project.musicDurationMs > start) {
+            span = project.musicDurationMs - start;
+        }
+        if (span <= 0) {
+            return start + Math.max(0, projectTimeMs);
+        }
+        long offset = project.musicLoop ? Math.max(0, projectTimeMs) % span
+                : Math.max(0, Math.min(projectTimeMs, span));
+        return start + offset;
+    }
+
+    /** Music gain with fade in / fade out taken into account, for the live preview. */
+    private float musicGainAt(long projectTimeMs) {
+        float gain = Math.max(0f, Math.min(1f, project.musicVolume));
+        long duration = Math.max(1L, project.durationMs());
+        if (project.musicFadeInMs > 0 && projectTimeMs < project.musicFadeInMs) {
+            gain *= Math.max(0f, projectTimeMs / (float) project.musicFadeInMs);
+        }
+        if (project.musicFadeOutMs > 0
+                && projectTimeMs > duration - project.musicFadeOutMs) {
+            long left = Math.max(0L, duration - projectTimeMs);
+            gain *= Math.max(0f, Math.min(1f, left / (float) project.musicFadeOutMs));
+        }
+        return Math.max(0f, Math.min(1f, gain));
+    }
+
     private View volumePanel() {
         final Project.Clip clip = selectedClip();
         LinearLayout box = newPanel();
@@ -1065,6 +1305,64 @@ public class EditorActivity extends Activity {
             refreshPanel();
         }));
         box.addView(scrollable(chips));
+
+        final TextView fadeValue = new TextView(this);
+        fadeValue.setTextColor(getColor(R.color.text));
+        fadeValue.setTextSize(11f);
+        fadeValue.setText("вход " + formatSeconds(clip.fadeInMs)
+                + "   ·   выход " + formatSeconds(clip.fadeOutMs));
+
+        LinearLayout fadeLine = row();
+        fadeLine.setPadding(0, dp(6), 0, 0);
+        fadeLine.addView(smallCaption("Фейд"));
+        fadeLine.addView(panelSlider(30, (int) (clip.fadeOutMs / 100),
+                new SimpleSeekListener() {
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        clip.fadeOutMs = progress * 100L;
+                        fadeValue.setText("вход " + formatSeconds(clip.fadeInMs)
+                                + "   ·   выход " + formatSeconds(clip.fadeOutMs));
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        saveProject();
+                        applyClipVolume();
+                    }
+                }));
+        box.addView(fadeLine);
+
+        LinearLayout fadePresets = row();
+        fadePresets.addView(chip("Без фейдов", clip.fadeInMs <= 0 && clip.fadeOutMs <= 0, () -> {
+            pushUndo();
+            clip.fadeInMs = 0;
+            clip.fadeOutMs = 0;
+            saveProject();
+            refreshPanel();
+        }));
+        fadePresets.addView(chip("Вход 0,5 с", Math.abs(clip.fadeInMs - 500) < 1, () -> {
+            pushUndo();
+            clip.fadeInMs = 500;
+            saveProject();
+            refreshPanel();
+        }));
+        fadePresets.addView(chip("Выход 0,5 с", Math.abs(clip.fadeOutMs - 500) < 1, () -> {
+            pushUndo();
+            clip.fadeOutMs = 500;
+            saveProject();
+            refreshPanel();
+        }));
+        box.addView(scrollable(fadePresets));
+        fadeValue.setPadding(dp(2), dp(3), 0, 0);
+        box.addView(fadeValue);
 
         LinearLayout master = row();
         master.setPadding(0, dp(4), 0, 0);
@@ -1149,12 +1447,37 @@ public class EditorActivity extends Activity {
             }
             extractAudio(Uri.parse(clip.uri), clip.name);
         });
+        LinearLayout musicTools = row();
+        musicTools.setPadding(0, dp(6), 0, 0);
+        musicTools.addView(chip("Обрезка и фейды", P_MUSIC_TRIM.equals(activePanel),
+                () -> togglePanel(P_MUSIC_TRIM)));
+        musicTools.addView(chip(project.musicLoop ? "Повтор: вкл" : "Повтор: выкл",
+                project.musicLoop, () -> {
+                    pushUndo();
+                    project.musicLoop = !project.musicLoop;
+                    saveProject();
+                    prepareMusic();
+                    refreshPanel();
+                }));
+        musicTools.addView(chip("С начала", project.musicStartMs <= 0, () -> {
+            pushUndo();
+            project.musicStartMs = 0;
+            project.musicEndMs = project.musicDurationMs;
+            saveProject();
+            prepareMusic();
+            refreshPanel();
+        }));
+        ((LinearLayout) view).addView(musicTools);
+
         View remove = view.findViewById(R.id.btnMusicRemove);
         remove.setVisibility(project.musicUri == null ? View.GONE : View.VISIBLE);
         remove.setOnClickListener(v -> {
             pushUndo();
             project.musicUri = null;
             project.musicName = null;
+            project.musicDurationMs = 0;
+            project.musicStartMs = 0;
+            project.musicEndMs = 0;
             saveProject();
             prepareMusic();
             refreshPanel();
@@ -1262,6 +1585,11 @@ public class EditorActivity extends Activity {
 
         positionChips(positionRow, true);
 
+        final LinearLayout fadeRow = row();
+        fadeRow.setPadding(0, dp(5), 0, 0);
+        rebuildTextFadeChip(fadeRow);
+        ((LinearLayout) view).addView(fadeRow);
+
         view.findViewById(R.id.btnTextAdd).setOnClickListener(v -> {
             String text = input.getText().toString().trim();
             if (text.isEmpty()) {
@@ -1274,6 +1602,7 @@ public class EditorActivity extends Activity {
             item.color = pendingTextColor;
             item.size = 0.025f + (sizeSeek.getProgress() / 100f) * 0.10f;
             item.position = pendingTextPosition;
+            item.fade = pendingTextFade;
             item.startMs = startSeek.getProgress();
             item.endMs = Math.max(item.startMs + 250, endSeek.getProgress());
             clip.texts.add(item);
@@ -1284,6 +1613,16 @@ public class EditorActivity extends Activity {
             toast("Текст добавлен");
         });
         return view;
+    }
+
+    /** «Плавное появление» toggle for the text that is about to be added. */
+    private void rebuildTextFadeChip(final LinearLayout container) {
+        container.removeAllViews();
+        container.addView(chip(pendingTextFade ? "Появление: плавно" : "Появление: резко",
+                pendingTextFade, () -> {
+                    pendingTextFade = !pendingTextFade;
+                    rebuildTextFadeChip(container);
+                }));
     }
 
     private void buildColorChips(final LinearLayout row, final int[] colors) {
@@ -1381,7 +1720,18 @@ public class EditorActivity extends Activity {
             if (project.musicUri == null || project.musicUri.isEmpty()) {
                 return;
             }
-            musicPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(project.musicUri)));
+            MediaItem.Builder builder = new MediaItem.Builder()
+                    .setUri(Uri.parse(project.musicUri));
+            long span = project.musicSpan();
+            if (span > 0) {
+                builder.setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder()
+                        .setStartPositionMs(project.musicStartMs)
+                        .setEndPositionMs(project.musicEndMs)
+                        .build());
+            }
+            musicPlayer.setMediaItem(builder.build());
+            musicPlayer.setRepeatMode(project.musicLoop
+                    ? Player.REPEAT_MODE_ONE : Player.REPEAT_MODE_OFF);
             musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
             musicPlayer.prepare();
         } catch (Throwable ignored) {
@@ -1393,12 +1743,13 @@ public class EditorActivity extends Activity {
             return;
         }
         try {
-            long duration = musicPlayer.getDuration();
-            long position = projectTimeMs;
-            if (duration > 0) {
-                position = projectTimeMs % duration;
+            long position = musicSourceTimeAt(projectTimeMs);
+            long span = project.musicSpan();
+            if (!project.musicLoop && span > 0 && projectTimeMs >= span) {
+                musicPlayer.pause();
+                return;
             }
-            musicPlayer.seekTo(Math.max(0, position));
+            musicPlayer.seekTo(Math.max(0, position - project.musicStartMs));
         } catch (Throwable ignored) {
         }
     }
@@ -1408,7 +1759,7 @@ public class EditorActivity extends Activity {
             return;
         }
         try {
-            musicPlayer.setVolume(Math.max(0f, Math.min(1f, project.musicVolume)));
+            musicPlayer.setVolume(musicGainAt(currentProjectTime()));
             boolean playing = isPlaying();
             if (playing) {
                 if (musicPlayer.getPlaybackState() == Player.STATE_IDLE) {
@@ -1798,10 +2149,38 @@ public class EditorActivity extends Activity {
         if (project.muteOriginal || volume <= 0.01f) {
             volume = 0f;
         }
+        volume *= clipFadeGain(clip, clipIndex);
         try {
             player.setVolume(Math.max(0f, Math.min(1f, volume)));
         } catch (Throwable ignored) {
         }
+    }
+
+    /** Fade envelope of the clip sound at the current playhead position. */
+    private float clipFadeGain(Project.Clip clip, int clipIndex) {
+        if (clip == null || clipIndex < 0 || clipIndex >= project.clips.size()) {
+            return 1f;
+        }
+        if (clip.fadeInMs <= 0 && clip.fadeOutMs <= 0) {
+            return 1f;
+        }
+        long length = Math.max(1L, clip.outputDurationMs());
+        long inside;
+        if (photoMode && photoClipIndex == clipIndex) {
+            inside = Math.max(0L, photoPositionMs - project.startOfClip(clipIndex));
+        } else {
+            inside = positionInCurrentClip();
+        }
+        inside = Math.max(0L, Math.min(inside, length));
+        float gain = 1f;
+        if (clip.fadeInMs > 0 && inside < clip.fadeInMs) {
+            gain *= inside / (float) clip.fadeInMs;
+        }
+        if (clip.fadeOutMs > 0 && inside > length - clip.fadeOutMs) {
+            long left = Math.max(0L, length - inside);
+            gain *= left / (float) clip.fadeOutMs;
+        }
+        return Math.max(0f, Math.min(1f, gain));
     }
 
     private static Bitmap copyBitmap(Bitmap source) {
@@ -1925,6 +2304,51 @@ public class EditorActivity extends Activity {
 
         timeline.setPosition(output);
         updateTimeLabels();
+        updateAudioEnvelopes(output);
+    }
+
+    /** Keeps the clip fade and the music fade audible while playing. */
+    private void updateAudioEnvelopes(long projectTimeMs) {
+        if (player != null && !photoMode) {
+            applyClipVolume();
+        }
+        if (musicPlayer != null && musicPlayer.getMediaItemCount() > 0) {
+            try {
+                musicPlayer.setVolume(musicGainAt(projectTimeMs));
+            } catch (Throwable ignored) {
+            }
+        }
+        updateTextFade(projectTimeMs);
+    }
+
+    /** Soft text appearance in the preview, mirroring the exported animation. */
+    private void updateTextFade(long projectTimeMs) {
+        if (textViews.isEmpty()) {
+            return;
+        }
+        int clipIndex = currentClipIndex();
+        if (clipIndex < 0 || clipIndex >= project.clips.size()) {
+            return;
+        }
+        long inside = projectTimeMs - project.startOfClip(clipIndex);
+        for (TextView view : textViews) {
+            Project.TextItem item = (Project.TextItem) view.getTag();
+            if (item == null || !item.fade) {
+                view.setAlpha(1f);
+                continue;
+            }
+            long ramp = 220L;
+            float alpha = 1f;
+            long left = inside - item.startMs;
+            long right = item.endMs - inside;
+            if (left < ramp) {
+                alpha = Math.min(alpha, Math.max(0f, left / (float) ramp));
+            }
+            if (right < ramp) {
+                alpha = Math.min(alpha, Math.max(0f, right / (float) ramp));
+            }
+            view.setAlpha(alpha);
+        }
     }
 
     private long currentProjectTime() {
@@ -2541,6 +2965,79 @@ public class EditorActivity extends Activity {
         toast("Клип дублирован");
     }
 
+    private void rotateClip(int degrees) {
+        Project.Clip clip = selectedClip();
+        if (clip == null) {
+            return;
+        }
+        pushUndo();
+        clip.rotation = ((clip.rotation + degrees) % 360 + 360) % 360;
+        saveProject();
+        applyPlaybackParams();
+        timeline.setProject(project);
+        refreshPanel();
+        toast(clip.rotation == 0 ? "Ориентация сброшена"
+                : "Поворот " + clip.rotation + "°");
+    }
+
+    private void mirrorClip() {
+        Project.Clip clip = selectedClip();
+        if (clip == null) {
+            return;
+        }
+        pushUndo();
+        clip.mirror = !clip.mirror;
+        saveProject();
+        applyPlaybackParams();
+        refreshPanel();
+        toast(clip.mirror ? "Отражено по горизонтали" : "Отражение выключено");
+    }
+
+    private void resetTransform() {
+        Project.Clip clip = selectedClip();
+        if (clip == null) {
+            return;
+        }
+        pushUndo();
+        clip.rotation = 0;
+        clip.mirror = false;
+        saveProject();
+        applyPlaybackParams();
+        refreshPanel();
+        toast("Поворот и отражение сброшены");
+    }
+
+    private void copyClip() {
+        Project.Clip clip = selectedClip();
+        if (clip == null) {
+            toast("Выберите клип");
+            return;
+        }
+        copiedClipJson = clip.toJson().toString();
+        toast("Клип скопирован");
+        refreshPanel();
+    }
+
+    private void pasteClip() {
+        if (copiedClipJson == null) {
+            toast("Сначала скопируйте клип");
+            return;
+        }
+        try {
+            Project.Clip copy = Project.Clip.fromJson(new JSONObject(copiedClipJson));
+            copy.id = java.util.UUID.randomUUID().toString();
+            int at = selectedIndex >= 0 ? selectedIndex + 1 : project.clips.size();
+            pushUndo();
+            project.clips.add(Math.min(at, project.clips.size()), copy);
+            selectedIndex = Math.min(at, project.clips.size() - 1);
+            saveProject();
+            rebuildPlaylist(project.startOfClip(selectedIndex));
+            toast("Вставлено");
+        } catch (Throwable t) {
+            toast("Не удалось вставить клип");
+        }
+    }
+
     private void renameProject() {
         final android.widget.EditText input = new android.widget.EditText(this);
         input.setText(project.name);
@@ -2617,6 +3114,9 @@ public class EditorActivity extends Activity {
         pushUndo();
         project.musicUri = uri.toString();
         project.musicName = readName(uri);
+        project.musicDurationMs = readDuration(uri);
+        project.musicStartMs = 0;
+        project.musicEndMs = project.musicDurationMs;
         saveProject();
         prepareMusic();
         refreshPanel();
@@ -2634,6 +3134,9 @@ public class EditorActivity extends Activity {
                 project.musicUri = Uri.fromFile(file).toString();
                 String name = file.getName();
                 project.musicName = label == null ? name : label + " · звук";
+                project.musicDurationMs = readDuration(Uri.fromFile(file));
+                project.musicStartMs = 0;
+                project.musicEndMs = project.musicDurationMs;
                 saveProject();
                 prepareMusic();
                 refreshPanel();

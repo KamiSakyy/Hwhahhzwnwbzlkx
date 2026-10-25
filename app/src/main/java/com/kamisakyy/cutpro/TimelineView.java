@@ -531,6 +531,15 @@ public class TimelineView extends View {
         canvas.drawRoundRect(rect, dp(4), dp(4), clipPaint);
 
         String name = project.musicName == null ? "Музыка" : project.musicName;
+        if (project.musicStartMs > 0 || project.musicEndMs > 0) {
+            name = name + "  ·  обрезка";
+        }
+        if (!project.musicLoop) {
+            name = name + "  ·  без повтора";
+        }
+        if (project.musicFadeInMs > 0 || project.musicFadeOutMs > 0) {
+            name = name + "  ·  фейд";
+        }
         canvas.save();
         canvas.clipRect(rect);
         float barWidth = dp(2);
@@ -545,6 +554,32 @@ public class TimelineView extends View {
             canvas.drawRect(x, centerY - barHeight / 2f, x + barWidth,
                     centerY + barHeight / 2f, gripPaint);
             index++;
+        }
+        if (project.musicFadeInMs > 0) {
+            float fadeWidth = Math.min(rect.width() * 0.5f,
+                    rect.width() * project.musicFadeInMs
+                            / Math.max(1f, project.durationMs()));
+            scrimPaint.setColor(0xAA0A0A0C);
+            Path ramp = new Path();
+            ramp.moveTo(rect.left, rect.top);
+            ramp.lineTo(rect.left + fadeWidth, rect.top);
+            ramp.lineTo(rect.left, rect.bottom);
+            ramp.close();
+            canvas.drawPath(ramp, scrimPaint);
+            scrimPaint.setColor(0xB3000000);
+        }
+        if (project.musicFadeOutMs > 0) {
+            float fadeWidth = Math.min(rect.width() * 0.5f,
+                    rect.width() * project.musicFadeOutMs
+                            / Math.max(1f, project.durationMs()));
+            scrimPaint.setColor(0xAA0A0A0C);
+            Path ramp = new Path();
+            ramp.moveTo(rect.right, rect.top);
+            ramp.lineTo(rect.right - fadeWidth, rect.top);
+            ramp.lineTo(rect.right, rect.bottom);
+            ramp.close();
+            canvas.drawPath(ramp, scrimPaint);
+            scrimPaint.setColor(0xB3000000);
         }
         canvas.restore();
         gripPaint.setColor(0xFF06231B);

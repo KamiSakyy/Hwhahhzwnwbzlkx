@@ -60,14 +60,18 @@ public final class VideoExporter {
         final OverlaySettings hidden;
         final long startUs;
         final long endUs;
+        final boolean fade;
+        final float y;
 
         PlacedText(Bitmap bitmap, OverlaySettings visible, OverlaySettings hidden,
-                   long startUs, long endUs) {
+                   long startUs, long endUs, boolean fade, float y) {
             this.bitmap = bitmap;
             this.visible = visible;
             this.hidden = hidden;
             this.startUs = startUs;
             this.endUs = endUs;
+            this.fade = fade;
+            this.y = y;
         }
     }
 
@@ -262,6 +266,10 @@ public final class VideoExporter {
                             inlineAudio.add(speed.first);
                         }
                     }
+                    if (!muted && (clip.fadeInMs > 0 || clip.fadeOutMs > 0)) {
+                        inlineAudio.add(new FadeAudioProcessor(
+                                clip.fadeInMs, clip.fadeOutMs, clipOutputMs));
+                    }
                 }
                 editedBuilder = new EditedMediaItem.Builder(item)
                         .setRemoveAudio(splitAudio || muted)
@@ -292,6 +300,10 @@ public final class VideoExporter {
                         SonicAudioProcessor sonic = new SonicAudioProcessor();
                         sonic.setSpeed(audioSpeed);
                         audioProcessors.add(sonic);
+                    }
+                    if (clip.fadeInMs > 0 || clip.fadeOutMs > 0) {
+                        audioProcessors.add(new FadeAudioProcessor(
+                                clip.fadeInMs, clip.fadeOutMs, slotUs / 1000L));
                     }
                     audioSequence.addItem(new EditedMediaItem.Builder(audioItem)
                             .setRemoveVideo(true)
@@ -336,19 +348,9 @@ public final class VideoExporter {
             sequences.add(audioSequence.build());
         }
 
-        if (project.musicUri != null && !project.musicUri.isEmpty()) {
-            List<AudioProcessor> musicAudio = new ArrayList<>();
-            musicAudio.add(new GainAudioProcessor(Math.max(0f, Math.min(4f, project.musicVolume))));
-            MediaItem music = new MediaItem.Builder()
-                    .setUri(Uri.parse(project.musicUri))
-                    .build();
-            EditedMediaItem musicItem = new EditedMediaItem.Builder(music)
-                    .setRemoveVideo(true)
-                    .setEffects(new Effects(musicAudio, new ArrayList<Effect>()))
-                    .build();
-            sequences.add(new EditedMediaItemSequence.Builder(musicItem)
-                    .setIsLooping(true)
-                    .build());
+        EditedMediaItemSequence musicSequence = buildMusicSequence(project);
+        if (musicSequence != null) {
+            sequences.add(musicSequence);
         }
 
         // Guarantees one stable audio track even when some clips are silent.
@@ -362,6 +364,80 @@ public final class VideoExporter {
         return builder.build();
     }
 
+    /**
+     * Builds the music lane: the chosen fragment of the track, repeated to the length of the
+     * project when «повтор» is on. Fades land on the first and the last fragment, so a looped
+     * track does not pump up and down on every repeat.
+     */
+    private static EditedMediaItemSequence buildMusicSequence(Project project) {
+        if (project.musicUri == null || project.musicUri.isEmpty()) {
+            return null;
+        }
+        long projectMs = Math.max(100L, project.durationMs());
+        long startMs = Math.max(0L, project.musicStartMs);
+        long span = project.musicSpan();
+        if (span <= 0) {
+            span = project.musicDurationMs > startMs ? project.musicDurationMs - startMs : 0L;
+        }
+        if (span <= 0 || !project.musicLoop) {
+            // Unknown length or non-looping: one item, fades are applied to it as a whole.
+            long fadeSpan = span > 0 ? span : projectMs;
+            MediaItem.Builder builder = new MediaItem.Builder().setUri(Uri.parse(project.musicUri));
+            if (span > 0) {
+                builder.setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder()
+                        .setStartPositionMs(startMs)
+                        .setEndPositionMs(startMs + Math.min(span, projectMs))
+                        .build());
+            }
+            List<AudioProcessor> processors = new ArrayList<>();
+            processors.add(new GainAudioProcessor(
+                    Math.max(0f, Math.min(4f, project.musicVolume))));
+            long fadeIn = Math.min(project.musicFadeInMs, fadeSpan);
+            long fadeOut = Math.min(project.musicFadeOutMs, Math.max(0L, fadeSpan - fadeIn));
+            if (fadeIn > 0 || fadeOut > 0) {
+                processors.add(new FadeAudioProcessor(fadeIn, fadeOut, fadeSpan));
+            }
+            EditedMediaItem item = new EditedMediaItem.Builder(builder.build())
+                    .setRemoveVideo(true)
+                    .setEffects(new Effects(processors, new ArrayList<Effect>()))
+                    .build();
+            return new EditedMediaItemSequence.Builder(item)
+                    .setIsLooping(project.musicLoop && span <= 0)
+                    .build();
+        }
+
+        EditedMediaItemSequence.Builder sequence = new EditedMediaItemSequence.Builder();
+        long filled = 0L;
+        int index = 0;
+        while (filled < projectMs - 50 && index < 64) {
+            long piece = Math.min(span, projectMs - filled);
+            MediaItem.Builder builder = new MediaItem.Builder().setUri(Uri.parse(project.musicUri));
+            builder.setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder()
+                    .setStartPositionMs(startMs)
+                    .setEndPositionMs(startMs + piece)
+                    .build());
+            List<AudioProcessor> processors = new ArrayList<>();
+            processors.add(new GainAudioProcessor(
+                    Math.max(0f, Math.min(4f, project.musicVolume))));
+            long fadeIn = index == 0 ? Math.min(project.musicFadeInMs, piece) : 0L;
+            long fadeOut = filled + piece >= projectMs - 50
+                    ? Math.min(project.musicFadeOutMs, Math.max(0L, piece - fadeIn)) : 0L;
+            if (fadeIn > 0 || fadeOut > 0) {
+                processors.add(new FadeAudioProcessor(fadeIn, fadeOut, piece));
+            }
+            sequence.addItem(new EditedMediaItem.Builder(builder.build())
+                    .setRemoveVideo(true)
+                    .setEffects(new Effects(processors, new ArrayList<Effect>()))
+                    .build());
+            filled += piece;
+            index++;
+            if (!project.musicLoop) {
+                break;
+            }
+        }
+        return sequence.build();
+    }
+
     private static TextureOverlay timeLimitedOverlay(final PlacedText placed) {
         return new BitmapOverlay() {
             @Override
@@ -373,7 +449,30 @@ public final class VideoExporter {
             public OverlaySettings getOverlaySettings(long presentationTimeUs) {
                 boolean show = presentationTimeUs >= placed.startUs
                         && presentationTimeUs < placed.endUs;
-                return show ? placed.visible : placed.hidden;
+                if (!show) {
+                    return placed.hidden;
+                }
+                if (!placed.fade) {
+                    return placed.visible;
+                }
+                // Soft appearance and disappearance, like CapCut's default text animation.
+                final long rampUs = 220_000L;
+                long inLeft = presentationTimeUs - placed.startUs;
+                long inRight = placed.endUs - presentationTimeUs;
+                float alpha = 1f;
+                if (inLeft < rampUs) {
+                    alpha = Math.min(alpha, inLeft / (float) rampUs);
+                }
+                if (inRight < rampUs) {
+                    alpha = Math.min(alpha, inRight / (float) rampUs);
+                }
+                final float value = Math.max(0f, Math.min(1f, alpha));
+                return new StaticOverlaySettings.Builder()
+                        .setBackgroundFrameAnchor(0f, placed.y)
+                        .setOverlayFrameAnchor(0f, 0f)
+                        .setScale(1f, 1f)
+                        .setAlphaScale(value)
+                        .build();
             }
         };
     }
@@ -420,7 +519,8 @@ public final class VideoExporter {
                 .setScale(1f, 1f)
                 .setAlphaScale(0f)
                 .build();
-        return new PlacedText(bitmap, visible, hidden, startMs * 1000L, endMs * 1000L);
+        return new PlacedText(bitmap, visible, hidden, startMs * 1000L, endMs * 1000L,
+                text.fade, y);
     }
 
     private static Bitmap buildTextBitmap(Project.TextItem text, int outWidth, int outHeight) {

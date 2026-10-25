@@ -6,6 +6,7 @@ import androidx.media3.effect.Contrast;
 import androidx.media3.effect.HslAdjustment;
 import androidx.media3.effect.RgbAdjustment;
 import androidx.media3.effect.RgbFilter;
+import androidx.media3.effect.ScaleAndRotateTransformation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,17 @@ public final class FilterPresets {
         if (clip == null) {
             return new ArrayList<>();
         }
-        return effectsFor(clip.filter, clip.brightness, clip.contrast, clip.saturation,
-                clip.warmth);
+        List<Effect> list = effectsFor(clip.filter, clip.brightness, clip.contrast,
+                clip.saturation, clip.warmth);
+        int rotation = ((clip.rotation % 360) + 360) % 360;
+        if (rotation != 0 || clip.mirror) {
+            ScaleAndRotateTransformation.Builder transform =
+                    new ScaleAndRotateTransformation.Builder()
+                            .setRotationDegrees(rotation)
+                            .setScale(clip.mirror ? -1f : 1f, 1f);
+            list.add(transform.build());
+        }
+        return list;
     }
 
     public static List<Effect> effectsFor(int index) {

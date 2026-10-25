@@ -18,6 +18,16 @@ public class Project {
     public String musicUri;
     public String musicName;
     public float musicVolume = 0.55f;
+    /** Trim window inside the music file; 0..0 means "from the very beginning to the end". */
+    public long musicStartMs;
+    public long musicEndMs;
+    /// Fade length in milliseconds at the start and the end of the music.
+    public long musicFadeInMs;
+    public long musicFadeOutMs;
+    /** Length of the source audio, filled when the track is picked. */
+    public long musicDurationMs;
+    /// Repeat the trimmed music fragment until the end of the project.
+    public boolean musicLoop = true;
     /** Mutes every clip's original sound while keeping the music track. */
     public boolean muteOriginal;
     public final List<Clip> clips = new ArrayList<>();
@@ -59,6 +69,14 @@ public class Project {
         return 0;
     }
 
+    /** Length of the chosen fragment of the music file (0 while the file length is unknown). */
+    public long musicSpan() {
+        if (musicEndMs > musicStartMs) {
+            return musicEndMs - musicStartMs;
+        }
+        return 0L;
+    }
+
     public String aspectLabel() {
         if (aspect > 1.5f) {
             return "16:9";
@@ -85,6 +103,12 @@ public class Project {
             o.put("musicUri", musicUri == null ? JSONObject.NULL : musicUri);
             o.put("musicName", musicName == null ? JSONObject.NULL : musicName);
             o.put("musicVolume", (double) musicVolume);
+            o.put("musicStart", musicStartMs);
+            o.put("musicEnd", musicEndMs);
+            o.put("musicFadeIn", musicFadeInMs);
+            o.put("musicFadeOut", musicFadeOutMs);
+            o.put("musicLoop", musicLoop);
+            o.put("musicDuration", musicDurationMs);
             o.put("muteOriginal", muteOriginal);
             JSONArray arr = new JSONArray();
             for (Clip c : clips) {
@@ -105,6 +129,12 @@ public class Project {
         p.musicUri = o.isNull("musicUri") ? null : o.optString("musicUri", null);
         p.musicName = o.isNull("musicName") ? null : o.optString("musicName", null);
         p.musicVolume = (float) o.optDouble("musicVolume", 0.55f);
+        p.musicStartMs = o.optLong("musicStart", 0);
+        p.musicEndMs = o.optLong("musicEnd", 0);
+        p.musicFadeInMs = o.optLong("musicFadeIn", 0);
+        p.musicFadeOutMs = o.optLong("musicFadeOut", 0);
+        p.musicLoop = o.optBoolean("musicLoop", true);
+        p.musicDurationMs = o.optLong("musicDuration", 0);
         p.muteOriginal = o.optBoolean("muteOriginal", false);
         JSONArray arr = o.optJSONArray("clips");
         if (arr != null) {
@@ -134,6 +164,13 @@ public class Project {
         /** Sound speed, independent of the video speed. 1 = original tempo. */
         public float audioSpeed = 1f;
         public float volume = 1f;
+        /** Fade the clip sound in / out, in milliseconds. */
+        public long fadeInMs;
+        public long fadeOutMs;
+        /** Quarter turns applied to the picture: 0, 90, 180 or 270 degrees. */
+        public int rotation;
+        /** Horizontal flip of the picture. */
+        public boolean mirror;
         public int filter;
         /** True when the clip is a still image rather than a video. */
         public boolean image;
@@ -169,6 +206,10 @@ public class Project {
                 o.put("speed", (double) speed);
                 o.put("audioSpeed", (double) audioSpeed);
                 o.put("volume", (double) volume);
+                o.put("fadeIn", fadeInMs);
+                o.put("fadeOut", fadeOutMs);
+                o.put("rotation", rotation);
+                o.put("mirror", mirror);
                 o.put("filter", filter);
                 o.put("image", image);
                 o.put("brightness", (double) brightness);
@@ -196,6 +237,10 @@ public class Project {
             c.speed = (float) o.optDouble("speed", 1f);
             c.audioSpeed = (float) o.optDouble("audioSpeed", c.speed);
             c.volume = (float) o.optDouble("volume", 1f);
+            c.fadeInMs = o.optLong("fadeIn", 0);
+            c.fadeOutMs = o.optLong("fadeOut", 0);
+            c.rotation = o.optInt("rotation", 0);
+            c.mirror = o.optBoolean("mirror", false);
             c.filter = o.optInt("filter", 0);
             c.image = o.optBoolean("image", false);
             c.brightness = (float) o.optDouble("brightness", 0d);
@@ -224,6 +269,8 @@ public class Project {
         public int position = 1;
         public long startMs;
         public long endMs;
+        /** Soft appearance / disappearance instead of a hard cut. */
+        public boolean fade = true;
 
         public JSONObject toJson() {
             JSONObject o = new JSONObject();
@@ -235,6 +282,7 @@ public class Project {
                 o.put("position", position);
                 o.put("start", startMs);
                 o.put("end", endMs);
+                o.put("fade", fade);
             } catch (JSONException ignored) {
             }
             return o;
@@ -249,6 +297,7 @@ public class Project {
             t.position = o.optInt("position", 1);
             t.startMs = o.optLong("start", 0);
             t.endMs = o.optLong("end", 0);
+            t.fade = o.optBoolean("fade", true);
             return t;
         }
     }
