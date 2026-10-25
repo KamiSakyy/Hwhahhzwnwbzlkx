@@ -214,11 +214,19 @@ public class EditorActivity extends Activity {
         findViewById(R.id.previewHost).setOnClickListener(v -> togglePlay());
         previewBox.setOnClickListener(v -> togglePlay());
         emptyHint.setOnClickListener(v -> pickMedia());
-        previewBox.setOnClickListener(v -> {
-            if (project != null && project.clips.isEmpty()) {
-                pickMedia();
+        View.OnClickListener previewTap = v -> {
+            if (project == null) {
+                return;
             }
-        });
+            if (project.clips.isEmpty()) {
+                pickMedia();
+            } else {
+                togglePlay();
+            }
+        };
+        previewBox.setOnClickListener(previewTap);
+        playerView.setOnClickListener(previewTap);
+        imagePreview.setOnClickListener(previewTap);
         centerPlay.setOnClickListener(v -> togglePlay());
     }
 
@@ -1438,6 +1446,9 @@ public class EditorActivity extends Activity {
                 timeline.setSelectedIndex(index);
                 updateChrome();
                 rebuildTextOverlays();
+                if (activePanel != null) {
+                    refreshPanel();
+                }
             }
 
             @Override

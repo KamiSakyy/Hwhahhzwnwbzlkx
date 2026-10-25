@@ -141,6 +141,7 @@ public class TimelineView extends View {
     private long flingLastMs;
     private long lastHapticMs;
     private long lastSnapValue = Long.MIN_VALUE;
+    private long zoomHintUntil;
     private long lastUpTime;
     private float lastUpX;
     private boolean doubleTap;
@@ -219,6 +220,8 @@ public class TimelineView extends View {
                         double focusTime = positionMs + (focusX - cx) / pxPerMs;
                         pxPerMs = Math.max(0.012f, Math.min(0.9f,
                                 pxPerMs * detector.getScaleFactor()));
+                        zoomHintUntil = System.currentTimeMillis() + 800;
+                        postInvalidateDelayed(860);
                         positionMs = (long) (focusTime - (focusX - cx) / pxPerMs);
                         clampPosition();
                         invalidate();
@@ -359,6 +362,17 @@ public class TimelineView extends View {
             }
         }
         canvas.drawRect(0, rulerBottom + dp(0.5f), w, rulerBottom + dp(1), rulerPaint);
+        if (System.currentTimeMillis() < zoomHintUntil) {
+            String zoom = zoomLabel();
+            textPaint.setTextSize(dp(8));
+            textPaint.setFakeBoldText(false);
+            textPaint.setColor(0xFF00E5A0);
+            canvas.drawText(zoom, w - textPaint.measureText(zoom) - dp(8),
+                    rulerBottom - dp(3), textPaint);
+            textPaint.setFakeBoldText(true);
+            textPaint.setColor(0xFFF2F2F5);
+            textPaint.setTextSize(dp(9));
+        }
 
         if (project.clips.isEmpty()) {
             textPaint.setColor(0xFF8A8A96);
@@ -478,6 +492,15 @@ public class TimelineView extends View {
                 rect.centerY() + dp(3.5f), textPaint);
         textPaint.setColor(0xFFF2F2F5);
         textPaint.setTextSize(dp(9));
+    }
+
+    /** Human readable zoom: how much timeline fits into one screen second. */
+    private String zoomLabel() {
+        if (project == null) {
+            return "";
+        }
+        long visible = (long) (getWidth() / Math.max(0.0001f, pxPerMs));
+        return "видно " + shortTime(visible);
     }
 
     private static String speedLabel(float speed) {
@@ -684,6 +707,8 @@ public class TimelineView extends View {
                     doubleTap = true;
                     lastUpTime = 0;
                     pxPerMs = pxPerMs > 0.12f ? 0.05f : 0.22f;
+                    zoomHintUntil = System.currentTimeMillis() + 800;
+                    postInvalidateDelayed(860);
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
                     invalidate();
                     return true;
