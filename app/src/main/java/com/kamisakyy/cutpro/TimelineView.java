@@ -52,6 +52,9 @@ public class TimelineView extends View {
 
         /** Clip dragged to another position on the strip. */
         void onReorder(int fromIndex, int toIndex);
+
+        /** Music trim handle drag on the audio strip. */
+        void onMusicTrim(long startMs, long endMs, boolean finished);
     }
 
     private static final int MODE_NONE = 0;
@@ -60,6 +63,8 @@ public class TimelineView extends View {
     private static final int MODE_TRIM_RIGHT = 3;
     private static final int MODE_EDGE_LEFT = 4;
     private static final int MODE_EDGE_RIGHT = 5;
+    private static final int MODE_MUSIC_LEFT = 6;
+    private static final int MODE_MUSIC_RIGHT = 7;
 
     private static final int[] CLIP_COLORS = {
             0xFF1B2B2A, 0xFF241F2E, 0xFF2C2124, 0xFF1D2730, 0xFF28241B
@@ -103,6 +108,12 @@ public class TimelineView extends View {
     private long trimEndMs;
 
     private boolean musicTap;
+    private boolean musicTrimMode;
+    private long musicTrimStartMs;
+    private long musicTrimEndMs;
+    private float musicStripPad;
+    private float musicStripPx;
+    private long musicStripTotalMs;
     private boolean reordering;
     private int reorderFrom = -1;
     private int reorderTo = -1;
@@ -272,6 +283,24 @@ public class TimelineView extends View {
         return trimMode;
     }
 
+    /** Full-width audio strip with draggable edges, used by «Обрезка музыки». */
+    public void setMusicTrimMode(boolean enabled) {
+        if (musicTrimMode != enabled) {
+            musicTrimMode = enabled;
+            if (enabled && project != null) {
+                musicTrimStartMs = Math.max(0, project.musicStartMs);
+                musicTrimEndMs = project.musicEndMs > musicTrimStartMs
+                        ? project.musicEndMs
+                        : Math.max(musicTrimStartMs + 300, project.musicDurationMs);
+            }
+            invalidate();
+        }
+    }
+
+    public boolean isMusicTrimMode() {
+        return musicTrimMode;
+    }
+
     public void setPosition(long timeMs) {
         if (userScrolling) {
             return;
@@ -332,6 +361,8 @@ public class TimelineView extends View {
         }
         if (trimMode) {
             drawTrimMode(canvas);
+        } else if (musicTrimMode) {
+            drawMusicTrimMode(canvas);
         } else {
             drawTimeline(canvas);
         }
@@ -680,6 +711,128 @@ public class TimelineView extends View {
         }
     }
 
+    /** Whole music file as a strip: drag the edges to pick the fragment. */
+    private void drawMusicTrimMode(Canvas canvas) {
+        float w = getWidth();
+        float h = getHeight();
+        float top = dp(18);
+        float bottom = h - dp(24);
+        textPaint.setFakeBoldText(false);
+        textPaint.setTextSize(dp(10));
+        textPaint.setColor(0xFF8A8A96);
+        if (project.musicUri == null || project.musicUri.isEmpty()) {
+            canvas.drawText("Музыка не выбрана", dp(14), top + dp(20), textPaint);
+            textPaint.setColor(0xFFF2F2F5);
+            textPaint.setFakeBoldText(true);
+            textPaint.setTextSize(dp(9));
+            return;
+        }
+        musicStripTotalMs = Math.max(1000L,
+                project.musicDurationMs > 0 ? project.musicDurationMs : project.durationMs());
+        musicStripPad = dp(14);
+        musicStripPx = Math.max(0.00001f,
+                (w - musicStripPad * 2) / musicStripTotalMs);
+        long start = musicTrimEndMs > musicTrimStartMs
+                ? Math.max(0, Math.min(musicTrimStartMs, musicStripTotalMs - 300))
+                : Math.max(0, project.musicStartMs);
+        long end = Math.max(start + 300, Math.min(musicTrimEndMs > start
+                ? musicTrimEndMs : musicStripTotalMs, musicStripTotalMs));
+        musicTrimStartMs = start;
+        musicTrimEndMs = end;
+        float startX = musicStripPad + start * musicStripPx;
+        float endX = musicStripPad + end * musicStripPx;
+
+        trimRect.set(musicStripPad, top, w - musicStripPad, bottom);
+        clipPaint.setColor(0xFF16241F);
+        canvas.drawRoundRect(trimRect, dp(7), dp(7), clipPaint);
+
+        canvas.save();
+        clipPath.reset();
+        clipPath.addRoundRect(trimRect, dp(7), dp(7), Path.Direction.CW);
+        canvas.clipPath(clipPath);
+        // Pseudo waveform of the whole track.
+        float barWidth = dp(2);
+        float gap = dp(2);
+        int index = 0;
+        for (float x = trimRect.left + dp(2); x < trimRect.right - dp(2); x += barWidth + gap) {
+            float phase = (x - trimRect.left) * 0.09f;
+            float wave = (float) (Math.sin(phase) * 0.5 + Math.sin(phase * 2.7) * 0.28
+                    + Math.sin(phase * 0.4) * 0.22);
+            float barHeight = Math.max(dp(2),
+                    (trimRect.height() - dp(8)) * (0.25f + Math.abs(wave) * 0.75f));
+            float centerY = trimRect.centerY();
+            boolean inside = x >= startX && x <= endX;
+            gripPaint.setColor(inside
+                    ? (index % 4 == 0 ? 0xFF00E5A0 : 0xFF2E7A63)
+                    : 0xFF2A2A33);
+            canvas.drawRect(x, centerY - barHeight / 2f, x + barWidth,
+                    centerY + barHeight / 2f, gripPaint);
+            index++;
+        }
+        gripPaint.setColor(0xFF06231B);
+        // Dim everything outside the selected fragment.
+        scrimPaint.setColor(0xC0000000);
+        canvas.drawRect(trimRect.left, trimRect.top, startX, trimRect.bottom, scrimPaint);
+        canvas.drawRect(endX, trimRect.top, trimRect.right, trimRect.bottom, scrimPaint);
+        scrimPaint.setColor(0xB3000000);
+
+        // Fade ramps inside the selection.
+        if (project.musicFadeInMs > 0) {
+            float fadeWidth = Math.min(endX - startX, (end - start) * musicStripPx
+                    * project.musicFadeInMs / Math.max(1L, end - start));
+            Path ramp = new Path();
+            ramp.moveTo(startX, trimRect.top);
+            ramp.lineTo(startX + fadeWidth, trimRect.top);
+            ramp.lineTo(startX, trimRect.bottom);
+            ramp.close();
+            dimPaint.setColor(0x990A0A0C);
+            canvas.drawPath(ramp, dimPaint);
+            dimPaint.setColor(0xCC0A0A0C);
+        }
+        if (project.musicFadeOutMs > 0) {
+            float fadeWidth = Math.min(endX - startX, (end - start) * musicStripPx
+                    * project.musicFadeOutMs / Math.max(1L, end - start));
+            Path ramp = new Path();
+            ramp.moveTo(endX, trimRect.top);
+            ramp.lineTo(endX - fadeWidth, trimRect.top);
+            ramp.lineTo(endX, trimRect.bottom);
+            ramp.close();
+            dimPaint.setColor(0x990A0A0C);
+            canvas.drawPath(ramp, dimPaint);
+            dimPaint.setColor(0xCC0A0A0C);
+        }
+        canvas.restore();
+
+        for (float x : new float[]{startX, endX}) {
+            float left = x - dp(5);
+            float right = x + dp(5);
+            rect.set(left, trimRect.top, right, trimRect.bottom);
+            canvas.drawRoundRect(rect, dp(3), dp(3), handlePaint);
+            float gy1 = trimRect.centerY() - dp(8);
+            for (int k = 0; k < 3; k++) {
+                float gy = gy1 + k * dp(6);
+                canvas.drawLine(left + dp(2.6f), gy, right - dp(2.6f), gy, gripPaint);
+            }
+        }
+
+        textPaint.setTextSize(dp(9));
+        textPaint.setFakeBoldText(true);
+        textPaint.setColor(0xFFF2F2F5);
+        canvas.drawText(shortTime(start), trimRect.left, trimRect.bottom + dp(14), textPaint);
+        String endLabel = shortTime(end);
+        canvas.drawText(endLabel, trimRect.right - textPaint.measureText(endLabel),
+                trimRect.bottom + dp(14), textPaint);
+        String length = longTime(end - start);
+        textPaint.setColor(0xFF00E5A0);
+        canvas.drawText(length, trimRect.centerX() - textPaint.measureText(length) / 2f,
+                trimRect.top - dp(5), textPaint);
+        textPaint.setColor(0xFFF2F2F5);
+        if (dragChipText != null) {
+            drawDragChip(canvas, Math.max(dp(30), Math.min(w - dp(30), dragChipX)),
+                    trimRect.top - dp(16));
+        }
+    }
+
     private void drawCenterCrop(Canvas canvas, Bitmap bitmap, RectF target) {
         float bw = bitmap.getWidth();
         float bh = bitmap.getHeight();
@@ -714,6 +867,9 @@ public class TimelineView extends View {
         }
         if (trimMode) {
             return handleTrimTouch(event);
+        }
+        if (musicTrimMode) {
+            return handleMusicTrimTouch(event);
         }
         return handleTimelineTouch(event);
     }
@@ -1112,6 +1268,86 @@ public class TimelineView extends View {
                 dragChipText = null;
                 invalidate();
                 return true;
+            default:
+                return true;
+        }
+    }
+
+    private boolean handleMusicTrimTouch(MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN: {
+                downX = event.getX();
+                dragChipText = null;
+                float startX = musicStripPad + musicTrimStartMs * musicStripPx;
+                float endX = musicStripPad + musicTrimEndMs * musicStripPx;
+                if (Math.abs(downX - startX) <= dp(30)) {
+                    touchMode = MODE_MUSIC_LEFT;
+                    dragChipX = startX;
+                    performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                } else if (Math.abs(downX - endX) <= dp(30)) {
+                    touchMode = MODE_MUSIC_RIGHT;
+                    dragChipX = endX;
+                    performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                } else {
+                    touchMode = MODE_SCROLL;
+                }
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                }
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (touchMode != MODE_MUSIC_LEFT && touchMode != MODE_MUSIC_RIGHT) {
+                    return true;
+                }
+                long target = (long) ((event.getX() - musicStripPad) / musicStripPx);
+                long tolerance = (long) (dp(9) / Math.max(0.00001f, musicStripPx));
+                if (Math.abs(target) <= tolerance) {
+                    target = 0;
+                    hapticSnap(0);
+                } else if (Math.abs(target - musicStripTotalMs) <= tolerance) {
+                    target = musicStripTotalMs;
+                    hapticSnap(musicStripTotalMs);
+                }
+                if (touchMode == MODE_MUSIC_LEFT) {
+                    musicTrimStartMs = Math.max(0, Math.min(target, musicTrimEndMs - 300));
+                    dragChipX = musicStripPad + musicTrimStartMs * musicStripPx;
+                } else {
+                    musicTrimEndMs = Math.max(musicTrimStartMs + 300,
+                            Math.min(target, musicStripTotalMs));
+                    dragChipX = musicStripPad + musicTrimEndMs * musicStripPx;
+                }
+                dragChipText = longTime(musicTrimEndMs - musicTrimStartMs);
+                invalidate();
+                if (listener != null) {
+                    listener.onMusicTrim(musicTrimStartMs, musicTrimEndMs, false);
+                }
+                return true;
+            }
+            case MotionEvent.ACTION_UP: {
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                }
+                dragChipText = null;
+                if (touchMode == MODE_MUSIC_LEFT || touchMode == MODE_MUSIC_RIGHT) {
+                    touchMode = MODE_NONE;
+                    if (listener != null) {
+                        listener.onMusicTrim(musicTrimStartMs, musicTrimEndMs, true);
+                    }
+                }
+                touchMode = MODE_NONE;
+                invalidate();
+                return true;
+            }
+            case MotionEvent.ACTION_CANCEL: {
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                }
+                touchMode = MODE_NONE;
+                dragChipText = null;
+                invalidate();
+                return true;
+            }
             default:
                 return true;
         }

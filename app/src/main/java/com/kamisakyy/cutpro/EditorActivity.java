@@ -319,6 +319,7 @@ public class EditorActivity extends Activity {
         }
         activePanel = key;
         timeline.setTrimMode(P_TRIM.equals(key));
+        timeline.setMusicTrimMode(P_MUSIC_TRIM.equals(key));
         refreshRail();
         showPanel(key);
     }
@@ -328,6 +329,7 @@ public class EditorActivity extends Activity {
         panelHost.removeAllViews();
         panelHost.setVisibility(View.GONE);
         timeline.setTrimMode(false);
+        timeline.setMusicTrimMode(false);
         refreshRail();
     }
 
@@ -1046,6 +1048,22 @@ public class EditorActivity extends Activity {
         }));
         pitchLine.addView(pitchValue);
 
+        LinearLayout bulkSpeed = row();
+        bulkSpeed.setPadding(0, dp(3), 0, 0);
+        bulkSpeed.addView(chip("Скорость всем", false, () -> {
+            pushUndo();
+            for (Project.Clip other : project.clips) {
+                other.speed = clip.speed;
+                other.audioSpeed = clip.audioSpeed;
+                other.audioPitch = clip.audioPitch;
+            }
+            saveProject();
+            rebuildPlaylist(currentProjectTime());
+            refreshPanel();
+            toast("Скорость применена ко всем клипам");
+        }));
+        box.addView(scrollable(bulkSpeed));
+
         boolean sameSpeed = Math.abs(clip.audioSpeed - clip.speed) < 0.01f;
         String impactText = "Видео " + formatSeconds(clip.trimmedDurationMs())
                 + " → " + formatSeconds(clip.outputDurationMs())
@@ -1253,9 +1271,9 @@ public class EditorActivity extends Activity {
 
         fadeValue.setPadding(dp(2), dp(4), 0, 0);
         box.addView(fadeValue);
-        TextView hint = note("Сейчас играет фрагмент " + formatSeconds(startNow)
-                + " – " + formatSeconds(endNow) + ", он повторяется до конца ролика."
-                + " Фейд выхода считается от конца проекта.");
+        TextView hint = note("Края жёлтой полосы на таймлайне тоже тянутся пальцем."
+                + " Фрагмент " + formatSeconds(startNow) + " – " + formatSeconds(endNow)
+                + " повторяется до конца ролика; фейд выхода считается от конца проекта.");
         hint.setPadding(0, dp(2), 0, 0);
         box.addView(hint);
         return box;
@@ -1419,6 +1437,40 @@ public class EditorActivity extends Activity {
         box.addView(scrollable(fadePresets));
         fadeValue.setPadding(dp(2), dp(3), 0, 0);
         box.addView(fadeValue);
+
+        LinearLayout bulk = row();
+        bulk.setPadding(0, dp(4), 0, 0);
+        bulk.addView(chip("Всем 100%", false, () -> {
+            pushUndo();
+            for (Project.Clip other : project.clips) {
+                other.volume = 1f;
+            }
+            saveProject();
+            applyClipVolume();
+            refreshPanel();
+            toast("Громкость всех клипов 100%");
+        }));
+        bulk.addView(chip("Всем без звука", false, () -> {
+            pushUndo();
+            for (Project.Clip other : project.clips) {
+                other.volume = 0f;
+            }
+            saveProject();
+            applyClipVolume();
+            refreshPanel();
+            toast("Звук всех клипов выключен");
+        }));
+        bulk.addView(chip("Фейды всем", false, () -> {
+            pushUndo();
+            for (Project.Clip other : project.clips) {
+                other.fadeInMs = 300;
+                other.fadeOutMs = 300;
+            }
+            saveProject();
+            refreshPanel();
+            toast("Плавный вход и выход у всех клипов");
+        }));
+        box.addView(scrollable(bulk));
 
         LinearLayout master = row();
         master.setPadding(0, dp(4), 0, 0);
@@ -1876,6 +1928,11 @@ public class EditorActivity extends Activity {
             @Override
             public void onReorder(int fromIndex, int toIndex) {
                 reorderClip(fromIndex, toIndex);
+            }
+
+            @Override
+            public void onMusicTrim(long startMs, long endMs, boolean finished) {
+                handleMusicTrim(startMs, endMs, finished);
             }
         });
     }
@@ -2945,6 +3002,28 @@ public class EditorActivity extends Activity {
         item.startMs = source.startMs;
         item.endMs = source.endMs;
         return item;
+    }
+
+    private void handleMusicTrim(long startMs, long endMs, boolean finished) {
+        if (project.musicUri == null) {
+            return;
+        }
+        if (!trimGesture) {
+            pushUndo();
+            trimGesture = true;
+        }
+        project.musicStartMs = Math.max(0, startMs);
+        project.musicEndMs = Math.max(project.musicStartMs + 300, endMs);
+        prepareMusic();
+        if (finished) {
+            trimGesture = false;
+            saveProject();
+            refreshPanel();
+            toast("Фрагмент " + formatSeconds(project.musicStartMs) + " – "
+                    + formatSeconds(project.musicEndMs));
+        } else {
+            timeline.invalidate();
+        }
     }
 
     private void reorderClip(int fromIndex, int toIndex) {
