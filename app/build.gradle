@@ -1,0 +1,67 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.kamisakyy.cutpro'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.kamisakyy.cutpro"
+        minSdk 29
+        targetSdk 34
+        versionCode((System.getenv("VERSION_CODE") ?: "1").toInteger())
+        versionName((System.getenv("VERSION_NAME") ?: "1.0"))
+    }
+
+    signingConfigs {
+        release {
+            def ksPath = System.getenv("KEYSTORE_PATH")
+            if (ksPath != null && file(ksPath).exists()) {
+                storeFile file(ksPath)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+                def lower = ksPath.toLowerCase()
+                storeType(lower.endsWith(".p12") || lower.endsWith(".pfx") ? "PKCS12" : "JKS")
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+            if (System.getenv("KEYSTORE_PATH") != null) {
+                signingConfig signingConfigs.release
+            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packaging {
+        resources {
+            excludes += ['/META-INF/{AL2.0,LGPL2.1}', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE']
+        }
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation 'androidx.media3:media3-exoplayer:1.6.1'
+    implementation 'androidx.media3:media3-ui:1.6.1'
+    implementation 'androidx.media3:media3-transformer:1.6.1'
+    implementation 'androidx.media3:media3-effect:1.6.1'
+    implementation 'com.google.guava:guava:33.3.1-android'
+}

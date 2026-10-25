@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="14dp"
+    android:paddingTop="8dp"
+    android:paddingRight="14dp"
+    android:paddingBottom="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/textInput"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input"
+            android:hint="Введите текст"
+            android:importantForAutofill="no"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLines="1"
+            android:paddingLeft="11dp"
+            android:paddingRight="11dp"
+            android:textColor="@color/text"
+            android:textColorHint="@color/dim2"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/btnTextAdd"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/bg_accent"
+            android:contentDescription="@string/app_name"
+            android:padding="8dp"
+            android:src="@drawable/ic_check"
+            android:tint="@color/on_accent" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/SectionLabel"
+            android:layout_width="56dp"
+            android:text="РАЗМЕР" />
+
+        <SeekBar
+            android:id="@+id/sizeSeek"
+            style="@style/PanelSlider"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="30" />
+
+        <TextView
+            android:id="@+id/sizeValue"
+            style="@style/ValueText"
+            android:layout_width="38dp"
+            android:gravity="right"
+            android:text="30" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/SectionLabel"
+            android:layout_width="58dp"
+            android:text="ЦВЕТ" />
+
+        <LinearLayout
+            android:id="@+id/colorRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/SectionLabel"
+            android:layout_width="58dp"
+            android:text="ПОЛОЖ." />
+
+        <LinearLayout
+            android:id="@+id/positionRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/SectionLabel"
+            android:layout_width="58dp"
+            android:text="ВРЕМЯ" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <SeekBar
+                android:id="@+id/textStartSeek"
+                style="@style/PanelSlider"
+                android:layout_width="match_parent"
+                android:layout_height="22dp"
+                android:max="100"
+                android:progress="0" />
+
+            <SeekBar
+                android:id="@+id/textEndSeek"
+                style="@style/PanelSlider"
+                android:layout_width="match_parent"
+                android:layout_height="22dp"
+                android:max="100"
+                android:progress="100" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textTimeLabel"
+            style="@style/ValueText"
+            android:layout_width="58dp"
+            android:gravity="right"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+</LinearLayout>
