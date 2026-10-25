@@ -130,6 +130,7 @@ public class EditorActivity extends Activity {
     private String activePanel;
     private boolean exporting;
     private boolean trimGesture;
+    private float lastLinkSpeed = 1f;
     private boolean updatingSlider;
     private int exportShortSide = 1080;
     private int pendingTextColor = 0xFFFFFFFF;
@@ -821,14 +822,15 @@ public class EditorActivity extends Activity {
         final Project.Clip clip = selectedClip();
         LinearLayout box = newPanel();
         addHeader(box, "Скорость", null);
-        final TextView value = new TextView(this);
-        value.setTextColor(getColor(R.color.text));
-        value.setTextSize(11f);
-        value.setText(String.format(Locale.US, "%.2fx", clip.speed));
 
-        LinearLayout line = row();
-        line.addView(value);
-        line.addView(panelSlider(375, (int) (clip.speed * 100) - 25,
+        final TextView videoValue = new TextView(this);
+        videoValue.setTextColor(getColor(R.color.text));
+        videoValue.setTextSize(11f);
+        videoValue.setText(String.format(Locale.US, "%.2fx", clip.speed));
+
+        LinearLayout videoLine = row();
+        videoLine.addView(videoValue);
+        videoLine.addView(panelSlider(375, (int) Math.round(clip.speed * 100) - 25,
                 new SimpleSeekListener() {
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {
@@ -840,9 +842,13 @@ public class EditorActivity extends Activity {
                         if (!fromUser) {
                             return;
                         }
-                        float speed = (progress + 25) / 100f;
-                        clip.speed = speed;
-                        value.setText(String.format(Locale.US, "%.2fx", speed));
+                        clip.speed = (progress + 25) / 100f;
+                        if (clip.audioSpeed == 0f
+                                || Math.abs(clip.audioSpeed - lastLinkSpeed) < 0.01f) {
+                            clip.audioSpeed = clip.speed;
+                        }
+                        lastLinkSpeed = clip.speed;
+                        videoValue.setText(String.format(Locale.US, "%.2fx", clip.speed));
                         timeline.setProject(project);
                         applyPlaybackParams();
                         updateChrome();
@@ -854,7 +860,7 @@ public class EditorActivity extends Activity {
                         refreshPanel();
                     }
                 }));
-        box.addView(line);
+        box.addView(videoLine);
 
         LinearLayout presets = row();
         presets.setPadding(0, dp(2), 0, 0);
@@ -865,6 +871,9 @@ public class EditorActivity extends Activity {
                     : String.valueOf(speed)) + "x";
             presets.addView(chip(label, Math.abs(clip.speed - speed) < 0.01f, () -> {
                 pushUndo();
+                if (Math.abs(clip.audioSpeed - clip.speed) < 0.01f) {
+                    clip.audioSpeed = speed;
+                }
                 clip.speed = speed;
                 saveProject();
                 timeline.setProject(project);
@@ -875,11 +884,85 @@ public class EditorActivity extends Activity {
         }
         box.addView(scrollable(presets));
 
-        TextView impact = note("Длительность: " + formatSeconds(clip.trimmedDurationMs())
-                + "  →  " + formatSeconds(clip.outputDurationMs()));
-        impact.setPadding(0, dp(4), 0, 0);
+        if (clip.image) {
+            TextView photoNote = note("У фото нет звука — меняется только длительность кадра.");
+            photoNote.setPadding(0, dp(5), 0, 0);
+            box.addView(photoNote);
+            return box;
+        }
+
+        // Sound speed is a second, independent slider.
+        LinearLayout audioHeader = row();
+        audioHeader.setPadding(0, dp(6), 0, 0);
+        audioHeader.addView(smallCaption("Звук"));
+        View spacer = new View(this);
+        audioHeader.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
+        final Project.Clip target = clip;
+        audioHeader.addView(chip("= видео",
+                Math.abs(clip.audioSpeed - clip.speed) < 0.01f, () -> {
+                    pushUndo();
+                    target.audioSpeed = target.speed;
+                    saveProject();
+                    applyPlaybackParams();
+                    refreshPanel();
+                }));
+        box.addView(audioHeader);
+
+        final TextView audioValue = new TextView(this);
+        audioValue.setTextColor(getColor(R.color.text));
+        audioValue.setTextSize(11f);
+        audioValue.setText(String.format(Locale.US, "%.2fx", clip.audioSpeed));
+
+        LinearLayout audioLine = row();
+        audioLine.addView(audioValue);
+        audioLine.addView(panelSlider(375, (int) Math.round(clip.audioSpeed * 100) - 25,
+                new SimpleSeekListener() {
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        clip.audioSpeed = (progress + 25) / 100f;
+                        audioValue.setText(String.format(Locale.US, "%.2fx", clip.audioSpeed));
+                        videoValue.setText(String.format(Locale.US, "%.2fx", clip.speed));
+                        applyPlaybackParams();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        saveProject();
+                        refreshPanel();
+                    }
+                }));
+        box.addView(audioLine);
+
+        boolean sameSpeed = Math.abs(clip.audioSpeed - clip.speed) < 0.01f;
+        String impactText = "Видео " + formatSeconds(clip.trimmedDurationMs())
+                + " → " + formatSeconds(clip.outputDurationMs())
+                + "  ·  звук " + formatSeconds(clip.trimmedDurationMs())
+                + " → " + formatSeconds((long) (clip.trimmedDurationMs()
+                / Math.max(0.1f, clip.audioSpeed)));
+        if (!sameSpeed) {
+            impactText += "\nЗвук идёт своим темпом: если он короче видео — дальше тишина,"
+                    + " если длиннее — обрежется. В превью темп видео, высота тона — по звуку.";
+        }
+        TextView impact = note(impactText);
+        impact.setPadding(0, dp(5), 0, 0);
         box.addView(impact);
         return box;
+    }
+
+    private TextView smallCaption(String text) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextColor(getColor(R.color.dim2));
+        view.setTextSize(10f);
+        return view;
     }
 
     private View volumePanel() {
@@ -1314,11 +1397,15 @@ public class EditorActivity extends Activity {
 
             @Override
             public void onScrub(long timeMs) {
-                seekToProjectTime(timeMs, false);
+                scrubToProjectTime(timeMs);
             }
 
             @Override
             public void onClipSelected(int index) {
+                if (index != selectedIndex) {
+                    timeline.performHapticFeedback(
+                            android.view.HapticFeedbackConstants.KEYBOARD_TAP);
+                }
                 selectedIndex = index;
                 timeline.setSelectedIndex(index);
                 updateChrome();
@@ -1415,7 +1502,11 @@ public class EditorActivity extends Activity {
             Project.Clip clip = project.clips.get(clipIndex);
             try {
                 player.setVideoEffects(FilterPresets.effectsFor(clip));
-                player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
+                player.setPlaybackParameters(new PlaybackParameters(
+                        Math.max(0.25f, Math.min(4f, clip.speed)),
+                        Math.max(0.5f, Math.min(2f,
+                                Math.max(0.25f, clip.audioSpeed)
+                                        / Math.max(0.25f, clip.speed)))));
             } catch (Throwable ignored) {
             }
         }
@@ -1430,6 +1521,45 @@ public class EditorActivity extends Activity {
 
     private void seekToProjectTime(long timeMs) {
         seekToProjectTime(timeMs, true);
+    }
+
+    /** Lightweight seek used while a finger drags the timeline: no chrome churn. */
+    private void scrubToProjectTime(long timeMs) {
+        if (project == null || project.clips.isEmpty()) {
+            return;
+        }
+        long target = Math.max(0, Math.min(timeMs, project.durationMs()));
+        int clipIndex = project.clipIndexAt(target);
+        if (clipIndex < 0) {
+            return;
+        }
+        timeline.setPosition(target);
+        photoPositionMs = target;
+        Project.Clip clip = project.clips.get(clipIndex);
+        if (clip.image) {
+            if (!photoMode || photoClipIndex != clipIndex) {
+                photoMode = true;
+                photoClipIndex = clipIndex;
+                photoPlaying = false;
+                showPhoto(clip);
+            }
+            updateImageLayer(clipIndex);
+            if (selectedIndex != clipIndex) {
+                selectedIndex = clipIndex;
+                timeline.setSelectedIndex(clipIndex);
+                updateChrome();
+            }
+            return;
+        }
+        photoMode = false;
+        photoPlaying = false;
+        updateImageLayer(-1);
+        int playerIndex = playerIndexForClip(clipIndex);
+        if (playerIndex >= 0) {
+            long position = Math.round((target - project.startOfClip(clipIndex))
+                    * Math.max(0.1f, clip.speed));
+            player.seekTo(playerIndex, Math.max(0, position));
+        }
     }
 
     private void seekToProjectTime(long timeMs, boolean rebuildOverlay) {
@@ -1608,7 +1738,11 @@ public class EditorActivity extends Activity {
         }
         Project.Clip clip = project.clips.get(clipIndex);
         try {
-            player.setPlaybackParameters(new PlaybackParameters(Math.max(0.1f, clip.speed)));
+            float videoSpeed = Math.max(0.25f, Math.min(4f, clip.speed));
+            float soundSpeed = Math.max(0.25f, Math.min(4f, clip.audioSpeed));
+            // Player keeps the picture speed; a differing sound speed is hinted by pitch.
+            float pitch = Math.max(0.5f, Math.min(2f, soundSpeed / videoSpeed));
+            player.setPlaybackParameters(new PlaybackParameters(videoSpeed, pitch));
             applyClipVolume();
         } catch (Throwable ignored) {
         }
@@ -2246,6 +2380,7 @@ public class EditorActivity extends Activity {
         right.trimStartMs = cut;
         right.trimEndMs = clip.trimEndMs;
         right.speed = clip.speed;
+        right.audioSpeed = clip.audioSpeed;
         right.volume = clip.volume;
         right.filter = clip.filter;
 
@@ -2299,9 +2434,10 @@ public class EditorActivity extends Activity {
         Project.Clip clip = project.clips.remove(fromIndex);
         project.clips.add(toIndex, clip);
         selectedIndex = toIndex;
+        timeline.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
         saveProject();
         rebuildPlaylist(project.startOfClip(toIndex));
-        toast("Клип перемещён");
+        toast("Клип " + (toIndex + 1) + " из " + project.clips.size());
     }
 
     private void deleteClip() {

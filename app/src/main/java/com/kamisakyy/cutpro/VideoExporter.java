@@ -18,6 +18,7 @@ import androidx.media3.common.Effect;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.audio.AudioProcessor;
+import androidx.media3.common.audio.SonicAudioProcessor;
 import androidx.media3.common.audio.SpeedProvider;
 import androidx.media3.effect.BitmapOverlay;
 import androidx.media3.effect.OverlayEffect;
@@ -192,6 +193,9 @@ public final class VideoExporter {
         List<TextureOverlay> overlayList = new ArrayList<>();
         int clipCount = project.clips.size();
 
+        EditedMediaItemSequence.Builder audioSequence = new EditedMediaItemSequence.Builder();
+        int audioItems = 0;
+
         for (int i = 0; i < clipCount; i++) {
             Project.Clip clip = project.clips.get(i);
             if (clip.uri == null || clip.trimmedDurationMs() <= 0) {
@@ -204,17 +208,15 @@ public final class VideoExporter {
             videoEffects.addAll(FilterPresets.effectsFor(clip));
 
             boolean muted = project.muteOriginal || clip.volume <= 0.01f;
-            List<AudioProcessor> audioProcessors = new ArrayList<>();
-            if (!muted && Math.abs(clip.volume - 1f) > 0.01f) {
-                audioProcessors.add(new GainAudioProcessor(clip.volume));
-            }
-            if (!clip.image && Math.abs(clip.speed - 1f) > 0.01f) {
-                Pair<AudioProcessor, Effect> speed =
-                        Effects.createExperimentalSpeedChangingEffect(constantSpeed(clip.speed));
-                if (speed.first != null) {
-                    audioProcessors.add(speed.first);
-                }
-                videoEffects.add(speed.second);
+            long clipOutputMs = clip.outputDurationMs();
+            float videoSpeed = Math.max(0.1f, clip.speed);
+            float audioSpeed = Math.max(0.1f, clip.audioSpeed);
+
+            // Speed of the pictures only: sound is assembled in its own sequence below,
+            // so «скорость видео» and «скорость звука» stay independent.
+            if (!clip.image && Math.abs(videoSpeed - 1f) > 0.01f) {
+                videoEffects.add(Effects.createExperimentalSpeedChangingEffect(
+                        constantSpeed(videoSpeed)).second);
             }
 
             MediaItem item;
@@ -224,7 +226,7 @@ public final class VideoExporter {
                         .setUri(Uri.parse(clip.uri))
                         .build();
                 editedBuilder = new EditedMediaItem.Builder(item)
-                        .setDurationUs(Math.max(100_000L, clip.outputDurationMs() * 1000L))
+                        .setDurationUs(Math.max(100_000L, clipOutputMs * 1000L))
                         .setFrameRate(30)
                         .setRemoveAudio(true)
                         .setEffects(new Effects(new ArrayList<AudioProcessor>(), videoEffects));
@@ -237,14 +239,50 @@ public final class VideoExporter {
                                 .build())
                         .build();
                 editedBuilder = new EditedMediaItem.Builder(item)
-                        .setRemoveAudio(muted)
-                        .setEffects(new Effects(audioProcessors, videoEffects));
+                        .setRemoveAudio(true)
+                        .setEffects(new Effects(new ArrayList<AudioProcessor>(), videoEffects));
             }
             items.add(editedBuilder.build());
 
+            // Sound for this clip: its own tempo, cut or padded to the video length.
+            long slotUs = Math.max(100_000L, clipOutputMs * 1000L);
+            long audioItemUs = 0;
+            if (!clip.image && !muted) {
+                long clippedAudioUs = Math.max(0L, clip.trimmedDurationMs() * 1000L);
+                long usableUs = Math.min(clippedAudioUs, (long) (slotUs * audioSpeed));
+                if (usableUs > 100_000L) {
+                    long endMs = clip.trimStartMs + usableUs / 1000L;
+                    MediaItem audioItem = new MediaItem.Builder()
+                            .setUri(Uri.parse(clip.uri))
+                            .setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder()
+                                    .setStartPositionMs(clip.trimStartMs)
+                                    .setEndPositionMs(Math.max(clip.trimStartMs + 100, endMs))
+                                    .build())
+                            .build();
+                    List<AudioProcessor> audioProcessors = new ArrayList<>();
+                    if (Math.abs(clip.volume - 1f) > 0.01f) {
+                        audioProcessors.add(new GainAudioProcessor(clip.volume));
+                    }
+                    if (Math.abs(audioSpeed - 1f) > 0.01f) {
+                        SonicAudioProcessor sonic = new SonicAudioProcessor();
+                        sonic.setSpeed(audioSpeed);
+                        audioProcessors.add(sonic);
+                    }
+                    audioSequence.addItem(new EditedMediaItem.Builder(audioItem)
+                            .setRemoveVideo(true)
+                            .setEffects(new Effects(audioProcessors, new ArrayList<Effect>()))
+                            .build());
+                    audioItemUs = (long) (usableUs / audioSpeed);
+                    audioItems++;
+                }
+            }
+            long gapUs = slotUs - audioItemUs;
+            if (gapUs > 100_000L) {
+                audioSequence.addGap(gapUs);
+            }
+
             long clipStartMs = project.startOfClip(i);
-            float speed = Math.max(0.1f, clip.speed);
-            long clipOutputMs = clip.outputDurationMs();
+            float speed = videoSpeed;
             for (Project.TextItem text : clip.texts) {
                 if (text.text == null || text.text.trim().isEmpty()) {
                     continue;
@@ -269,6 +307,9 @@ public final class VideoExporter {
 
         List<EditedMediaItemSequence> sequences = new ArrayList<>();
         sequences.add(new EditedMediaItemSequence(items));
+        if (audioItems > 0) {
+            sequences.add(audioSequence.build());
+        }
 
         if (project.musicUri != null && !project.musicUri.isEmpty()) {
             List<AudioProcessor> musicAudio = new ArrayList<>();

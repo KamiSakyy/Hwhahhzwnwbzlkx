@@ -14,8 +14,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Size;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 
@@ -132,6 +134,49 @@ public class TimelineView extends View {
     private float lastX;
     private boolean moved;
     private boolean userScrolling;
+
+    private final VelocityTracker velocityTracker = VelocityTracker.obtain();
+    private boolean flinging;
+    private double flingVelocity;
+    private long flingLastMs;
+    private long lastHapticMs;
+    private long lastSnapValue = Long.MIN_VALUE;
+    private long lastUpTime;
+    private float lastUpX;
+    private boolean doubleTap;
+    private float dragChipX;
+    private String dragChipText;
+
+    /** Inertia after a flick: keeps gliding so long projects are easy to reach. */
+    private final Runnable flingStep = new Runnable() {
+        @Override
+        public void run() {
+            if (!flinging) {
+                return;
+            }
+            long now = System.currentTimeMillis();
+            long dt = Math.max(1, Math.min(48, now - flingLastMs));
+            flingLastMs = now;
+            positionMs += (long) (flingVelocity * dt / 1000d);
+            flingVelocity *= 0.9d;
+            clampPosition();
+            invalidate();
+            if (listener != null) {
+                listener.onScrub(positionMs);
+            }
+            boolean atStart = positionMs <= 0;
+            boolean atEnd = project != null && positionMs >= project.durationMs();
+            if (Math.abs(flingVelocity) < 70 || atStart || atEnd) {
+                flinging = false;
+                userScrolling = false;
+                if (listener != null) {
+                    listener.onSeek(positionMs);
+                }
+                return;
+            }
+            postOnAnimation(this);
+        }
+    };
 
     public TimelineView(Context context) {
         this(context, null);
@@ -319,7 +364,7 @@ public class TimelineView extends View {
             textPaint.setColor(0xFF8A8A96);
             textPaint.setTextSize(dp(10));
             textPaint.setFakeBoldText(false);
-            canvas.drawText("Добавьте видео кнопкой «+»", dp(14), top + dp(22), textPaint);
+            canvas.drawText("Добавьте видео или фото кнопкой «+»", dp(14), top + dp(22), textPaint);
             textPaint.setColor(0xFFF2F2F5);
             textPaint.setFakeBoldText(true);
             textPaint.setTextSize(dp(9));
@@ -377,6 +422,19 @@ public class TimelineView extends View {
                 canvas.drawText("#" + (i + 1), x + dp(6), bottom - dp(5), textPaint);
                 canvas.restore();
             }
+            if (width > dp(46) && Math.abs(clip.speed - 1f) > 0.01f) {
+                String badge = speedLabel(clip.speed);
+                textPaint.setTextSize(dp(8));
+                float badgeWidth = textPaint.measureText(badge) + dp(8);
+                float badgeRight = right - dp(4);
+                rect.set(badgeRight - badgeWidth, top + dp(3), badgeRight, top + dp(15));
+                clipPaint.setColor(0xCC00E5A0);
+                canvas.drawRoundRect(rect, dp(4), dp(4), clipPaint);
+                textPaint.setColor(0xFF06231B);
+                canvas.drawText(badge, rect.left + dp(4), rect.bottom - dp(3), textPaint);
+                textPaint.setColor(0xFFF2F2F5);
+                textPaint.setTextSize(dp(9));
+            }
         }
 
         if (reordering && reorderTo >= 0) {
@@ -389,11 +447,38 @@ public class TimelineView extends View {
             drawMusicLane(canvas, rulerBottom, bottom, h, cx);
         }
         drawPlayhead(canvas, cx, h, rulerBottom);
+        drawDragChip(canvas, Math.max(dp(28), Math.min(getWidth() - dp(28), dragChipX)),
+                Math.max(top + dp(16), rulerBottom + dp(18)));
+    }
+
+    /** Floating label with the trim length while a handle is being dragged. */
+    private void drawDragChip(Canvas canvas, float x, float y) {
+        if (dragChipText == null) {
+            return;
+        }
+        textPaint.setTextSize(dp(10));
+        textPaint.setFakeBoldText(true);
+        float width = textPaint.measureText(dragChipText) + dp(16);
+        rect.set(x - width / 2f, y - dp(11), x + width / 2f, y + dp(11));
+        clipPaint.setColor(0xF200E5A0);
+        canvas.drawRoundRect(rect, dp(9), dp(9), clipPaint);
+        textPaint.setColor(0xFF06231B);
+        canvas.drawText(dragChipText, rect.centerX() - textPaint.measureText(dragChipText) / 2f,
+                rect.centerY() + dp(3.5f), textPaint);
+        textPaint.setColor(0xFFF2F2F5);
+        textPaint.setTextSize(dp(9));
+    }
+
+    private static String speedLabel(float speed) {
+        if (Math.abs(speed - Math.round(speed)) < 0.05f) {
+            return ((int) Math.round(speed)) + "x";
+        }
+        return String.format(java.util.Locale.US, "%.1fx", speed);
     }
 
     private void drawEdgeHandles(Canvas canvas, RectF clipRect, float top, float bottom) {
-        float width = dp(3);
-        float height = dp(16);
+        float width = dp(4.5f);
+        float height = dp(24);
         float cy = (top + bottom) / 2f;
         rect.set(clipRect.left - width / 2f, cy - height / 2f,
                 clipRect.left + width / 2f, cy + height / 2f);
@@ -519,6 +604,11 @@ public class TimelineView extends View {
         canvas.drawText(length, trimRect.centerX() - textPaint.measureText(length) / 2f,
                 trimRect.top - dp(5), textPaint);
         textPaint.setColor(0xFFF2F2F5);
+        if (dragChipText != null) {
+            drawDragChip(canvas,
+                    Math.max(dp(30), Math.min(w - dp(30), dragChipX)),
+                    trimRect.top - dp(16));
+        }
     }
 
     private void drawCenterCrop(Canvas canvas, Bitmap bitmap, RectF target) {
@@ -561,39 +651,57 @@ public class TimelineView extends View {
 
     private boolean handleTimelineTouch(MotionEvent event) {
         float cx = getWidth() / 2f;
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            flinging = false;
+            removeCallbacks(flingStep);
+        }
+        velocityTracker.addMovement(event);
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
                 downX = event.getX();
                 lastX = downX;
                 moved = false;
+                doubleTap = false;
+                dragChipText = null;
                 userScrolling = true;
                 if (getParent() != null) {
                     getParent().requestDisallowInterceptTouchEvent(true);
                 }
+                long now = System.currentTimeMillis();
+                if (now - lastUpTime < 320 && Math.abs(downX - lastUpX) < dp(44)) {
+                    // Double tap: toggle between overview and frame-accurate zoom.
+                    doubleTap = true;
+                    lastUpTime = 0;
+                    pxPerMs = pxPerMs > 0.12f ? 0.05f : 0.22f;
+                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                    invalidate();
+                    return true;
+                }
                 musicTap = project.musicUri != null && !project.musicUri.isEmpty()
-                        && event.getY() > getHeight() - dp(24);
+                        && event.getY() > getHeight() - dp(26);
                 if (musicTap) {
                     return true;
                 }
-                postDelayed(longPress, 420);
+                postDelayed(longPress, 300);
                 int[] edges = selectedClipEdges();
-                if (edges != null && Math.abs(downX - getWidth() / 2f) > dp(14)) {
-                    if (Math.abs(downX - edges[0]) <= dp(18)) {
+                float reach = dp(26);
+                if (edges != null && Math.abs(downX - cx) > dp(12)) {
+                    if (Math.abs(downX - edges[0]) <= reach) {
                         touchMode = MODE_EDGE_LEFT;
                         mainTrimIndex = selectedIndex;
                         syncTrimBounds();
                         mainTrimStart = trimStartMs;
                         mainTrimEnd = trimEndMs;
-                        performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK);
+                        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
                         return true;
                     }
-                    if (Math.abs(downX - edges[1]) <= dp(18)) {
+                    if (Math.abs(downX - edges[1]) <= reach) {
                         touchMode = MODE_EDGE_RIGHT;
                         mainTrimIndex = selectedIndex;
                         syncTrimBounds();
                         mainTrimStart = trimStartMs;
                         mainTrimEnd = trimEndMs;
-                        performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK);
+                        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
                         return true;
                     }
                 }
@@ -602,18 +710,24 @@ public class TimelineView extends View {
             case MotionEvent.ACTION_MOVE: {
                 if (event.getPointerCount() > 1) {
                     removeCallbacks(longPress);
+                    removeCallbacks(flingStep);
                     return true;
                 }
-                if (musicTap) {
+                if (doubleTap || musicTap) {
                     return true;
                 }
                 if (reordering) {
-                    reorderTo = Math.max(0, Math.min(indexAtX(event.getX()),
+                    int next = Math.max(0, Math.min(indexAtX(event.getX()),
                             project.clips.size() - 1));
+                    if (next != reorderTo) {
+                        reorderTo = next;
+                        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                    }
                     invalidate();
                     return true;
                 }
-                if (Math.abs(event.getX() - downX) > touchSlop) {
+                float travel = event.getX() - downX;
+                if (Math.abs(travel) > dp(3)) {
                     removeCallbacks(longPress);
                 }
                 if (touchMode == MODE_EDGE_LEFT || touchMode == MODE_EDGE_RIGHT) {
@@ -623,16 +737,23 @@ public class TimelineView extends View {
                     }
                     long delta = (long) ((event.getX() - downX) / pxPerMs
                             * Math.max(0.1f, clip.speed));
-                    if (touchMode == MODE_EDGE_LEFT) {
-                        long maxStart = Math.max(0, trimEndMs - 250);
-                        trimStartMs = Math.max(0, Math.min(trimEndMs - 250, mainTrimStart + delta));
-                        trimStartMs = Math.max(0, Math.min(trimStartMs, maxStart));
-                    } else {
-                        long maxEnd = Math.max(250, clip.sourceDurationMs);
-                        trimEndMs = Math.max(trimStartMs + 250,
-                                Math.min(maxEnd, mainTrimEnd + delta));
-                    }
                     moved = true;
+                    if (touchMode == MODE_EDGE_LEFT) {
+                        long raw = Math.max(0, mainTrimStart + delta);
+                        raw = Math.min(raw, trimEndMs - 250);
+                        trimStartMs = snapTrimEdge(raw, clip);
+                    } else {
+                        long raw = Math.min(clip.sourceDurationMs, mainTrimEnd + delta);
+                        raw = Math.max(raw, trimStartMs + 250);
+                        trimEndMs = snapTrimEdge(raw, clip);
+                    }
+                    float edgeX = touchMode == MODE_EDGE_LEFT
+                            ? cx + (project.startOfClip(selectedIndex) - positionMs) * pxPerMs
+                            : cx + (project.startOfClip(selectedIndex) - positionMs) * pxPerMs
+                            + Math.max(dp(16), (trimEndMs - trimStartMs)
+                            / Math.max(0.1f, clip.speed) * pxPerMs);
+                    dragChipX = edgeX;
+                    dragChipText = longTime(trimEndMs - trimStartMs);
                     invalidate();
                     if (listener != null) {
                         listener.onTrim(selectedIndex, trimStartMs, trimEndMs, false);
@@ -640,7 +761,7 @@ public class TimelineView extends View {
                     return true;
                 }
                 float dx = event.getX() - lastX;
-                if (Math.abs(event.getX() - downX) > touchSlop) {
+                if (Math.abs(travel) > dp(2)) {
                     moved = true;
                 }
                 if (moved) {
@@ -658,10 +779,17 @@ public class TimelineView extends View {
                 if (getParent() != null) {
                     getParent().requestDisallowInterceptTouchEvent(false);
                 }
-                userScrolling = false;
                 removeCallbacks(longPress);
+                dragChipText = null;
+                if (doubleTap) {
+                    doubleTap = false;
+                    userScrolling = false;
+                    invalidate();
+                    return true;
+                }
                 if (musicTap) {
                     musicTap = false;
+                    userScrolling = false;
                     if (listener != null) {
                         listener.onMusicTap();
                     }
@@ -673,6 +801,7 @@ public class TimelineView extends View {
                     reordering = false;
                     reorderFrom = -1;
                     reorderTo = -1;
+                    userScrolling = false;
                     if (from >= 0 && to >= 0 && from != to && listener != null) {
                         listener.onReorder(from, to);
                     }
@@ -682,9 +811,11 @@ public class TimelineView extends View {
                 if (touchMode == MODE_EDGE_LEFT || touchMode == MODE_EDGE_RIGHT) {
                     touchMode = MODE_NONE;
                     mainTrimIndex = -1;
+                    userScrolling = false;
                     if (listener != null) {
                         listener.onTrim(selectedIndex, trimStartMs, trimEndMs, true);
                     }
+                    invalidate();
                     return true;
                 }
                 if (!moved) {
@@ -699,14 +830,32 @@ public class TimelineView extends View {
                             listener.onClipSelected(index);
                         }
                     }
-                } else if (listener != null) {
-                    listener.onSeek(positionMs);
+                    lastUpTime = System.currentTimeMillis();
+                    lastUpX = event.getX();
+                    userScrolling = false;
+                } else {
+                    velocityTracker.computeCurrentVelocity(1000);
+                    float vx = velocityTracker.getXVelocity();
+                    if (listener != null) {
+                        listener.onSeek(positionMs);
+                    }
                     int index = project.clipIndexAt(positionMs);
                     if (index >= 0 && index != selectedIndex) {
                         selectedIndex = index;
-                        listener.onClipSelected(index);
+                        if (listener != null) {
+                            listener.onClipSelected(index);
+                        }
+                    }
+                    if (Math.abs(vx) > dp(240) && pxPerMs > 0f) {
+                        flingVelocity = -vx / pxPerMs;
+                        flingLastMs = System.currentTimeMillis();
+                        flinging = true;
+                        postOnAnimation(flingStep);
+                    } else {
+                        userScrolling = false;
                     }
                 }
+                velocityTracker.clear();
                 syncTrimBounds();
                 invalidate();
                 return true;
@@ -716,14 +865,65 @@ public class TimelineView extends View {
                     getParent().requestDisallowInterceptTouchEvent(false);
                 }
                 removeCallbacks(longPress);
+                removeCallbacks(flingStep);
                 reordering = false;
                 musicTap = false;
+                doubleTap = false;
+                dragChipText = null;
                 userScrolling = false;
+                touchMode = MODE_NONE;
+                velocityTracker.clear();
                 invalidate();
                 return true;
             default:
                 return true;
         }
+    }
+
+    /** Snaps a trim edge to project boundaries and the playhead, with a light tick. */
+    private long snapTrimEdge(long sourceMs, Project.Clip clip) {
+        if (project == null || clip == null) {
+            return sourceMs;
+        }
+        long clipStart = project.startOfClip(selectedIndex);
+        float speed = Math.max(0.1f, clip.speed);
+        long tolerance = (long) (dp(10) / Math.max(0.0001f, pxPerMs) * speed);
+        long best = sourceMs;
+        long bestDelta = tolerance + 1;
+        for (int i = 0; i <= project.clips.size(); i++) {
+            long boundary = i == project.clips.size()
+                    ? project.durationMs() : project.startOfClip(i);
+            long candidate = clip.trimStartMs
+                    + Math.round((boundary - clipStart) * speed);
+            long delta = Math.abs(candidate - sourceMs);
+            if (delta <= tolerance && delta < bestDelta) {
+                bestDelta = delta;
+                best = candidate;
+            }
+        }
+        long playhead = clip.trimStartMs + Math.round((positionMs - clipStart) * speed);
+        long delta = Math.abs(playhead - sourceMs);
+        if (delta <= tolerance && delta < bestDelta) {
+            bestDelta = delta;
+            best = playhead;
+        }
+        if (best != sourceMs) {
+            hapticSnap(best);
+        }
+        return best;
+    }
+
+    private void hapticSnap(long value) {
+        if (value == lastSnapValue) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (now - lastHapticMs < 70) {
+            return;
+        }
+        lastHapticMs = now;
+        lastSnapValue = value;
+        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
     }
 
     private int indexAtX(float x) {
@@ -767,10 +967,13 @@ public class TimelineView extends View {
             case MotionEvent.ACTION_DOWN: {
                 downX = event.getX();
                 moved = false;
-                if (Math.abs(downX - trimXStart) <= dp(22)) {
+                dragChipText = null;
+                if (Math.abs(downX - trimXStart) <= dp(30)) {
                     touchMode = MODE_TRIM_LEFT;
-                } else if (Math.abs(downX - trimXEnd) <= dp(22)) {
+                    performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                } else if (Math.abs(downX - trimXEnd) <= dp(30)) {
                     touchMode = MODE_TRIM_RIGHT;
+                    performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
                 } else {
                     touchMode = MODE_SCROLL;
                 }
@@ -786,13 +989,24 @@ public class TimelineView extends View {
                     if (clip == null) {
                         return true;
                     }
+                    long tolerance = (long) (dp(9) / Math.max(0.0001f, trimPx));
+                    if (Math.abs(target) <= tolerance) {
+                        target = 0;
+                        hapticSnap(0);
+                    } else if (Math.abs(target - trimSourceMs) <= tolerance) {
+                        target = trimSourceMs;
+                        hapticSnap(trimSourceMs);
+                    }
                     if (touchMode == MODE_TRIM_LEFT) {
                         long maxStart = Math.max(0, trimEndMs - 250);
                         trimStartMs = Math.max(0, Math.min(target, maxStart));
+                        dragChipX = trimXStart;
                     } else {
                         long minEnd = Math.min(trimSourceMs, trimStartMs + 250);
                         trimEndMs = Math.max(minEnd, Math.min(target, trimSourceMs));
+                        dragChipX = trimXEnd;
                     }
+                    dragChipText = longTime(trimEndMs - trimStartMs);
                     invalidate();
                     if (listener != null) {
                         listener.onTrim(selectedIndex, trimStartMs, trimEndMs, false);
@@ -815,6 +1029,8 @@ public class TimelineView extends View {
                     listener.onTrimPreview(selectedIndex, Math.max(0, source));
                 }
                 touchMode = MODE_NONE;
+                dragChipText = null;
+                invalidate();
                 return true;
             }
             case MotionEvent.ACTION_CANCEL:
@@ -822,6 +1038,8 @@ public class TimelineView extends View {
                     getParent().requestDisallowInterceptTouchEvent(false);
                 }
                 touchMode = MODE_NONE;
+                dragChipText = null;
+                invalidate();
                 return true;
             default:
                 return true;

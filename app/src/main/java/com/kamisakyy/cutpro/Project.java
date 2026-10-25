@@ -129,7 +129,10 @@ public class Project {
         public long sourceDurationMs;
         public long trimStartMs;
         public long trimEndMs;
+        /** Video speed: frames and the on-timeline length of the clip. */
         public float speed = 1f;
+        /** Sound speed, independent of the video speed. 1 = original tempo. */
+        public float audioSpeed = 1f;
         public float volume = 1f;
         public int filter;
         /** True when the clip is a still image rather than a video. */
@@ -142,6 +145,11 @@ public class Project {
 
         public long trimmedDurationMs() {
             return Math.max(1L, trimEndMs - trimStartMs);
+        }
+
+        /** True when the sound of this clip is sped up or slowed down on its own. */
+        public boolean hasOwnAudioSpeed() {
+            return Math.abs(audioSpeed - speed) > 0.01f;
         }
 
         public long outputDurationMs() {
@@ -159,6 +167,7 @@ public class Project {
                 o.put("trimStart", trimStartMs);
                 o.put("trimEnd", trimEndMs);
                 o.put("speed", (double) speed);
+                o.put("audioSpeed", (double) audioSpeed);
                 o.put("volume", (double) volume);
                 o.put("filter", filter);
                 o.put("image", image);
@@ -185,6 +194,7 @@ public class Project {
             c.trimStartMs = o.optLong("trimStart", 0);
             c.trimEndMs = o.optLong("trimEnd", c.sourceDurationMs);
             c.speed = (float) o.optDouble("speed", 1f);
+            c.audioSpeed = (float) o.optDouble("audioSpeed", c.speed);
             c.volume = (float) o.optDouble("volume", 1f);
             c.filter = o.optInt("filter", 0);
             c.image = o.optBoolean("image", false);
