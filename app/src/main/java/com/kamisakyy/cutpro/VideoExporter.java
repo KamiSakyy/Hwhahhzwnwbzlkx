@@ -408,6 +408,30 @@ public final class VideoExporter {
                     .build();
         }
 
+        // A very long project with a short fragment would explode into hundreds of items,
+        // so fall back to the looping sequence with a single fragment.
+        int repeats = (int) Math.ceil(projectMs / (double) span);
+        if (repeats > 24) {
+            List<AudioProcessor> processors = new ArrayList<>();
+            processors.add(new GainAudioProcessor(
+                    Math.max(0f, Math.min(4f, project.musicVolume))));
+            if (project.musicFadeInMs > 0) {
+                processors.add(new FadeAudioProcessor(project.musicFadeInMs, 0, span));
+            }
+            MediaItem item = new MediaItem.Builder()
+                    .setUri(Uri.parse(project.musicUri))
+                    .setClippingConfiguration(new MediaItem.ClippingConfiguration.Builder()
+                            .setStartPositionMs(startMs)
+                            .setEndPositionMs(startMs + span)
+                            .build())
+                    .build();
+            EditedMediaItem edited = new EditedMediaItem.Builder(item)
+                    .setRemoveVideo(true)
+                    .setEffects(new Effects(processors, new ArrayList<Effect>()))
+                    .build();
+            return new EditedMediaItemSequence.Builder(edited).setIsLooping(true).build();
+        }
+
         EditedMediaItemSequence.Builder sequence = new EditedMediaItemSequence.Builder();
         long filled = 0L;
         int index = 0;

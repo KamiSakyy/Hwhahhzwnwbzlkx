@@ -2275,6 +2275,7 @@ public class EditorActivity extends Activity {
             float pitch = Math.max(0.25f, Math.min(4f,
                     pitchFactor * soundSpeed / videoSpeed));
             player.setPlaybackParameters(new PlaybackParameters(videoSpeed, pitch));
+            player.setVideoEffects(FilterPresets.effectsFor(clip));
             applyClipVolume();
         } catch (Throwable ignored) {
         }
@@ -3039,10 +3040,11 @@ public class EditorActivity extends Activity {
         }
         project.musicStartMs = Math.max(0, startMs);
         project.musicEndMs = Math.max(project.musicStartMs + 300, endMs);
-        prepareMusic();
         if (finished) {
+            prepareMusic();
             trimGesture = false;
             saveProject();
+            timeline.setMusicTrimMode(true);
             refreshPanel();
             toast("Фрагмент " + formatSeconds(project.musicStartMs) + " – "
                     + formatSeconds(project.musicEndMs));
