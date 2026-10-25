@@ -1518,6 +1518,14 @@ public class EditorActivity extends Activity {
 
         String audio = project.muteOriginal ? "без звука видео"
                 : (project.musicUri == null ? "звук видео" : "видео + музыка");
+        if (project.musicUri != null) {
+            if (project.musicSpan() > 0) {
+                audio = audio + " · фрагмент " + formatSeconds(project.musicSpan());
+            }
+            if (project.musicFadeInMs > 0 || project.musicFadeOutMs > 0) {
+                audio = audio + " · фейды";
+            }
+        }
         TextView summary = note(project.clips.size() + " " + clipsWord(project.clips.size())
                 + "  ·  "
                 + formatDuration(project.durationMs()) + "  ·  " + project.aspectLabel()
@@ -1529,7 +1537,13 @@ public class EditorActivity extends Activity {
 
     private View musicPanel() {
         View view = LayoutInflater.from(this).inflate(R.layout.panel_music, panelHost, false);
-        addHeader(view, "Музыка", project.musicUri == null ? "нет дорожки" : "включена");
+        String musicValue = "нет дорожки";
+        if (project.musicUri != null) {
+            musicValue = project.musicSpan() > 0
+                    ? formatSeconds(project.musicStartMs) + " – "
+                    + formatSeconds(project.musicEndMs) : "включена";
+        }
+        addHeader(view, "Музыка", musicValue);
         TextView name = view.findViewById(R.id.musicName);
         name.setText(project.musicUri == null ? "Дорожка не выбрана"
                 : (project.musicName == null ? "Дорожка" : project.musicName));
@@ -1696,6 +1710,17 @@ public class EditorActivity extends Activity {
         final LinearLayout fadeRow = row();
         fadeRow.setPadding(0, dp(5), 0, 0);
         rebuildTextFadeChip(fadeRow);
+        fadeRow.addView(chip("Удалить все", false, () -> {
+            if (clip.texts.isEmpty()) {
+                toast("Текстов пока нет");
+                return;
+            }
+            pushUndo();
+            clip.texts.clear();
+            saveProject();
+            rebuildTextOverlays();
+            toast("Все тексты клипа удалены");
+        }));
         ((LinearLayout) view).addView(fadeRow);
 
         view.findViewById(R.id.btnTextAdd).setOnClickListener(v -> {
