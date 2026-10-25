@@ -130,7 +130,6 @@ public class EditorActivity extends Activity {
     private String activePanel;
     private boolean exporting;
     private boolean trimGesture;
-    private float lastLinkSpeed = 1f;
     private boolean updatingSlider;
     private int exportShortSide = 1080;
     private int pendingTextColor = 0xFFFFFFFF;
@@ -215,6 +214,11 @@ public class EditorActivity extends Activity {
         findViewById(R.id.previewHost).setOnClickListener(v -> togglePlay());
         previewBox.setOnClickListener(v -> togglePlay());
         emptyHint.setOnClickListener(v -> pickMedia());
+        previewBox.setOnClickListener(v -> {
+            if (project != null && project.clips.isEmpty()) {
+                pickMedia();
+            }
+        });
         centerPlay.setOnClickListener(v -> togglePlay());
     }
 
@@ -494,7 +498,7 @@ public class EditorActivity extends Activity {
         bar.setProgressBackgroundTintList(ColorStateList.valueOf(getColor(R.color.surface3)));
         bar.setOnSeekBarChangeListener(listener);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                0, dp(26), 1f);
+                0, dp(34), 1f);
         lp.leftMargin = dp(8);
         lp.rightMargin = dp(8);
         bar.setLayoutParams(lp);
@@ -766,6 +770,11 @@ public class EditorActivity extends Activity {
         info.addView(note(trimSummary(clip)));
         box.addView(info);
 
+        TextView gestureHint = note("Края клипа тянутся прямо на таймлайне."
+                + " Долгое нажатие на клип — перемещение, щипок и двойной тап — масштаб.");
+        gestureHint.setPadding(0, dp(2), 0, 0);
+        box.addView(gestureHint);
+
         if (clip != null && clip.image) {
             LinearLayout durations = row();
             durations.setPadding(0, dp(4), 0, 0);
@@ -842,12 +851,13 @@ public class EditorActivity extends Activity {
                         if (!fromUser) {
                             return;
                         }
+                        float previous = clip.speed;
                         clip.speed = (progress + 25) / 100f;
-                        if (clip.audioSpeed == 0f
-                                || Math.abs(clip.audioSpeed - lastLinkSpeed) < 0.01f) {
+                        // Sound follows the picture until the user detaches it.
+                        if (clip.audioSpeed <= 0f
+                                || Math.abs(clip.audioSpeed - previous) < 0.01f) {
                             clip.audioSpeed = clip.speed;
                         }
-                        lastLinkSpeed = clip.speed;
                         videoValue.setText(String.format(Locale.US, "%.2fx", clip.speed));
                         timeline.setProject(project);
                         applyPlaybackParams();
@@ -941,6 +951,23 @@ public class EditorActivity extends Activity {
                 }));
         box.addView(audioLine);
 
+        LinearLayout audioPresets = row();
+        audioPresets.setPadding(0, dp(2), 0, 0);
+        for (float preset : values) {
+            final float presetSpeed = preset;
+            String label = (preset == Math.round(preset) ? String.valueOf((int) preset)
+                    : String.valueOf(preset)) + "x";
+            audioPresets.addView(chip(label,
+                    Math.abs(clip.audioSpeed - presetSpeed) < 0.01f, () -> {
+                        pushUndo();
+                        clip.audioSpeed = presetSpeed;
+                        saveProject();
+                        applyPlaybackParams();
+                        refreshPanel();
+                    }));
+        }
+        box.addView(scrollable(audioPresets));
+
         boolean sameSpeed = Math.abs(clip.audioSpeed - clip.speed) < 0.01f;
         String impactText = "Видео " + formatSeconds(clip.trimmedDurationMs())
                 + " → " + formatSeconds(clip.outputDurationMs())
@@ -1007,6 +1034,7 @@ public class EditorActivity extends Activity {
 
         LinearLayout chips = row();
         chips.setPadding(0, dp(2), 0, 0);
+        chips.addView(chip("Скорость звука", clip.hasOwnAudioSpeed(), () -> togglePanel(P_SPEED)));
         chips.addView(chip("Без звука", clip.volume < 0.01f, () -> {
             pushUndo();
             clip.volume = 0f;
@@ -2843,9 +2871,19 @@ public class EditorActivity extends Activity {
 
         timeline.setProject(project);
         timeline.setSelectedIndex(selectedIndex);
+        String speedHint = "";
+        if (hasSelection) {
+            Project.Clip current = project.clips.get(selectedIndex);
+            if (Math.abs(current.speed - 1f) > 0.01f) {
+                speedHint = "  ·  " + String.format(Locale.US, "%.2fx", current.speed);
+            }
+            if (current.hasOwnAudioSpeed()) {
+                speedHint += String.format(Locale.US, " звук %.2fx", current.audioSpeed);
+            }
+        }
         metaText.setText(project.aspectLabel() + "  ·  "
                 + project.clips.size() + " " + clipsWord(project.clips.size())
-                + (project.musicUri == null ? "" : "  ·  музыка"));
+                + (project.musicUri == null ? "" : "  ·  музыка") + speedHint);
         emptyHint.setVisibility(hasClips ? View.GONE : View.VISIBLE);
         btnExport.setAlpha(hasClips ? 1f : 0.4f);
         btnExport.setEnabled(hasClips);

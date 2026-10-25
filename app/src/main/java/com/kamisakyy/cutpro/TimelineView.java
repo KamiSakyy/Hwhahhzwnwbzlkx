@@ -383,7 +383,10 @@ public class TimelineView extends View {
             if (right < -dp(8) || x > w + dp(8)) {
                 continue;
             }
-            rect.set(x, top, right, bottom);
+            boolean lifted = reordering && i == reorderFrom;
+            float itemTop = lifted ? top - dp(7) : top;
+            float itemBottom = lifted ? bottom - dp(3) : bottom;
+            rect.set(lifted ? x - dp(2) : x, itemTop, lifted ? right + dp(2) : right, itemBottom);
             clipPaint.setColor(CLIP_COLORS[i % CLIP_COLORS.length]);
             canvas.drawRoundRect(rect, radius, radius, clipPaint);
 
@@ -401,12 +404,12 @@ public class TimelineView extends View {
             clipPath.reset();
             clipPath.addRoundRect(rect, radius, radius, Path.Direction.CW);
             canvas.clipPath(clipPath);
-            canvas.drawRect(x, bottom - dp(15), right, bottom, scrimPaint);
+            canvas.drawRect(rect.left, rect.bottom - dp(15), rect.right, rect.bottom, scrimPaint);
             canvas.restore();
 
-            if (reordering && i == reorderFrom) {
-                clipPaint.setColor(0x6600E5A0);
-                canvas.drawRoundRect(rect, radius, radius, clipPaint);
+            if (lifted) {
+                borderPaint.setStrokeWidth(dp(2.2f));
+                canvas.drawRoundRect(rect, radius, radius, borderPaint);
             }
             if (i == selectedIndex && !trimMode) {
                 borderPaint.setStrokeWidth(dp(2f));
@@ -442,6 +445,14 @@ public class TimelineView extends View {
                     ? boundaryX(project.clips.size())
                     : boundaryX(reorderTo) - (reorderTo > reorderFrom ? 0 : dp(2));
             canvas.drawRect(markerX - dp(1.5f), top, markerX + dp(1.5f), bottom, playheadPaint);
+            String hintText = "Отпустите — клип встанет сюда";
+            textPaint.setTextSize(dp(8.5f));
+            textPaint.setFakeBoldText(false);
+            textPaint.setColor(0xFFBFEFE0);
+            canvas.drawText(hintText, dp(10), rulerBottom - dp(3), textPaint);
+            textPaint.setFakeBoldText(true);
+            textPaint.setColor(0xFFF2F2F5);
+            textPaint.setTextSize(dp(9));
         }
         if (hasMusic) {
             drawMusicLane(canvas, rulerBottom, bottom, h, cx);

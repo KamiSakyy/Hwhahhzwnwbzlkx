@@ -195,6 +195,16 @@ public final class VideoExporter {
 
         EditedMediaItemSequence.Builder audioSequence = new EditedMediaItemSequence.Builder();
         int audioItems = 0;
+        // Only projects with a clip whose sound has its own tempo need the split path;
+        // everything else keeps the proven single-item route.
+        boolean splitAudio = false;
+        for (Project.Clip clip : project.clips) {
+            if (!clip.image && clip.hasOwnAudioSpeed()
+                    && !project.muteOriginal && clip.volume > 0.01f) {
+                splitAudio = true;
+                break;
+            }
+        }
 
         for (int i = 0; i < clipCount; i++) {
             Project.Clip clip = project.clips.get(i);
@@ -214,7 +224,7 @@ public final class VideoExporter {
 
             // Speed of the pictures only: sound is assembled in its own sequence below,
             // so «скорость видео» and «скорость звука» stay independent.
-            if (!clip.image && Math.abs(videoSpeed - 1f) > 0.01f) {
+            if (splitAudio && !clip.image && Math.abs(videoSpeed - 1f) > 0.01f) {
                 videoEffects.add(Effects.createExperimentalSpeedChangingEffect(
                         constantSpeed(videoSpeed)).second);
             }
@@ -238,16 +248,31 @@ public final class VideoExporter {
                                 .setEndPositionMs(clip.trimEndMs)
                                 .build())
                         .build();
+                List<AudioProcessor> inlineAudio = new ArrayList<>();
+                if (!splitAudio) {
+                    // Picture and sound share one tempo: the classic, well-tested route.
+                    if (!muted && Math.abs(clip.volume - 1f) > 0.01f) {
+                        inlineAudio.add(new GainAudioProcessor(clip.volume));
+                    }
+                    if (Math.abs(videoSpeed - 1f) > 0.01f) {
+                        Pair<AudioProcessor, Effect> speed =
+                                Effects.createExperimentalSpeedChangingEffect(
+                                        constantSpeed(videoSpeed));
+                        if (speed.first != null) {
+                            inlineAudio.add(speed.first);
+                        }
+                    }
+                }
                 editedBuilder = new EditedMediaItem.Builder(item)
-                        .setRemoveAudio(true)
-                        .setEffects(new Effects(new ArrayList<AudioProcessor>(), videoEffects));
+                        .setRemoveAudio(splitAudio || muted)
+                        .setEffects(new Effects(inlineAudio, videoEffects));
             }
             items.add(editedBuilder.build());
 
             // Sound for this clip: its own tempo, cut or padded to the video length.
             long slotUs = Math.max(100_000L, clipOutputMs * 1000L);
             long audioItemUs = 0;
-            if (!clip.image && !muted) {
+            if (splitAudio && !clip.image && !muted) {
                 long clippedAudioUs = Math.max(0L, clip.trimmedDurationMs() * 1000L);
                 long usableUs = Math.min(clippedAudioUs, (long) (slotUs * audioSpeed));
                 if (usableUs > 100_000L) {
@@ -277,7 +302,7 @@ public final class VideoExporter {
                 }
             }
             long gapUs = slotUs - audioItemUs;
-            if (gapUs > 100_000L) {
+            if (splitAudio && gapUs > 100_000L) {
                 audioSequence.addGap(gapUs);
             }
 

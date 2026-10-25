@@ -45,7 +45,7 @@
 
     <style name="PanelSlider">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">26dp</item>
+        <item name="android:layout_height">34dp</item>
         <item name="android:maxHeight">2dp</item>
         <item name="android:progressTint">@color/accent</item>
         <item name="android:progressBackgroundTint">@color/surface3</item>
