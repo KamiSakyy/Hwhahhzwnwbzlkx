@@ -296,9 +296,11 @@ public final class VideoExporter {
                     if (Math.abs(clip.volume - 1f) > 0.01f) {
                         audioProcessors.add(new GainAudioProcessor(clip.volume));
                     }
-                    if (Math.abs(audioSpeed - 1f) > 0.01f) {
+                    float pitch = Math.max(0.5f, Math.min(2f, clip.audioPitch));
+                    if (Math.abs(audioSpeed - 1f) > 0.01f || Math.abs(pitch - 1f) > 0.01f) {
                         SonicAudioProcessor sonic = new SonicAudioProcessor();
                         sonic.setSpeed(audioSpeed);
+                        sonic.setPitch(pitch);
                         audioProcessors.add(sonic);
                     }
                     if (clip.fadeInMs > 0 || clip.fadeOutMs > 0) {

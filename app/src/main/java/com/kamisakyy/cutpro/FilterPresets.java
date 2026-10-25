@@ -29,11 +29,12 @@ public final class FilterPresets {
         List<Effect> list = effectsFor(clip.filter, clip.brightness, clip.contrast,
                 clip.saturation, clip.warmth);
         int rotation = ((clip.rotation % 360) + 360) % 360;
-        if (rotation != 0 || clip.mirror) {
+        float zoom = Math.max(1f, Math.min(3f, clip.zoom));
+        if (rotation != 0 || clip.mirror || zoom > 1.001f) {
             ScaleAndRotateTransformation.Builder transform =
                     new ScaleAndRotateTransformation.Builder()
                             .setRotationDegrees(rotation)
-                            .setScale(clip.mirror ? -1f : 1f, 1f);
+                            .setScale((clip.mirror ? -1f : 1f) * zoom, zoom);
             list.add(transform.build());
         }
         return list;

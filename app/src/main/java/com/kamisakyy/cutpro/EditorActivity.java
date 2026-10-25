@@ -657,6 +657,19 @@ public class EditorActivity extends Activity {
                     }
                 });
 
+        addSliderRow(box, "МАСШТАБ", 200, Math.round((clip.zoom - 1f) * 100),
+                String.format(Locale.US, "%.2fx", clip.zoom), new SliderCallback() {
+                    @Override
+                    public void onProgress(int progress, TextView value) {
+                        clip.zoom = 1f + progress / 100f;
+                        value.setText(String.format(Locale.US, "%.2fx", clip.zoom));
+                    }
+
+                    @Override
+                    public void onDone() {
+                    }
+                });
+
         LinearLayout actions = row();
         actions.setPadding(0, dp(2), 0, 0);
         actions.addView(chip("Ко всем клипам", false, () -> {
@@ -670,6 +683,7 @@ public class EditorActivity extends Activity {
                 other.contrast = clip.contrast;
                 other.saturation = clip.saturation;
                 other.warmth = clip.warmth;
+                other.zoom = clip.zoom;
             }
             saveProject();
             rebuildPlaylist(currentProjectTime());
@@ -731,6 +745,7 @@ public class EditorActivity extends Activity {
 
         LinearLayout transform = row();
         transform.setPadding(0, dp(6), 0, 0);
+        transform.addView(chip("Стоп-кадр", false, () -> freezeFrame()));
         transform.addView(chip("Повернуть 90°", false, () -> rotateClip(90)));
         transform.addView(chip("Отразить", false, () -> mirrorClip()));
         transform.addView(chip("Сбросить вид", false, () -> resetTransform()));
@@ -989,6 +1004,47 @@ public class EditorActivity extends Activity {
                     }));
         }
         box.addView(scrollable(audioPresets));
+
+        final TextView pitchValue = new TextView(this);
+        pitchValue.setTextColor(getColor(R.color.text));
+        pitchValue.setTextSize(11f);
+        pitchValue.setText(String.format(Locale.US, "%.2f", clip.audioPitch));
+
+        LinearLayout pitchLine = row();
+        pitchLine.setPadding(0, dp(4), 0, 0);
+        pitchLine.addView(smallCaption("Тон"));
+        pitchLine.addView(panelSlider(150, (int) Math.round(clip.audioPitch * 100) - 50,
+                new SimpleSeekListener() {
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                        pushUndo();
+                    }
+
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (!fromUser) {
+                            return;
+                        }
+                        clip.audioPitch = (progress + 50) / 100f;
+                        pitchValue.setText(String.format(Locale.US, "%.2f", clip.audioPitch));
+                        applyPlaybackParams();
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        saveProject();
+                        refreshPanel();
+                    }
+                }));
+        box.addView(pitchLine);
+        pitchLine.addView(chip("1.00", Math.abs(clip.audioPitch - 1f) < 0.01f, () -> {
+            pushUndo();
+            clip.audioPitch = 1f;
+            saveProject();
+            applyPlaybackParams();
+            refreshPanel();
+        }));
+        pitchLine.addView(pitchValue);
 
         boolean sameSpeed = Math.abs(clip.audioSpeed - clip.speed) < 0.01f;
         String impactText = "Видео " + formatSeconds(clip.trimmedDurationMs())
@@ -1894,8 +1950,9 @@ public class EditorActivity extends Activity {
                 player.setVideoEffects(FilterPresets.effectsFor(clip));
                 player.setPlaybackParameters(new PlaybackParameters(
                         Math.max(0.25f, Math.min(4f, clip.speed)),
-                        Math.max(0.5f, Math.min(2f,
-                                Math.max(0.25f, clip.audioSpeed)
+                        Math.max(0.25f, Math.min(4f,
+                                Math.max(0.5f, Math.min(2f, clip.audioPitch))
+                                        * Math.max(0.25f, clip.audioSpeed)
                                         / Math.max(0.25f, clip.speed)))));
             } catch (Throwable ignored) {
             }
@@ -2130,8 +2187,11 @@ public class EditorActivity extends Activity {
         try {
             float videoSpeed = Math.max(0.25f, Math.min(4f, clip.speed));
             float soundSpeed = Math.max(0.25f, Math.min(4f, clip.audioSpeed));
-            // Player keeps the picture speed; a differing sound speed is hinted by pitch.
-            float pitch = Math.max(0.5f, Math.min(2f, soundSpeed / videoSpeed));
+            float pitchFactor = Math.max(0.5f, Math.min(2f, clip.audioPitch));
+            // Player keeps the picture speed; tempo and pitch of the sound are hinted
+            // by the pitch ratio, so a detached sound is audible in the preview.
+            float pitch = Math.max(0.25f, Math.min(4f,
+                    pitchFactor * soundSpeed / videoSpeed));
             player.setPlaybackParameters(new PlaybackParameters(videoSpeed, pitch));
             applyClipVolume();
         } catch (Throwable ignored) {
@@ -2965,6 +3025,108 @@ public class EditorActivity extends Activity {
         toast("Клип дублирован");
     }
 
+    /** Saves the current frame as a photo clip — CapCut's «стоп-кадр». */
+    private void freezeFrame() {
+        final Project.Clip clip = selectedClip();
+        if (clip == null || clip.uri == null || clip.image) {
+            toast("Поставьте плейхед на видео");
+            return;
+        }
+        final long sourceMs = Math.max(0, clip.trimStartMs + positionInCurrentClip());
+        toast("Делаю стоп-кадр…");
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                File output = null;
+                try {
+                    retriever.setDataSource(EditorActivity.this, Uri.parse(clip.uri));
+                    Bitmap frame = retriever.getFrameAtTime(sourceMs * 1000L,
+                            MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                    if (frame == null) {
+                        frame = retriever.getFrameAtTime();
+                    }
+                    if (frame == null) {
+                        throw new IllegalStateException("нет кадра");
+                    }
+                    int maxSide = Math.max(frame.getWidth(), frame.getHeight());
+                    if (maxSide > 1920) {
+                        float scale = 1920f / maxSide;
+                        Bitmap scaled = Bitmap.createScaledBitmap(frame,
+                                Math.max(1, Math.round(frame.getWidth() * scale)),
+                                Math.max(1, Math.round(frame.getHeight() * scale)), true);
+                        if (scaled != frame) {
+                            frame.recycle();
+                            frame = scaled;
+                        }
+                    }
+                    File dir = new File(getFilesDir(), "photos");
+                    if (!dir.exists() && !dir.mkdirs()) {
+                        throw new IllegalStateException("нет папки");
+                    }
+                    output = new File(dir, "frame_" + System.currentTimeMillis() + ".jpg");
+                    FileOutputStream out = new FileOutputStream(output);
+                    frame.compress(Bitmap.CompressFormat.JPEG, 92, out);
+                    out.flush();
+                    out.close();
+                    frame.recycle();
+                    final File saved = output;
+                    ui.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            addFreezeClip(saved);
+                        }
+                    });
+                } catch (Throwable t) {
+                    if (output != null) {
+                        output.delete();
+                    }
+                    ui.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            toast("Не удалось сделать стоп-кадр");
+                        }
+                    });
+                } finally {
+                    try {
+                        retriever.release();
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+        });
+    }
+
+    private void addFreezeClip(File file) {
+        pushUndo();
+        Project.Clip still = new Project.Clip();
+        still.uri = Uri.fromFile(file).toString();
+        still.name = "Стоп-кадр";
+        still.image = true;
+        still.sourceDurationMs = 1500L;
+        still.trimStartMs = 0;
+        still.trimEndMs = 1500L;
+        Project.Clip source = selectedClip();
+        if (source != null) {
+            still.speed = 1f;
+            still.audioSpeed = 1f;
+            still.filter = source.filter;
+            still.brightness = source.brightness;
+            still.contrast = source.contrast;
+            still.saturation = source.saturation;
+            still.warmth = source.warmth;
+            still.rotation = source.rotation;
+            still.mirror = source.mirror;
+            still.zoom = source.zoom;
+        }
+        int at = selectedIndex >= 0 ? selectedIndex + 1 : project.clips.size();
+        project.clips.add(Math.min(at, project.clips.size()), still);
+        selectedIndex = Math.min(at, project.clips.size() - 1);
+        saveProject();
+        rebuildPlaylist(project.startOfClip(selectedIndex));
+        toast("Стоп-кадр добавлен (1,5 с)");
+    }
+
     private void rotateClip(int degrees) {
         Project.Clip clip = selectedClip();
         if (clip == null) {
@@ -3001,6 +3163,7 @@ public class EditorActivity extends Activity {
         pushUndo();
         clip.rotation = 0;
         clip.mirror = false;
+        clip.zoom = 1f;
         saveProject();
         applyPlaybackParams();
         refreshPanel();

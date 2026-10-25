@@ -171,6 +171,10 @@ public class Project {
         public int rotation;
         /** Horizontal flip of the picture. */
         public boolean mirror;
+        /** Picture zoom, 1 = original framing, 2 = twice closer. */
+        public float zoom = 1f;
+        /** Sound pitch, independent of both speeds. 1 = natural. */
+        public float audioPitch = 1f;
         public int filter;
         /** True when the clip is a still image rather than a video. */
         public boolean image;
@@ -186,7 +190,8 @@ public class Project {
 
         /** True when the sound of this clip is sped up or slowed down on its own. */
         public boolean hasOwnAudioSpeed() {
-            return Math.abs(audioSpeed - speed) > 0.01f;
+            return Math.abs(audioSpeed - speed) > 0.01f
+                    || Math.abs(audioPitch - 1f) > 0.01f;
         }
 
         public long outputDurationMs() {
@@ -210,6 +215,8 @@ public class Project {
                 o.put("fadeOut", fadeOutMs);
                 o.put("rotation", rotation);
                 o.put("mirror", mirror);
+                o.put("zoom", (double) zoom);
+                o.put("audioPitch", (double) audioPitch);
                 o.put("filter", filter);
                 o.put("image", image);
                 o.put("brightness", (double) brightness);
@@ -241,6 +248,8 @@ public class Project {
             c.fadeOutMs = o.optLong("fadeOut", 0);
             c.rotation = o.optInt("rotation", 0);
             c.mirror = o.optBoolean("mirror", false);
+            c.zoom = (float) o.optDouble("zoom", 1d);
+            c.audioPitch = (float) o.optDouble("audioPitch", 1d);
             c.filter = o.optInt("filter", 0);
             c.image = o.optBoolean("image", false);
             c.brightness = (float) o.optDouble("brightness", 0d);
